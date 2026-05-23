@@ -1,12 +1,10 @@
-import { Component, signal } from '@angular/core';
-import { RouterOutlet } from '@angular/router';
+import { Component } from '@angular/core';
+import { ShellComponent } from './presentation/layout/shell/shell.component';
 
 @Component({
   selector: 'app-root',
-  imports: [RouterOutlet],
-  templateUrl: './app.html',
-  styleUrl: './app.scss'
+  standalone: true,
+  imports: [ShellComponent],
+  template: '<app-shell />',
 })
-export class App {
-  protected readonly title = signal('flow-ease');
-}
+export class App {}

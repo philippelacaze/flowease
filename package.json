@@ -4,9 +4,13 @@
   "scripts": {
     "ng": "ng",
     "start": "ng serve",
+    "start:mobile": "ng serve --host 0.0.0.0",
     "build": "ng build",
     "watch": "ng build --watch --configuration development",
-    "test": "ng test"
+    "test": "ng test",
+    "playwright--ui": "npx playwright test --ui",
+    "playwright--headed": "npx playwright test --headed --project=\"Mobile Chrome (Pixel 7)\""
+
   },
   "prettier": {
     "printWidth": 100,
@@ -23,12 +27,16 @@
   "private": true,
   "packageManager": "npm@11.8.0",
   "dependencies": {
+    "@angular/animations": "^21.2.14",
+    "@angular/cdk": "^21.2.12",
     "@angular/common": "^21.1.0",
     "@angular/compiler": "^21.1.0",
     "@angular/core": "^21.1.0",
     "@angular/forms": "^21.1.0",
+    "@angular/material": "^21.2.12",
     "@angular/platform-browser": "^21.1.0",
     "@angular/router": "^21.1.0",
+    "idb": "^8.0.3",
     "rxjs": "~7.8.0",
     "tslib": "^2.3.0"
   },
@@ -36,6 +44,8 @@
     "@angular/build": "^21.1.4",
     "@angular/cli": "^21.1.4",
     "@angular/compiler-cli": "^21.1.0",
+    "@playwright/test": "^1.59.1",
+    "fake-indexeddb": "^6.2.5",
     "jsdom": "^27.1.0",
     "typescript": "~5.9.2",
     "vitest": "^4.0.8"

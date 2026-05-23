@@ -1,0 +1,201 @@
+{
+  "common": {
+    "loading": "Loading…",
+    "saving": "Saving…",
+    "cancel": "Cancel",
+    "confirm": "Confirm",
+    "close": "Close",
+    "delete": "Delete",
+    "save": "Save",
+    "copied": "Copied!",
+    "copy": "Copy",
+    "offline": "Offline — data is saved locally",
+    "online": "Connection restored",
+    "tokenCounter": "~{{count}} tokens this session",
+    "aiUnavailable": "AI analysis unavailable — manual entry still possible",
+    "days": "days",
+    "daysAgo": "{{count}} days ago"
+  },
+  "journal": {
+    "title": "Journal",
+    "addEntry": "Add a journal entry",
+    "emptyDay": "No entries for this day.",
+    "emptyHint": "Tap + to get started.",
+    "prevDay": "Previous day",
+    "nextDay": "Next day",
+    "sections": {
+      "meals": "Meals",
+      "symptoms": "Symptoms",
+      "intakes": "Medications",
+      "notes": "Notes"
+    },
+    "meal": {
+      "add": "Add a meal",
+      "validate": "Save meal",
+      "foodCount": "{{count}} item(s)",
+      "modeText": "Text — describe the meal freely",
+      "modeVoice": "Voice — dictate the meal content",
+      "modePhoto": "Photo — AI identifies the foods",
+      "modeRecurring": "Recent — frequent foods from history",
+      "foodName": "Food name",
+      "mealTime": "Meal time",
+      "aiBadge": "AI",
+      "types": {
+        "breakfast": "Breakfast",
+        "lunch": "Lunch",
+        "dinner": "Dinner",
+        "snack": "Snack"
+      }
+    },
+    "symptom": {
+      "add": "Add a symptom",
+      "validate": "Save symptoms",
+      "intensity": "Intensity {{value}}/10",
+      "groups": {
+        "digestive": "Digestive",
+        "systemic": "Systemic",
+        "wellbeing": "Wellbeing"
+      },
+      "keys": {
+        "abdominal_pain": "Abdominal pain",
+        "bloating": "Bloating",
+        "nausea": "Nausea",
+        "gas": "Gas",
+        "constipation": "Constipation",
+        "diarrhea": "Diarrhea",
+        "fatigue": "Fatigue",
+        "wellbeing_score": "Wellbeing score"
+      }
+    },
+    "intake": {
+      "add": "Confirm a medication",
+      "validate": "Save intakes",
+      "taken": "Taken",
+      "skipped": "Skipped",
+      "tapToConfirm": "Tap to confirm",
+      "holdForDetail": "Hold for details"
+    },
+    "note": {
+      "add": "Add a note",
+      "validate": "Save note",
+      "linkTo": "Link to…",
+      "modeText": "Text",
+      "modeVoice": "Voice",
+      "modePhoto": "Photo"
+    },
+    "entryTypes": {
+      "meal": "Meal",
+      "symptom": "Symptom",
+      "intake": "Medication",
+      "note": "Note"
+    }
+  },
+  "analysis": {
+    "title": "Analysis",
+    "windowSelector": "Analysis window",
+    "windows": {
+      "7": "7 days",
+      "14": "14 days",
+      "30": "30 days",
+      "90": "90 days"
+    },
+    "runAnalysis": "Run analysis",
+    "analysisWindow": "Analysis window (days)",
+    "lastAnalysis": "Last analysis: {{count}} days ago",
+    "noAnalysis": "No analysis yet",
+    "copyForDoctor": "Copy for my doctor",
+    "insights": {
+      "correlation": "Correlations",
+      "pattern": "Patterns",
+      "alert": "Alerts",
+      "recommendation": "Recommendations"
+    },
+    "confidence": "Confidence: {{level}}",
+    "adherence": {
+      "title": "Treatment adherence",
+      "good": "Good (≥ 80%)",
+      "partial": "Partial (50–80%)",
+      "poor": "Poor (< 50%)",
+      "noData": "No data"
+    },
+    "wellbeing": {
+      "title": "Wellbeing"
+    }
+  },
+  "report": {
+    "title": "Report",
+    "generate": "Generate",
+    "regenerate": "Regenerate",
+    "format": {
+      "pdf": "PDF",
+      "text": "Text"
+    },
+    "aiSummary": "AI summary",
+    "aiSummaryWarning": "Consumes Anthropic tokens",
+    "window": "Period",
+    "history": "Report history",
+    "noHistory": "No reports generated"
+  },
+  "coach": {
+    "title": "Coach",
+    "newConversation": "New conversation",
+    "send": "Send",
+    "copy": "Copy",
+    "deleteHistory": "Delete all history",
+    "deleteHistoryConfirm": "Delete all Coach session history? This action is irreversible.",
+    "suggestions": {
+      "weeklyProtocol": "How is my protocol going this week?",
+      "triggers": "Which foods seem to trigger my symptoms?",
+      "adherence": "Is my treatment adherence satisfactory?",
+      "trends": "What are my wellbeing trends this month?"
+    },
+    "context": {
+      "today": "Today",
+      "week7": "7 days",
+      "week14": "14 days",
+      "month30": "30 days",
+      "profileOnly": "Profile only"
+    },
+    "history": {
+      "title": "Session history",
+      "noSessions": "No previous sessions",
+      "messages": "{{count}} messages"
+    }
+  },
+  "settings": {
+    "title": "Settings",
+    "sections": {
+      "profile": "Profile",
+      "apiKey": "Anthropic API Key",
+      "treatments": "Treatments",
+      "symptomsConfig": "Symptom configuration",
+      "coachSettings": "Coach preferences",
+      "dataPrivacy": "Data & privacy",
+      "about": "About"
+    },
+    "apiKey": {
+      "label": "Anthropic API Key",
+      "test": "Test",
+      "valid": "Valid key",
+      "invalid": "Invalid key",
+      "docLink": "Anthropic documentation"
+    },
+    "data": {
+      "export": "Export data (JSON)",
+      "import": "Import data (JSON)",
+      "deleteAll": "Delete all data",
+      "deleteConfirm": "Delete all data? This action is irreversible."
+    },
+    "coach": {
+      "mode": "Coach mode",
+      "showTokenCounter": "Show token counter",
+      "language": "Language",
+      "defaultContext": "Default context"
+    },
+    "about": {
+      "version": "Version",
+      "github": "Source code (GitHub)",
+      "legal": "Medical data stored locally. No transmission without a configured API key."
+    }
+  }
+}

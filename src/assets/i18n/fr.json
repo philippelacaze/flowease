@@ -1,0 +1,201 @@
+{
+  "common": {
+    "loading": "Chargement…",
+    "saving": "Enregistrement…",
+    "cancel": "Annuler",
+    "confirm": "Confirmer",
+    "close": "Fermer",
+    "delete": "Supprimer",
+    "save": "Enregistrer",
+    "copied": "Copié !",
+    "copy": "Copier",
+    "offline": "Hors-ligne — les données sont sauvegardées localement",
+    "online": "Connexion rétablie",
+    "tokenCounter": "~{{count}} tokens cette session",
+    "aiUnavailable": "Analyse IA indisponible — saisie manuelle possible",
+    "days": "jours",
+    "daysAgo": "il y a {{count}} jours"
+  },
+  "journal": {
+    "title": "Journal",
+    "addEntry": "Ajouter une entrée au journal",
+    "emptyDay": "Aucune entrée pour ce jour.",
+    "emptyHint": "Appuyez sur + pour commencer.",
+    "prevDay": "Jour précédent",
+    "nextDay": "Jour suivant",
+    "sections": {
+      "meals": "Repas",
+      "symptoms": "Symptômes",
+      "intakes": "Prises",
+      "notes": "Notes"
+    },
+    "meal": {
+      "add": "Ajouter un repas",
+      "validate": "Valider le repas",
+      "foodCount": "{{count}} aliment(s)",
+      "modeText": "Texte — décrivez librement le repas",
+      "modeVoice": "Vocal — dictez le contenu du repas",
+      "modePhoto": "Photo — l'IA identifie les aliments",
+      "modeRecurring": "Récurrents — aliments fréquents de l'historique",
+      "foodName": "Nom de l'aliment",
+      "mealTime": "Heure du repas",
+      "aiBadge": "IA",
+      "types": {
+        "breakfast": "Petit-déjeuner",
+        "lunch": "Déjeuner",
+        "dinner": "Dîner",
+        "snack": "Collation"
+      }
+    },
+    "symptom": {
+      "add": "Ajouter un symptôme",
+      "validate": "Valider les symptômes",
+      "intensity": "Intensité {{value}}/10",
+      "groups": {
+        "digestive": "Digestifs",
+        "systemic": "Systémiques",
+        "wellbeing": "Bien-être"
+      },
+      "keys": {
+        "abdominal_pain": "Douleur abdominale",
+        "bloating": "Ballonnement",
+        "nausea": "Nausée",
+        "gas": "Gaz",
+        "constipation": "Constipation",
+        "diarrhea": "Diarrhée",
+        "fatigue": "Fatigue",
+        "wellbeing_score": "Bien-être"
+      }
+    },
+    "intake": {
+      "add": "Confirmer une prise",
+      "validate": "Enregistrer les prises",
+      "taken": "Pris",
+      "skipped": "Sauté",
+      "tapToConfirm": "Appuyer pour confirmer",
+      "holdForDetail": "Maintenir pour les détails"
+    },
+    "note": {
+      "add": "Ajouter une note",
+      "validate": "Valider la note",
+      "linkTo": "Lier à…",
+      "modeText": "Texte",
+      "modeVoice": "Vocal",
+      "modePhoto": "Photo"
+    },
+    "entryTypes": {
+      "meal": "Repas",
+      "symptom": "Symptôme",
+      "intake": "Prise de traitement",
+      "note": "Note"
+    }
+  },
+  "analysis": {
+    "title": "Analyse",
+    "windowSelector": "Fenêtre d'analyse",
+    "windows": {
+      "7": "7 jours",
+      "14": "14 jours",
+      "30": "30 jours",
+      "90": "90 jours"
+    },
+    "runAnalysis": "Lancer une analyse",
+    "analysisWindow": "Fenêtre d'analyse (jours)",
+    "lastAnalysis": "Dernière analyse : il y a {{count}} jours",
+    "noAnalysis": "Aucune analyse réalisée",
+    "copyForDoctor": "Copier pour mon médecin",
+    "insights": {
+      "correlation": "Corrélations",
+      "pattern": "Patterns",
+      "alert": "Alertes",
+      "recommendation": "Recommandations"
+    },
+    "confidence": "Confiance : {{level}}",
+    "adherence": {
+      "title": "Observance des traitements",
+      "good": "Bonne (≥ 80%)",
+      "partial": "Partielle (50–80%)",
+      "poor": "Faible (< 50%)",
+      "noData": "Aucune saisie"
+    },
+    "wellbeing": {
+      "title": "Bien-être"
+    }
+  },
+  "report": {
+    "title": "Rapport",
+    "generate": "Générer",
+    "regenerate": "Regénérer",
+    "format": {
+      "pdf": "PDF",
+      "text": "Texte"
+    },
+    "aiSummary": "Synthèse IA",
+    "aiSummaryWarning": "Consomme des tokens Anthropic",
+    "window": "Période",
+    "history": "Historique des rapports",
+    "noHistory": "Aucun rapport généré"
+  },
+  "coach": {
+    "title": "Coach",
+    "newConversation": "Nouvelle conversation",
+    "send": "Envoyer",
+    "copy": "Copier",
+    "deleteHistory": "Supprimer tout l'historique",
+    "deleteHistoryConfirm": "Supprimer tout l'historique des sessions Coach ? Cette action est irréversible.",
+    "suggestions": {
+      "weeklyProtocol": "Comment se passe mon protocole cette semaine ?",
+      "triggers": "Quels aliments semblent déclencher mes symptômes ?",
+      "adherence": "Mon observance des traitements est-elle satisfaisante ?",
+      "trends": "Quelles sont mes tendances de bien-être ce mois-ci ?"
+    },
+    "context": {
+      "today": "Aujourd'hui",
+      "week7": "7 jours",
+      "week14": "14 jours",
+      "month30": "30 jours",
+      "profileOnly": "Profil uniquement"
+    },
+    "history": {
+      "title": "Historique des sessions",
+      "noSessions": "Aucune session précédente",
+      "messages": "{{count}} messages"
+    }
+  },
+  "settings": {
+    "title": "Paramètres",
+    "sections": {
+      "profile": "Profil",
+      "apiKey": "Clé API Anthropic",
+      "treatments": "Traitements",
+      "symptomsConfig": "Configuration des symptômes",
+      "coachSettings": "Préférences Coach",
+      "dataPrivacy": "Données & confidentialité",
+      "about": "À propos"
+    },
+    "apiKey": {
+      "label": "Clé API Anthropic",
+      "test": "Tester",
+      "valid": "Clé valide",
+      "invalid": "Clé invalide",
+      "docLink": "Documentation Anthropic"
+    },
+    "data": {
+      "export": "Exporter les données (JSON)",
+      "import": "Importer des données (JSON)",
+      "deleteAll": "Supprimer toutes les données",
+      "deleteConfirm": "Supprimer toutes les données ? Cette action est irréversible."
+    },
+    "coach": {
+      "mode": "Mode Coach",
+      "showTokenCounter": "Afficher le compteur de tokens",
+      "language": "Langue",
+      "defaultContext": "Contexte par défaut"
+    },
+    "about": {
+      "version": "Version",
+      "github": "Code source (GitHub)",
+      "legal": "Données médicales stockées localement. Aucune transmission sans clé API configurée."
+    }
+  }
+}

@@ -1,0 +1,43 @@
+@use '@angular/material' as mat;
+
+$primary: mat.m2-define-palette(mat.$m2-teal-palette, 700);
+$accent: mat.m2-define-palette(mat.$m2-amber-palette, 600);
+
+$flowease-light-theme: mat.m2-define-light-theme((
+  color: (
+    primary: $primary,
+    accent: $accent,
+  ),
+  density: -1,
+));
+
+$flowease-dark-theme: mat.m2-define-dark-theme((
+  color: (
+    primary: $primary,
+    accent: $accent,
+  ),
+  density: -1,
+));
+
+// Thème clair par défaut
+@include mat.all-component-themes($flowease-light-theme);
+
+// Mode auto : suit la préférence OS si aucune classe explicite n'est posée
+@media (prefers-color-scheme: dark) {
+  :root:not(.theme-light) {
+    @include mat.all-component-colors($flowease-dark-theme);
+    color-scheme: dark;
+  }
+}
+
+// Thème sombre forcé (classe posée par ThemeService)
+:root.theme-dark {
+  @include mat.all-component-colors($flowease-dark-theme);
+  color-scheme: dark;
+}
+
+// Thème clair forcé — écrase prefers-color-scheme: dark si l'utilisateur a choisi 'light'
+:root.theme-light {
+  @include mat.all-component-colors($flowease-light-theme);
+  color-scheme: light;
+}

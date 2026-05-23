@@ -1,59 +1,74 @@
 # FlowEase
 
-This project was generated using [Angular CLI](https://github.com/angular/angular-cli) version 21.1.4.
+Application mobile Angular de suivi quotidien pour les personnes atteintes de SIBO et gastroparésie.
+Toutes les données restent sur l'appareil (IndexedDB / localStorage) — aucun serveur requis.
 
-## Development server
+## Fonctionnalités
 
-To start a local development server, run:
+- **Journal quotidien** : repas (texte, vocal, photo IA), symptômes, prises de traitements, notes
+- **Analyse** : tendances symptômes, observance, analyse IA sur fenêtre 7–90 jours
+- **Rapport** : génération PDF ou texte, synthèse IA optionnelle
+- **Coach IA** : chat Claude avec streaming, contexte médical configurable
+- **Offline-first** : toutes les saisies fonctionnent sans connexion
+
+## Architecture
+
+Clean Architecture 4 couches — la dépendance ne va jamais dans l'autre sens :
+
+```
+domain/         → interfaces et types purs (zéro dépendance externe)
+application/    → use cases (dépend uniquement de domain/)
+infrastructure/ → adapters IndexedDB + Anthropic (implémente domain/repositories/)
+presentation/   → composants Angular standalone (dépend uniquement de application/)
+```
+
+## Installation
 
 ```bash
+git clone https://github.com/<user>/flow-ease.git
+cd flow-ease
+npm install
 ng serve
 ```
 
-Once the server is running, open your browser and navigate to `http://localhost:4200/`. The application will automatically reload whenever you modify any of the source files.
+Ouvrir [http://localhost:4200](http://localhost:4200) dans un navigateur mobile ou DevTools en vue mobile.
 
-## Code scaffolding
+## Configuration de la clé API Anthropic
 
-Angular CLI includes powerful code scaffolding tools. To generate a new component, run:
+1. Ouvrir **Paramètres → Clé API**
+2. Coller une clé API Anthropic (`sk-ant-...`)
+3. Appuyer sur **Tester** — un badge "Claude Pro actif" apparaît dans la navigation
 
-```bash
-ng generate component component-name
-```
+La clé est stockée uniquement dans `localStorage` de l'appareil, jamais transmise ailleurs.
+Les fonctions IA (analyse photo, coach, analyse tendances) restent disponibles en mode dégradé
+(sans clé) : les appels IA retournent silencieusement une réponse vide.
 
-For a complete list of available schematics (such as `components`, `directives`, or `pipes`), run:
-
-```bash
-ng generate --help
-```
-
-## Building
-
-To build the project run:
+## Lancer les tests
 
 ```bash
-ng build
+# Tests unitaires (Vitest)
+ng test --watch=false
+
+# Tests E2E (Playwright — Mobile Chrome + Mobile Safari)
+npx playwright test
+
+# Tests avec couverture
+ng test --coverage
 ```
 
-This will compile your project and store the build artifacts in the `dist/` directory. By default, the production build optimizes your application for performance and speed.
-
-## Running unit tests
-
-To execute unit tests with the [Vitest](https://vitest.dev/) test runner, use the following command:
+## Déploiement GitHub Pages
 
 ```bash
-ng test
+ng build --base-href /flowease/
 ```
 
-## Running end-to-end tests
+Le workflow CI (`.github/workflows/deploy.yml`) déclenche automatiquement le déploiement
+sur `main` après que les tests unitaires et E2E ont réussi.
 
-For end-to-end (e2e) testing, run:
+URL de production : `https://<user>.github.io/flowease/`
 
-```bash
-ng e2e
-```
+## Références
 
-Angular CLI does not come with an end-to-end testing framework by default. You can choose one that suits your needs.
-
-## Additional Resources
-
-For more information on using the Angular CLI, including detailed command references, visit the [Angular CLI Overview and Command Reference](https://angular.dev/tools/cli) page.
+- [Spécifications fonctionnelles](flowease-specs.md)
+- [Architecture détaillée](flowease-architecture.md)
+- [Plan de sessions Claude Code](flowease-sessions.md)

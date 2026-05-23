@@ -1,0 +1,25 @@
+<div class="side-nav" role="navigation" aria-label="Navigation principale">
+  <div class="side-nav__header">
+    <span class="side-nav__logo" aria-label="FlowEase">FlowEase</span>
+    @if (hasApiKey) {
+      <span class="side-nav__badge" role="status" aria-label="Claude Pro actif">
+        Claude Pro actif
+      </span>
+    }
+  </div>
+
+  <mat-nav-list>
+    @for (item of navItems; track item.path) {
+      <a
+        mat-list-item
+        [routerLink]="item.path"
+        routerLinkActive="active"
+        [attr.aria-label]="item.label"
+        [attr.data-testid]="'sidenav-' + item.path.slice(1)"
+      >
+        <mat-icon matListItemIcon aria-hidden="true">{{ item.icon }}</mat-icon>
+        <span matListItemTitle>{{ item.label }}</span>
+      </a>
+    }
+  </mat-nav-list>
+</div>

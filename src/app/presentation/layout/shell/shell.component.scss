@@ -1,0 +1,27 @@
+:host {
+  display: block;
+  height: 100%;
+}
+
+.shell-container {
+  height: 100%;
+}
+
+.shell-sidenav {
+  width: 240px;
+}
+
+.shell-mobile {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.shell-main {
+  flex: 1;
+  overflow-y: auto;
+}
+
+.shell-content {
+  overflow-y: auto;
+}

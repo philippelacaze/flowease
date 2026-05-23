@@ -1,0 +1,23 @@
+@if (isDesktop()) {
+  <mat-sidenav-container class="shell-container">
+    <mat-sidenav
+      mode="side"
+      opened
+      class="shell-sidenav"
+      role="complementary"
+      aria-label="Navigation latérale"
+    >
+      <app-side-nav />
+    </mat-sidenav>
+    <mat-sidenav-content class="shell-content" role="main">
+      <router-outlet />
+    </mat-sidenav-content>
+  </mat-sidenav-container>
+} @else {
+  <div class="shell-mobile">
+    <main class="shell-main" role="main">
+      <router-outlet />
+    </main>
+    <app-bottom-nav />
+  </div>
+}

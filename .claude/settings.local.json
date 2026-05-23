@@ -1,0 +1,18 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npm install *)",
+      "Bash(mkdir -p domain/entities domain/value-objects domain/repositories/ai application/journal application/analysis application/report application/coach application/settings infrastructure/storage infrastructure/ai/anthropic/prompts infrastructure/ai/null presentation/core/guards presentation/core/interceptors presentation/shared/components presentation/shared/pipes presentation/layout/shell presentation/layout/bottom-nav presentation/layout/side-nav presentation/features/journal presentation/features/analysis presentation/features/report presentation/features/coach presentation/features/settings)",
+      "Bash(touch domain/entities/.gitkeep domain/value-objects/.gitkeep domain/repositories/.gitkeep domain/repositories/ai/.gitkeep application/journal/.gitkeep application/analysis/.gitkeep application/report/.gitkeep application/coach/.gitkeep application/settings/.gitkeep infrastructure/storage/.gitkeep infrastructure/ai/anthropic/prompts/.gitkeep infrastructure/ai/null/.gitkeep presentation/core/guards/.gitkeep presentation/core/interceptors/.gitkeep presentation/shared/components/.gitkeep presentation/shared/pipes/.gitkeep presentation/layout/shell/.gitkeep presentation/layout/bottom-nav/.gitkeep presentation/layout/side-nav/.gitkeep presentation/features/journal/.gitkeep presentation/features/analysis/.gitkeep presentation/features/report/.gitkeep presentation/features/coach/.gitkeep presentation/features/settings/.gitkeep)",
+      "Bash(set NODE_OPTIONS=--use-system-ca)",
+      "Bash(NODE_OPTIONS=\"--use-system-ca\" npm install @angular/material@21 @angular/cdk@21)",
+      "Bash(NODE_OPTIONS=\"--use-system-ca\" npm install @angular/animations@21)",
+      "Bash(Get-ChildItem -Path \"C:\\\\angular\\\\flow-ease\\\\src\\\\app\" -Recurse -Filter \"*.ts\")",
+      "Bash(Select-Object -ExpandProperty FullName)",
+      "Bash(Sort-Object)",
+      "Bash(node *)",
+      "Bash(mkdir -p C:/angular/flow-ease/.github/workflows)",
+      "Bash(mkdir -p C:/angular/flow-ease/src/assets/i18n)"
+    ]
+  }
+}
