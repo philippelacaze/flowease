@@ -56,6 +56,9 @@ jobs:
         if: steps.playwright-cache.outputs.cache-hit == 'true'
         run: npx playwright install-deps chromium
 
+      - name: Install serve (serveur SPA statique)
+        run: npm install -g serve
+
       - name: Run E2E tests (Playwright)
         run: npx playwright test
 

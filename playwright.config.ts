@@ -4,8 +4,9 @@ export default defineConfig({
   testDir: './e2e',
   fullyParallel: true,
   forbidOnly: !!process.env['CI'],
-  retries: process.env['CI'] ? 2 : 0,
-  workers: process.env['CI'] ? 1 : undefined,
+  retries: process.env['CI'] ? 0 : 0,
+  workers: process.env['CI'] ? 2 : undefined,
+  timeout: 20_000,
   reporter: 'html',
   use: {
     baseURL: 'http://localhost:4200',
@@ -26,7 +27,7 @@ export default defineConfig({
     // CI : sert le build statique (plus rapide que ng serve)
     // Local : réutilise ng serve s'il tourne déjà
     command: process.env['CI']
-      ? 'npx serve dist/flow-ease/browser -p 4200 --no-clipboard'
+      ? 'serve dist/flow-ease/browser -p 4200 --single --no-clipboard'
       : 'npm start',
     url: 'http://localhost:4200',
     reuseExistingServer: !process.env['CI'],
