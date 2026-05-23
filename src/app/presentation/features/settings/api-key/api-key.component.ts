@@ -86,12 +86,12 @@ type ApiKeyStatus = 'idle' | 'testing' | 'valid' | 'invalid';
         @if (testStatus() === 'valid') {
           <p class="status-msg success" role="status" data-testid="test-valid">
             <mat-icon>check_circle</mat-icon>
-            Clé valide — connexion à Claude établie.
+            Format valide — enregistrez pour activer Claude.
           </p>
         } @else if (testStatus() === 'invalid') {
           <p class="status-msg error" role="alert" data-testid="test-invalid">
             <mat-icon>error</mat-icon>
-            Clé invalide ou connexion impossible.
+            Format invalide — la clé doit commencer par <code>sk-ant-</code>.
           </p>
         }
 
@@ -101,7 +101,7 @@ type ApiKeyStatus = 'idle' | 'testing' | 'valid' | 'invalid';
             mat-stroked-button
             (click)="onTest()"
             [disabled]="!apiKeyInput || testStatus() === 'testing'"
-            aria-label="Tester la connexion à Claude"
+            aria-label="Vérifier le format de la clé API"
             data-testid="test-btn">
             @if (testStatus() === 'testing') {
               <mat-spinner diameter="18" />
@@ -232,21 +232,12 @@ export class ApiKeyComponent {
   protected hasKey = signal(this.settings.hasApiKey());
   protected testStatus = signal<ApiKeyStatus>('idle');
 
-  protected async onTest(): Promise<void> {
+  protected onTest(): void {
     if (!this.apiKeyInput) return;
-    this.testStatus.set('testing');
-
-    try {
-      const response = await fetch('https://api.anthropic.com/v1/models', {
-        headers: {
-          'x-api-key': this.apiKeyInput,
-          'anthropic-version': '2023-06-01',
-        },
-      });
-      this.testStatus.set(response.ok ? 'valid' : 'invalid');
-    } catch {
-      this.testStatus.set('invalid');
-    }
+    // L'API Anthropic ne supporte pas les appels CORS depuis un navigateur —
+    // on valide uniquement le format de la clé.
+    const valid = /^sk-ant-[a-zA-Z0-9_-]{20,}$/.test(this.apiKeyInput.trim());
+    this.testStatus.set(valid ? 'valid' : 'invalid');
   }
 
   protected onSave(): void {
