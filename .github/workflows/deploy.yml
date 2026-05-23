@@ -36,7 +36,7 @@ jobs:
         run: npm ci
 
       - name: Run unit tests (Vitest)
-        run: ng test --watch=false
+        run: npx ng test --watch=false
 
       - name: Install Playwright browsers
         run: npx playwright install --with-deps chromium webkit
@@ -45,7 +45,7 @@ jobs:
         run: npx playwright test
 
       - name: Build
-        run: ng build --base-href /flowease/
+        run: npx ng build --base-href /flowease/
 
       - name: Upload Pages artifact
         if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master')
