@@ -12,7 +12,8 @@
       "Bash(Sort-Object)",
       "Bash(node *)",
       "Bash(mkdir -p C:/angular/flow-ease/.github/workflows)",
-      "Bash(mkdir -p C:/angular/flow-ease/src/assets/i18n)"
+      "Bash(mkdir -p C:/angular/flow-ease/src/assets/i18n)",
+      "Bash(gh auth *)"
     ]
   }
 }

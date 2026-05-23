@@ -16,13 +16,18 @@ export default defineConfig({
       name: 'Mobile Chrome (Pixel 7)',
       use: { ...devices['Pixel 7'] },
     },
-    {
+    // WebKit uniquement en local — dépendances système trop lourdes en CI
+    ...(!process.env['CI'] ? [{
       name: 'Mobile Safari (iPhone 14)',
       use: { ...devices['iPhone 14'] },
-    },
+    }] : []),
   ],
   webServer: {
-    command: 'npm start',
+    // CI : sert le build statique (plus rapide que ng serve)
+    // Local : réutilise ng serve s'il tourne déjà
+    command: process.env['CI']
+      ? 'npx serve dist/flow-ease/browser -p 4200 --no-clipboard'
+      : 'npm start',
     url: 'http://localhost:4200',
     reuseExistingServer: !process.env['CI'],
   },
