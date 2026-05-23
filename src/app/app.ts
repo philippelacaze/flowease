@@ -1,6 +1,9 @@
 import { Component } from '@angular/core';
 import { ShellComponent } from './presentation/layout/shell/shell.component';
 
+/**
+ * @author Philippe Lacaze
+ */
 @Component({
   selector: 'app-root',
   standalone: true,
