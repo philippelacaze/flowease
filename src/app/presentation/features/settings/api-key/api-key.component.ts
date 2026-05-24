@@ -101,9 +101,10 @@ type ApiKeyStatus = 'idle' | 'testing' | 'valid' | 'invalid';
         <div class="actions">
           <button
             mat-stroked-button
+            class="action-btn"
             (click)="onTest()"
-            [disabled]="!apiKeyInput || testStatus() === 'testing'"
-            aria-label="Vérifier le format de la clé API"
+            [disabled]="(!apiKeyInput && !hasKey()) || testStatus() === 'testing'"
+            aria-label="Tester la connexion à l'API Anthropic"
             data-testid="test-btn">
             @if (testStatus() === 'testing') {
               <mat-spinner diameter="18" />
@@ -189,10 +190,14 @@ type ApiKeyStatus = 'idle' | 'testing' | 'valid' | 'invalid';
     }
     .status-msg {
       display: flex;
-      align-items: center;
+      align-items: flex-start;
       gap: 8px;
       font-size: 0.9rem;
       margin: 0;
+    }
+    .status-msg mat-icon {
+      flex-shrink: 0;
+      margin-top: 1px;
     }
     .status-msg.success { color: var(--mat-sys-tertiary); }
     .status-msg.error { color: var(--mat-sys-error); }
@@ -206,7 +211,7 @@ type ApiKeyStatus = 'idle' | 'testing' | 'valid' | 'invalid';
     }
     .doc-link {
       display: flex;
-      align-items: center;
+      align-items: flex-start;
       gap: 6px;
       font-size: 0.9rem;
     }
@@ -214,10 +219,12 @@ type ApiKeyStatus = 'idle' | 'testing' | 'valid' | 'invalid';
       font-size: 16px;
       width: 16px;
       height: 16px;
+      flex-shrink: 0;
+      margin-top: 2px;
     }
     .privacy-note {
       display: flex;
-      align-items: center;
+      align-items: flex-start;
       gap: 6px;
       font-size: 0.8rem;
       color: var(--mat-sys-on-surface-variant);
@@ -237,10 +244,11 @@ export class ApiKeyComponent {
   protected testError = signal<string | null>(null);
 
   protected async onTest(): Promise<void> {
-    if (!this.apiKeyInput) return;
+    const keyToTest = this.apiKeyInput || this.settings.getApiKey() || '';
+    if (!keyToTest) return;
     this.testStatus.set('testing');
     this.testError.set(null);
-    const result = await this.testUseCase.execute(this.apiKeyInput);
+    const result = await this.testUseCase.execute(keyToTest);
     if (result.ok) {
       this.testStatus.set('valid');
     } else {
