@@ -10,6 +10,7 @@ import type { ReportPort, ReportData } from '../../../domain/repositories/ai/rep
 import type { CoachMessage, CoachContext, CoachPort } from '../../../domain/repositories/ai/coach.port';
 import type { ApiKeyTestPort } from '../../../domain/repositories/ai/api-key-test.port';
 import { LocalSettingsAdapter } from '../../storage/local-settings.adapter';
+import { ErrorNotificationService } from '../../../core/error-notification.service';
 import { AnthropicClient } from './anthropic.client';
 import { MEAL_PHOTO_PROMPT } from './prompts/meal-photo.prompt';
 import { MEAL_TEXT_PROMPT } from './prompts/meal-text.prompt';
@@ -22,7 +23,7 @@ const ANTHROPIC_API_URL = 'https://api.anthropic.com/v1/messages';
 const ANTHROPIC_VERSION = '2023-06-01';
 
 /** Modèle par défaut pour les analyses et conversations. */
-const MODEL_DEFAULT = 'claude-sonnet-4-6';
+const MODEL_DEFAULT = 'claude-haiku-4-5-20251001'; // temporaire : test si claude-sonnet-4-6 est valide
 /** Modèle léger pour les tâches simples (taguage, extraction). */
 const MODEL_FAST = 'claude-haiku-4-5-20251001';
 
@@ -52,6 +53,7 @@ interface AnthropicResponse {
 @Injectable({ providedIn: 'root' })
 export class AnthropicAdapter implements MealAnalysisPort, NoteTaggingPort, AnalysisPort, ReportPort, CoachPort, ApiKeyTestPort {
   private readonly settings = inject(LocalSettingsAdapter);
+  private readonly errorNotification = inject(ErrorNotificationService);
   private readonly client: AnthropicClient;
 
   constructor(http: HttpClient) {
@@ -95,7 +97,9 @@ export class AnthropicAdapter implements MealAnalysisPort, NoteTaggingPort, Anal
       if (!response) return null;
       return this.parseFoodItems(response.content[0]?.text ?? '');
     } catch (err) {
-      console.error('[AnthropicAdapter] analyzeMealPhoto:', err instanceof Error ? err.message : 'Erreur inconnue');
+      const msg = err instanceof Error ? err.message : 'Erreur inconnue';
+      console.error('[AnthropicAdapter] analyzeMealPhoto:', msg);
+      this.errorNotification.show(msg);
       return null;
     }
   }
@@ -133,10 +137,10 @@ export class AnthropicAdapter implements MealAnalysisPort, NoteTaggingPort, Anal
     if (text === null) return null;
 
     try {
-      const parsed = JSON.parse(text) as { tags: string[]; summary: string };
+      const parsed = JSON.parse(this.stripCodeFences(text)) as { tags: string[]; summary: string };
       return {
         tags: Array.isArray(parsed.tags) ? parsed.tags : [],
-        summary: typeof parsed.summary === 'string' ? parsed.summary : '',
+        summary: parsed.summary ?? '',
       };
     } catch {
       return null;
@@ -171,7 +175,7 @@ export class AnthropicAdapter implements MealAnalysisPort, NoteTaggingPort, Anal
     if (text === null) return null;
 
     try {
-      const parsed = JSON.parse(text) as { insights: AnalysisResult['insights'] };
+      const parsed = JSON.parse(this.stripCodeFences(text)) as { insights: AnalysisResult['insights'] };
       return {
         available: true,
         insights: Array.isArray(parsed.insights) ? parsed.insights : [],
@@ -254,19 +258,26 @@ export class AnthropicAdapter implements MealAnalysisPort, NoteTaggingPort, Anal
         }),
       });
     } catch {
+      this.errorNotification.show('Erreur réseau — vérifiez votre connexion internet');
       return;
     }
 
     if (response.status === 401) {
-      console.error('[AnthropicAdapter] sendMessage: clé API invalide (401)');
+      const msg = 'Clé API invalide — vérifiez votre clé sur console.anthropic.com (401)';
+      console.error('[AnthropicAdapter] sendMessage:', msg);
+      this.errorNotification.show(msg);
       return;
     }
     if (response.status === 429) {
-      console.error('[AnthropicAdapter] sendMessage: quota dépassé (429)');
+      const msg = 'Quota Anthropic dépassé — réessayez plus tard (429)';
+      console.error('[AnthropicAdapter] sendMessage:', msg);
+      this.errorNotification.show(msg);
       return;
     }
     if (!response.ok || !response.body) {
-      console.error(`[AnthropicAdapter] sendMessage: erreur ${response.status}`);
+      const msg = `Erreur Anthropic ${response.status}`;
+      console.error('[AnthropicAdapter] sendMessage:', msg);
+      this.errorNotification.show(msg);
       return;
     }
 
@@ -364,9 +375,19 @@ export class AnthropicAdapter implements MealAnalysisPort, NoteTaggingPort, Anal
       const text = response.content[0]?.text?.trim() ?? '';
       return text || null;
     } catch (err) {
-      console.error('[AnthropicAdapter] callApi:', err instanceof Error ? err.message : 'Erreur inconnue');
+      const msg = err instanceof Error ? err.message : 'Erreur inconnue';
+      console.error('[AnthropicAdapter] callApi:', msg);
+      this.errorNotification.show(msg);
       return null;
     }
+  }
+
+  /**
+   * Supprime les blocs de code markdown (```json … ```) que Claude ajoute parfois
+   * avant de parser le JSON. Sans ça, JSON.parse lève SyntaxError.
+   */
+  private stripCodeFences(text: string): string {
+    return text.replace(/^```(?:json)?\s*/i, '').replace(/\s*```\s*$/, '').trim();
   }
 
   /**
@@ -375,10 +396,13 @@ export class AnthropicAdapter implements MealAnalysisPort, NoteTaggingPort, Anal
    */
   private parseFoodItems(text: string): FoodItemVO[] {
     try {
-      const parsed = JSON.parse(text);
+      const parsed = JSON.parse(this.stripCodeFences(text));
       if (!Array.isArray(parsed)) return [];
       return parsed as FoodItemVO[];
-    } catch {
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : 'Erreur de parsing';
+      console.error('[AnthropicAdapter] parseFoodItems:', msg);
+      this.errorNotification.show('Réponse IA illisible — réessayez');
       return [];
     }
   }

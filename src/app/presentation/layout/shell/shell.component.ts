@@ -6,6 +6,7 @@ import { map } from 'rxjs/operators';
 import { MatSidenavModule } from '@angular/material/sidenav';
 import { BottomNavComponent } from '../bottom-nav/bottom-nav.component';
 import { SideNavComponent } from '../side-nav/side-nav.component';
+import { ErrorBannerComponent } from '../../shared/components/error-banner/error-banner.component';
 
 /**
  * Composant racine de mise en page de l'application.
@@ -19,7 +20,7 @@ import { SideNavComponent } from '../side-nav/side-nav.component';
 @Component({
   selector: 'app-shell',
   standalone: true,
-  imports: [RouterOutlet, MatSidenavModule, BottomNavComponent, SideNavComponent],
+  imports: [RouterOutlet, MatSidenavModule, BottomNavComponent, SideNavComponent, ErrorBannerComponent],
   templateUrl: './shell.component.html',
   styleUrl: './shell.component.scss',
 })
