@@ -4,6 +4,8 @@ import {
   ChangeDetectorRef,
   inject,
   OnInit,
+  OnDestroy,
+  signal,
 } from '@angular/core';
 import { NgFor, NgIf, DatePipe } from '@angular/common';
 import { Router } from '@angular/router';
@@ -20,21 +22,15 @@ const MEAL_LABELS: Record<string, string> = {
   snack: 'Collation',
 };
 
-const QUICK_ACTIONS = [
-  { label: 'Repas',      icon: 'restaurant',      route: '/journal/meal',    testid: 'action-meal'    },
-  { label: 'Symptômes',  icon: 'health_and_safety',route: '/journal/symptom', testid: 'action-symptom' },
-  { label: 'Prises',     icon: 'medication',       route: '/journal/intake',  testid: 'action-intake'  },
-  { label: 'Note',       icon: 'edit_note',        route: '/journal/note',    testid: 'action-note'    },
-] as const;
-
 /**
- * Page d'accueil du journal — accès direct aux 4 saisies + journal détaillé du jour.
+ * Page d'accueil du journal — navigation rapide vers les 4 saisies + journal détaillé du jour.
  *
  * @remarks
  * Respecte SRP : navigation et affichage uniquement.
- * Les 4 boutons d'action remplacent le FAB + bottom sheet pour réduire le nombre de clics.
- * La liste des entrées affiche le détail complet (aliments, intensité, texte).
- * Locale fr-FR enregistrée dans app.config.ts — DatePipe produit des dates en français.
+ * La carte Repas expose micro (vocal) et appareil photo (vision) pour pré-remplir meal-entry.
+ * La carte Symptômes navigue directement vers /journal/symptom.
+ * Prises et Note sont en grille 2 colonnes.
+ * SpeechRecognition est instancié inline — pas d'injection de service pour cette API Web native.
  */
 @Component({
   selector: 'app-journal-home',
@@ -57,18 +53,79 @@ const QUICK_ACTIONS = [
         </button>
       </header>
 
-      <!-- Accès rapide aux 4 saisies -->
+      <!-- Accès rapide aux saisies -->
       <section class="quick-actions" aria-label="Nouvelle saisie">
-        <button
-          *ngFor="let a of quickActions"
-          class="action-btn"
-          matRipple
-          [attr.aria-label]="'Saisir ' + a.label"
-          [attr.data-testid]="a.testid"
-          (click)="navigate(a.route)">
-          <mat-icon class="action-icon" aria-hidden="true">{{ a.icon }}</mat-icon>
-          <span class="action-label">{{ a.label }}</span>
-        </button>
+
+        <!-- Repas — pleine largeur avec micro + appareil photo -->
+        <div class="action-card action-card--full" matRipple
+             role="button" tabindex="0"
+             aria-label="Saisir un repas"
+             data-testid="action-meal"
+             (click)="navigate('/journal/meal')"
+             (keydown.enter)="navigate('/journal/meal')"
+             (keydown.space)="navigate('/journal/meal')">
+          <div class="action-card-main">
+            <mat-icon class="action-icon" aria-hidden="true">restaurant</mat-icon>
+            <span class="action-label">Repas</span>
+          </div>
+          <div class="action-card-shortcuts">
+            <button mat-icon-button
+                    aria-label="Dicter un repas"
+                    data-testid="action-meal-mic"
+                    [class.recording]="isRecording()"
+                    (click)="startVoice($event)">
+              <mat-icon>{{ isRecording() ? 'stop' : 'mic' }}</mat-icon>
+            </button>
+            <button mat-icon-button
+                    aria-label="Photographier un repas"
+                    data-testid="action-meal-camera"
+                    (click)="openCamera($event)">
+              <mat-icon>photo_camera</mat-icon>
+            </button>
+          </div>
+        </div>
+        <input #photoInput type="file" accept="image/*" capture="environment"
+               class="hidden-input"
+               aria-hidden="true"
+               (change)="onPhotoChosen($event)" />
+
+        <!-- Symptômes — pleine largeur -->
+        <div class="action-card action-card--full" matRipple
+             role="button" tabindex="0"
+             aria-label="Saisir un symptôme"
+             data-testid="action-symptom"
+             (click)="navigate('/journal/symptom')"
+             (keydown.enter)="navigate('/journal/symptom')"
+             (keydown.space)="navigate('/journal/symptom')">
+          <div class="action-card-main">
+            <mat-icon class="action-icon" aria-hidden="true">health_and_safety</mat-icon>
+            <span class="action-label">Symptômes</span>
+          </div>
+        </div>
+
+        <!-- Prises + Note — grille 2 colonnes -->
+        <div class="action-card action-card--half" matRipple
+             role="button" tabindex="0"
+             aria-label="Saisir une prise"
+             data-testid="action-intake"
+             (click)="navigate('/journal/intake')"
+             (keydown.enter)="navigate('/journal/intake')"
+             (keydown.space)="navigate('/journal/intake')">
+          <mat-icon class="action-icon" aria-hidden="true">medication</mat-icon>
+          <span class="action-label">Prises</span>
+        </div>
+
+        <div class="action-card action-card--half" matRipple
+             role="button" tabindex="0"
+             aria-label="Saisir une note"
+             data-testid="action-note"
+             (click)="navigate('/journal/note')"
+             (keydown.enter)="navigate('/journal/note')"
+             (keydown.space)="navigate('/journal/note')">
+          <mat-icon class="action-icon" aria-hidden="true">edit_note</mat-icon>
+          <span class="action-label">Note</span>
+        </div>
+
       </section>
 
       <!-- Journal du jour -->
@@ -178,7 +235,7 @@ const QUICK_ACTIONS = [
       display: flex;
       align-items: center;
       justify-content: space-between;
-      padding: 4px 4px 4px 4px;
+      padding: 4px;
       background: var(--mat-sys-surface);
       border-bottom: 1px solid var(--mat-sys-outline-variant);
       position: sticky;
@@ -201,32 +258,65 @@ const QUICK_ACTIONS = [
       gap: 10px;
       padding: 12px 12px 4px;
     }
-    .action-btn {
+
+    .action-card {
       display: flex;
-      flex-direction: column;
       align-items: center;
-      justify-content: center;
-      gap: 6px;
-      min-height: 72px;
-      padding: 10px;
+      gap: 10px;
+      min-height: 64px;
+      padding: 10px 12px;
       background: var(--mat-sys-surface-container);
       border: none;
       border-radius: 14px;
       cursor: pointer;
       transition: background 0.15s;
+      outline: none;
+      user-select: none;
     }
-    .action-btn:active { background: var(--mat-sys-surface-container-high); }
+    .action-card:active { background: var(--mat-sys-surface-container-high); }
+    .action-card:focus-visible {
+      outline: 2px solid var(--mat-sys-primary);
+      outline-offset: 2px;
+    }
+
+    .action-card--full {
+      grid-column: 1 / -1;
+      justify-content: space-between;
+    }
+    .action-card--half {
+      flex-direction: column;
+      justify-content: center;
+      min-height: 72px;
+    }
+
+    .action-card-main {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .action-card-shortcuts {
+      display: flex;
+      align-items: center;
+      gap: 0;
+      flex-shrink: 0;
+    }
+
     .action-icon {
       font-size: 28px;
       width: 28px;
       height: 28px;
       color: var(--mat-sys-primary);
+      flex-shrink: 0;
     }
     .action-label {
-      font-size: 13px;
+      font-size: 14px;
       font-weight: 500;
       color: var(--mat-sys-on-surface);
     }
+
+    button.recording mat-icon { color: var(--mat-sys-error); }
+
+    .hidden-input { display: none; }
 
     /* ── Journal ─────────────────────────────────── */
     .loading {
@@ -338,15 +428,18 @@ const QUICK_ACTIONS = [
     .empty-hint { font-size: 13px; opacity: 0.7; margin: 0; }
   `],
 })
-export class JournalHomeComponent implements OnInit {
+export class JournalHomeComponent implements OnInit, OnDestroy {
   private readonly getJournalDay = inject(GetJournalDayUseCase);
   private readonly router = inject(Router);
   private readonly cdr = inject(ChangeDetectorRef);
 
-  protected readonly quickActions = QUICK_ACTIONS;
   protected currentDate = new Date();
   protected entries: JournalEntry[] = [];
   protected loading = true;
+  protected readonly isRecording = signal(false);
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  private recognition: any = null;
 
   protected get meals() {
     return this.entries.filter((e): e is Extract<JournalEntry, { kind: 'meal' }> => e.kind === 'meal');
@@ -367,6 +460,10 @@ export class JournalHomeComponent implements OnInit {
 
   ngOnInit(): void {
     void this.loadEntries();
+  }
+
+  ngOnDestroy(): void {
+    this.stopRecognition();
   }
 
   protected prevDay(): void {
@@ -390,6 +487,80 @@ export class JournalHomeComponent implements OnInit {
 
   protected mealLabel(type: string): string {
     return MEAL_LABELS[type] ?? type;
+  }
+
+  protected startVoice(event: Event): void {
+    event.stopPropagation();
+
+    if (this.isRecording()) {
+      this.stopRecognition();
+      return;
+    }
+
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const w = window as any;
+    const SpeechRecognitionCtor = w['SpeechRecognition'] ?? w['webkitSpeechRecognition'];
+
+    if (!SpeechRecognitionCtor) return;
+
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const rec: any = new SpeechRecognitionCtor();
+    rec.lang = 'fr-FR';
+    rec.interimResults = false;
+    rec.maxAlternatives = 1;
+
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    rec.onresult = (ev: any) => {
+      const transcript: string = ev.results[0]?.[0]?.transcript ?? '';
+      this.isRecording.set(false);
+      this.recognition = null;
+      void this.router.navigate(['/journal/meal'], { state: { transcript } });
+    };
+
+    rec.onerror = () => {
+      this.isRecording.set(false);
+      this.recognition = null;
+      this.cdr.markForCheck();
+    };
+
+    rec.onend = () => {
+      this.isRecording.set(false);
+      this.recognition = null;
+      this.cdr.markForCheck();
+    };
+
+    this.recognition = rec;
+    this.isRecording.set(true);
+    rec.start();
+  }
+
+  protected openCamera(event: Event): void {
+    event.stopPropagation();
+    const input = document.querySelector<HTMLInputElement>('input[type="file"][accept="image/*"]');
+    input?.click();
+  }
+
+  protected onPhotoChosen(event: Event): void {
+    const file = (event.target as HTMLInputElement).files?.[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = () => {
+      const dataUrl = reader.result as string;
+      const [header, base64] = dataUrl.split(',');
+      const mediaType = header.match(/:(.*?);/)?.[1] ?? 'image/jpeg';
+      void this.router.navigate(['/journal/meal'], { state: { photo: { base64, mediaType } } });
+    };
+    reader.readAsDataURL(file);
+
+    // reset so same file can be re-selected
+    (event.target as HTMLInputElement).value = '';
+  }
+
+  private stopRecognition(): void {
+    this.recognition?.stop();
+    this.recognition = null;
+    this.isRecording.set(false);
   }
 
   private async loadEntries(): Promise<void> {

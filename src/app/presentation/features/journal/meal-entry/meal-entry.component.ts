@@ -394,6 +394,14 @@ export class MealEntryComponent implements OnInit {
 
   ngOnInit(): void {
     void this.loadFrequentFoods();
+    const state = history.state as { transcript?: string; photo?: { base64: string; mediaType: string } };
+    if (state?.transcript) {
+      this.mode = 'voice';
+      void this.onTranscript(state.transcript);
+    } else if (state?.photo) {
+      this.mode = 'photo';
+      void this.onPhotoSelected({ base64: state.photo.base64, mediaType: state.photo.mediaType });
+    }
   }
 
   protected setMode(m: MealInputMode): void {
