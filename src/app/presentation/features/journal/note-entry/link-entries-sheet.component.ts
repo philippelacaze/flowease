@@ -20,69 +20,8 @@ import type { LinkedEntry } from '../../../../domain/entities/note.entity';
   selector: 'app-link-entries-sheet',
   standalone: true,
   imports: [NgFor, NgIf, MatListModule, MatIconModule, MatButtonModule, MatCheckboxModule],
-  template: `
-    <div class="link-sheet">
-      <h2 class="link-title" id="link-sheet-title">Lier à des entrées du jour</h2>
-
-      <div
-        *ngIf="entries.length === 0"
-        class="no-entries"
-        role="status"
-      >
-        Aucune entrée disponible pour ce jour.
-      </div>
-
-      <mat-selection-list
-        *ngIf="entries.length > 0"
-        aria-labelledby="link-sheet-title"
-        (selectionChange)="onSelectionChange($event.source.selectedOptions.selected)"
-      >
-        <mat-list-option
-          *ngFor="let entry of entries"
-          [value]="entry"
-          [attr.aria-label]="entryLabel(entry)"
-          checkboxPosition="before"
-        >
-          <mat-icon matListItemIcon aria-hidden="true">{{ entryIcon(entry) }}</mat-icon>
-          <span matListItemTitle>{{ entryLabel(entry) }}</span>
-        </mat-list-option>
-      </mat-selection-list>
-
-      <div class="link-actions">
-        <button
-          mat-button
-          aria-label="Annuler"
-          (click)="cancel()"
-        >Annuler</button>
-        <button
-          mat-raised-button
-          color="primary"
-          aria-label="Confirmer la sélection"
-          (click)="confirm()"
-        >Confirmer ({{ selectedEntries.length }})</button>
-      </div>
-    </div>
-  `,
-  styles: [`
-    .link-sheet { padding: 16px; }
-    .link-title {
-      margin: 0 0 12px;
-      font-size: 16px;
-      font-weight: 600;
-    }
-    .no-entries {
-      padding: 16px 0;
-      text-align: center;
-      color: var(--mat-sys-on-surface-variant);
-      font-size: 14px;
-    }
-    .link-actions {
-      display: flex;
-      justify-content: flex-end;
-      gap: 8px;
-      margin-top: 16px;
-    }
-  `],
+  templateUrl: './link-entries-sheet.component.html',
+  styleUrl: './link-entries-sheet.component.scss',
 })
 export class LinkEntriesSheetComponent {
   private readonly ref = inject(MatBottomSheetRef<LinkEntriesSheetComponent, LinkedEntry[]>);

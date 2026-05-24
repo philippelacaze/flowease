@@ -38,61 +38,8 @@ interface ContextOption {
   standalone: true,
   imports: [NgFor, NgIf, MatListModule, MatIconModule, MatButtonModule],
   changeDetection: ChangeDetectionStrategy.OnPush,
-  template: `
-    <div class="picker-header">
-      <h3>Choisir le contexte de données</h3>
-      <p class="picker-subtitle">Plus de contexte = réponses plus précises = plus de tokens</p>
-    </div>
-
-    <mat-nav-list>
-      <mat-list-item
-        *ngFor="let option of contextOptions"
-        (click)="onSelect(option)"
-        [attr.data-testid]="'context-option-' + option.key"
-        [attr.aria-label]="option.label + ' — ' + option.description + ', estimation ' + option.estimatedTokens"
-        class="context-option">
-        <mat-icon matListItemIcon aria-hidden="true">{{ option.icon }}</mat-icon>
-        <span matListItemTitle>{{ option.label }}</span>
-        <span matListItemLine>{{ option.description }}</span>
-        <span matListItemMeta class="token-estimate">{{ option.estimatedTokens }}</span>
-      </mat-list-item>
-    </mat-nav-list>
-
-    <div *ngIf="loading()" class="loading-overlay" role="status" aria-live="polite">
-      <span>Démarrage de la session...</span>
-    </div>
-  `,
-  styles: [`
-    .picker-header {
-      padding: 16px 16px 8px;
-    }
-    h3 {
-      margin: 0 0 4px;
-      font-size: 16px;
-      font-weight: 500;
-    }
-    .picker-subtitle {
-      margin: 0;
-      font-size: 13px;
-      color: var(--mat-sys-outline);
-    }
-    .context-option {
-      min-height: 64px;
-    }
-    .token-estimate {
-      font-size: 11px;
-      color: var(--mat-sys-outline);
-    }
-    .loading-overlay {
-      position: absolute;
-      inset: 0;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      background: rgba(var(--mat-sys-surface-rgb, 255 255 255) / 0.85);
-      font-size: 14px;
-    }
-  `],
+  templateUrl: './coach-context-picker.component.html',
+  styleUrl: './coach-context-picker.component.scss',
 })
 export class CoachContextPickerComponent {
   protected readonly loading = signal(false);

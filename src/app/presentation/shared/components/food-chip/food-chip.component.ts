@@ -28,86 +28,8 @@ import { FodmapColorPipe } from '../../pipes/fodmap-color.pipe';
   standalone: true,
   imports: [NgClass, NgIf, MatIconModule, MatChipsModule, FodmapColorPipe],
   changeDetection: ChangeDetectionStrategy.OnPush,
-  template: `
-    <div
-      class="food-chip"
-      [ngClass]="item.fodmap.level | fodmapColor"
-      role="listitem"
-    >
-      <span class="food-chip__name" [attr.aria-label]="chipAriaLabel">
-        {{ item.name }}
-        <span *ngIf="item.quantity" class="food-chip__qty"> {{ item.quantity }}{{ item.unit }}</span>
-      </span>
-
-      <span
-        *ngIf="!item.confirmed"
-        class="food-chip__ai-badge"
-        aria-label="Suggestion IA non validée"
-        title="Suggestion IA — appuyez pour valider"
-      >IA</span>
-
-      <ng-container *ngIf="editable">
-        <button
-          class="food-chip__btn"
-          [attr.aria-label]="'Modifier ' + item.name"
-          (click)="edit.emit(item)"
-        >
-          <mat-icon aria-hidden="true">edit</mat-icon>
-        </button>
-        <button
-          class="food-chip__btn food-chip__btn--remove"
-          [attr.aria-label]="'Supprimer ' + item.name"
-          (click)="remove.emit()"
-        >
-          <mat-icon aria-hidden="true">close</mat-icon>
-        </button>
-      </ng-container>
-    </div>
-  `,
-  styles: [`
-    :host { display: inline-block; }
-    .food-chip {
-      display: inline-flex;
-      align-items: center;
-      gap: 4px;
-      padding: 6px 10px;
-      border-radius: 20px;
-      font-size: 13px;
-      line-height: 1;
-      border: 1px solid transparent;
-    }
-    .chip-low     { background: #e8f5e9; border-color: #81c784; color: #2e7d32; }
-    .chip-medium  { background: #fff8e1; border-color: #ffd54f; color: #f57f17; }
-    .chip-high    { background: #ffebee; border-color: #e57373; color: #c62828; }
-    .chip-unknown { background: var(--mat-sys-surface-variant); color: var(--mat-sys-on-surface-variant); }
-
-    .food-chip__name { font-weight: 500; }
-    .food-chip__qty  { font-weight: 400; font-size: 11px; }
-
-    .food-chip__ai-badge {
-      font-size: 9px;
-      font-weight: 700;
-      background: var(--mat-sys-tertiary);
-      color: var(--mat-sys-on-tertiary);
-      border-radius: 4px;
-      padding: 1px 4px;
-    }
-
-    .food-chip__btn {
-      display: flex;
-      align-items: center;
-      min-width: 24px;
-      min-height: 24px;
-      padding: 0;
-      border: none;
-      background: transparent;
-      cursor: pointer;
-      color: inherit;
-      opacity: 0.7;
-    }
-    .food-chip__btn mat-icon { font-size: 16px; width: 16px; height: 16px; }
-    .food-chip__btn--remove:hover { opacity: 1; color: var(--mat-sys-error); }
-  `],
+  templateUrl: './food-chip.component.html',
+  styleUrl: './food-chip.component.scss',
 })
 export class FoodChipComponent {
   /** L'aliment à afficher. */

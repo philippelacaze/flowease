@@ -15,26 +15,7 @@ import { MatIconModule } from '@angular/material/icon';
   selector: 'app-entry-type-sheet',
   standalone: true,
   imports: [MatListModule, MatIconModule],
-  template: `
-    <mat-nav-list aria-label="Choisir le type d'entrée à créer">
-      <a mat-list-item (click)="navigate('meal')" data-testid="sheet-meal">
-        <mat-icon matListItemIcon aria-hidden="true">restaurant</mat-icon>
-        <span matListItemTitle>Repas</span>
-      </a>
-      <a mat-list-item (click)="navigate('symptom')" data-testid="sheet-symptom">
-        <mat-icon matListItemIcon aria-hidden="true">health_and_safety</mat-icon>
-        <span matListItemTitle>Symptômes</span>
-      </a>
-      <a mat-list-item (click)="navigate('intake')" data-testid="sheet-intake">
-        <mat-icon matListItemIcon aria-hidden="true">medication</mat-icon>
-        <span matListItemTitle>Prises</span>
-      </a>
-      <a mat-list-item (click)="navigate('note')" data-testid="sheet-note">
-        <mat-icon matListItemIcon aria-hidden="true">edit_note</mat-icon>
-        <span matListItemTitle>Note</span>
-      </a>
-    </mat-nav-list>
-  `,
+  templateUrl: './entry-type-sheet.component.html',
 })
 export class EntryTypeSheetComponent {
   private readonly ref = inject(MatBottomSheetRef);

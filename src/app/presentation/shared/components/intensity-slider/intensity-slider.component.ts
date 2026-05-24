@@ -16,42 +16,8 @@ import { FormsModule } from '@angular/forms';
   standalone: true,
   imports: [MatSliderModule, FormsModule],
   changeDetection: ChangeDetectionStrategy.OnPush,
-  template: `
-    <div class="intensity-slider">
-      <label class="intensity-label" [id]="labelId">
-        {{ label }}
-        <span class="intensity-value" aria-live="polite">{{ value }}/10</span>
-      </label>
-      <mat-slider
-        [min]="1"
-        [max]="10"
-        [step]="1"
-        [attr.aria-labelledby]="labelId"
-        [attr.aria-valuemin]="1"
-        [attr.aria-valuemax]="10"
-        [attr.aria-valuenow]="value"
-        [attr.aria-valuetext]="value + ' sur 10'"
-        class="full-width"
-      >
-        <input
-          matSliderThumb
-          [value]="value"
-          (valueChange)="onValueChange($event)"
-        />
-      </mat-slider>
-    </div>
-  `,
-  styles: [`
-    .intensity-slider { display: flex; flex-direction: column; gap: 4px; }
-    .intensity-label {
-      display: flex;
-      justify-content: space-between;
-      font-size: 14px;
-      color: var(--mat-sys-on-surface-variant);
-    }
-    .intensity-value { font-weight: 600; color: var(--mat-sys-primary); }
-    .full-width { width: 100%; }
-  `],
+  templateUrl: './intensity-slider.component.html',
+  styleUrl: './intensity-slider.component.scss',
 })
 export class IntensitySliderComponent {
   /** Label affiché au-dessus du slider. */

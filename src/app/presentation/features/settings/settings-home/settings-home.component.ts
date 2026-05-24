@@ -21,45 +21,8 @@ interface SettingsItem {
   selector: 'app-settings-home',
   standalone: true,
   imports: [RouterLink, MatListModule, MatIconModule],
-  template: `
-    <div class="settings-home">
-      <header class="page-header">
-        <h1>Paramètres</h1>
-      </header>
-
-      <mat-nav-list>
-        @for (item of items; track item.route) {
-          <a
-            mat-list-item
-            [routerLink]="item.route"
-            [attr.aria-label]="item.label"
-            [attr.data-testid]="'settings-' + item.route"
-            class="settings-item">
-            <mat-icon matListItemIcon>{{ item.icon }}</mat-icon>
-            <span matListItemTitle>{{ item.label }}</span>
-            <span matListItemLine>{{ item.description }}</span>
-            <mat-icon matListItemMeta>chevron_right</mat-icon>
-          </a>
-        }
-      </mat-nav-list>
-    </div>
-  `,
-  styles: [`
-    .settings-home {
-      max-width: 640px;
-      margin: 0 auto;
-    }
-    .page-header {
-      padding: 16px 16px 8px;
-    }
-    .page-header h1 {
-      font-size: 1.5rem;
-      margin: 0;
-    }
-    .settings-item {
-      min-height: 64px;
-    }
-  `],
+  templateUrl: './settings-home.component.html',
+  styleUrl: './settings-home.component.scss',
 })
 export class SettingsHomeComponent {
   protected readonly items: SettingsItem[] = [

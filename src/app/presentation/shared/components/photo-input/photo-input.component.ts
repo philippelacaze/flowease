@@ -33,44 +33,8 @@ export interface PhotoSelectedEvent {
   standalone: true,
   imports: [NgIf, MatButtonModule, MatIconModule],
   changeDetection: ChangeDetectionStrategy.OnPush,
-  template: `
-    <div class="photo-input">
-      <input
-        #fileInput
-        type="file"
-        accept="image/*"
-        capture="environment"
-        class="photo-input__hidden"
-        [attr.aria-hidden]="true"
-        (change)="onFileChange($event)"
-      />
-
-      <button
-        mat-raised-button
-        color="primary"
-        [disabled]="isOffline"
-        [attr.aria-label]="isOffline ? 'Photo désactivée — connexion requise' : 'Prendre une photo ou choisir une image'"
-        (click)="fileInput.click()"
-      >
-        <mat-icon aria-hidden="true">{{ isOffline ? 'cloud_off' : 'camera_alt' }}</mat-icon>
-        {{ isOffline ? 'Photo (hors-ligne)' : 'Photo' }}
-      </button>
-
-      <span *ngIf="isOffline" class="photo-offline-hint" role="status">
-        Connexion requise pour l'analyse IA
-      </span>
-
-      <span *ngIf="loading" class="photo-loading" role="status" aria-live="polite">
-        Chargement…
-      </span>
-    </div>
-  `,
-  styles: [`
-    .photo-input { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
-    .photo-input__hidden { display: none; }
-    .photo-offline-hint { font-size: 12px; color: var(--mat-sys-on-surface-variant); }
-    .photo-loading { font-size: 12px; color: var(--mat-sys-primary); }
-  `],
+  templateUrl: './photo-input.component.html',
+  styleUrl: './photo-input.component.scss',
 })
 export class PhotoInputComponent {
   /** Émis avec la donnée base64 et le MIME type de l'image sélectionnée. */

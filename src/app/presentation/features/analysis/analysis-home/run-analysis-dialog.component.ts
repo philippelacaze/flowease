@@ -33,67 +33,8 @@ export interface RunAnalysisDialogData {
     MatFormFieldModule,
     MatSelectModule,
   ],
-  template: `
-    <h2 mat-dialog-title>Lancer une analyse IA</h2>
-
-    <mat-dialog-content>
-      <p class="hint">
-        Claude analysera vos données pour identifier corrélations et patterns de santé.
-      </p>
-
-      <mat-form-field appearance="outline" class="window-field">
-        <mat-label>Fenêtre d'analyse</mat-label>
-        <mat-select
-          [(ngModel)]="selectedWindow"
-          aria-label="Fenêtre d'analyse en jours"
-          data-testid="analysis-window-select"
-        >
-          <mat-option *ngFor="let opt of windowOptions" [value]="opt.days">
-            {{ opt.label }}
-          </mat-option>
-        </mat-select>
-      </mat-form-field>
-
-      <p class="token-hint">
-        <span class="token-label">Estimation&nbsp;:</span>
-        {{ currentOption?.estimate }}
-      </p>
-    </mat-dialog-content>
-
-    <mat-dialog-actions align="end">
-      <button
-        mat-button
-        (click)="cancel()"
-        aria-label="Annuler l'analyse"
-      >
-        Annuler
-      </button>
-      <button
-        mat-flat-button
-        color="primary"
-        (click)="confirm()"
-        aria-label="Confirmer et lancer l'analyse"
-        data-testid="confirm-run-analysis"
-      >
-        Analyser
-      </button>
-    </mat-dialog-actions>
-  `,
-  styles: [`
-    .hint {
-      color: var(--mat-sys-on-surface-variant);
-      font-size: 14px;
-      line-height: 1.5;
-      margin: 0 0 20px;
-    }
-    .window-field { width: 100%; }
-    .token-hint {
-      font-size: 12px;
-      color: var(--mat-sys-on-surface-variant);
-      margin: 4px 0 0;
-    }
-    .token-label { font-weight: 500; }
-  `],
+  templateUrl: './run-analysis-dialog.component.html',
+  styleUrl: './run-analysis-dialog.component.scss',
 })
 export class RunAnalysisDialogComponent {
   protected selectedWindow: number;

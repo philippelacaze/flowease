@@ -70,53 +70,8 @@ interface SpeechRecognitionAlternative {
   standalone: true,
   imports: [NgIf, NgClass, MatIconModule, MatButtonModule],
   changeDetection: ChangeDetectionStrategy.OnPush,
-  template: `
-    <div class="voice-input">
-      <ng-container *ngIf="supported; else unsupported">
-        <button
-          mat-fab
-          [color]="state === 'recording' ? 'warn' : 'primary'"
-          [ngClass]="{ 'voice-btn--recording': state === 'recording' }"
-          [attr.aria-label]="state === 'recording' ? 'Arrêter la reconnaissance vocale' : 'Démarrer la reconnaissance vocale'"
-          [attr.aria-pressed]="state === 'recording'"
-          (click)="toggle()"
-        >
-          <mat-icon aria-hidden="true">{{ state === 'recording' ? 'stop' : 'mic' }}</mat-icon>
-        </button>
-
-        <span *ngIf="state === 'recording'" class="voice-status" role="status" aria-live="polite">
-          Écoute en cours…
-        </span>
-        <span *ngIf="state === 'error'" class="voice-error" role="alert">
-          {{ errorMessage }}
-        </span>
-      </ng-container>
-
-      <ng-template #unsupported>
-        <p class="voice-unsupported" role="status">
-          <mat-icon aria-hidden="true">mic_off</mat-icon>
-          Saisie vocale non supportée sur ce navigateur
-        </p>
-      </ng-template>
-    </div>
-  `,
-  styles: [`
-    .voice-input { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
-    .voice-btn--recording { animation: pulse 1s ease-in-out infinite; }
-    @keyframes pulse {
-      0%, 100% { transform: scale(1); }
-      50%       { transform: scale(1.08); }
-    }
-    .voice-status  { font-size: 13px; color: var(--mat-sys-primary); }
-    .voice-error   { font-size: 13px; color: var(--mat-sys-error); }
-    .voice-unsupported {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      font-size: 13px;
-      color: var(--mat-sys-on-surface-variant);
-    }
-  `],
+  templateUrl: './voice-input.component.html',
+  styleUrl: './voice-input.component.scss',
 })
 export class VoiceInputComponent implements OnDestroy {
   /** Émis en temps réel avec la transcription partielle ou finale. */

@@ -31,34 +31,8 @@ const MESSAGES: Record<string, string> = {
   standalone: true,
   imports: [NgIf, MatIconModule],
   changeDetection: ChangeDetectionStrategy.OnPush,
-  template: `
-    <div
-      *ngIf="!isOnline"
-      class="offline-banner"
-      role="status"
-      aria-live="polite"
-      data-testid="offline-banner"
-    >
-      <mat-icon aria-hidden="true" class="offline-icon">cloud_off</mat-icon>
-      <span>{{ offlineMessage }}</span>
-    </div>
-  `,
-  styles: [`
-    .offline-banner {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 8px;
-      padding: 8px 16px;
-      background: var(--mat-sys-error-container);
-      color: var(--mat-sys-on-error-container);
-      font-size: 13px;
-      position: sticky;
-      top: 0;
-      z-index: 100;
-    }
-    .offline-icon { font-size: 16px; width: 16px; height: 16px; }
-  `],
+  templateUrl: './offline-banner.component.html',
+  styleUrl: './offline-banner.component.scss',
 })
 export class OfflineBannerComponent implements OnInit, OnDestroy {
   protected isOnline = typeof navigator !== 'undefined' ? navigator.onLine : true;

@@ -17,25 +17,8 @@ import type { LocalSettingsRepository } from '../../../../domain/repositories/lo
   standalone: true,
   imports: [NgIf],
   changeDetection: ChangeDetectionStrategy.OnPush,
-  template: `
-    <span
-      *ngIf="visible"
-      class="token-counter"
-      aria-label="Estimation des tokens utilisés cette session"
-      data-testid="token-counter"
-    >
-      ~{{ sessionTokens }} tokens cette session
-    </span>
-  `,
-  styles: [`
-    .token-counter {
-      display: inline-block;
-      font-size: 11px;
-      color: var(--mat-sys-outline);
-      opacity: 0.7;
-      padding: 2px 8px;
-    }
-  `],
+  templateUrl: './token-counter.component.html',
+  styleUrl: './token-counter.component.scss',
 })
 export class TokenCounterComponent {
   /** Nombre de tokens estimé pour la session en cours. */
