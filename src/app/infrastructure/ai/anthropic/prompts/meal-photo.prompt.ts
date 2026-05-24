@@ -14,10 +14,12 @@ Retourne UNIQUEMENT un tableau JSON valide, sans texte avant ni après, avec ce 
   {
     "name": "nom de l'aliment en français",
     "quantity": "quantité estimée (ex: 200g, 1 portion, 1 bol)",
-    "fodmapLevel": "low" | "medium" | "high" | "unknown",
+    "fodmap": { "level": "low" },
     "confirmed": false
   }
 ]
+
+Les valeurs possibles pour fodmap.level sont : "low", "medium", "high", "unknown".
 
 Règles :
 - confirmed est toujours false (l'utilisateur valide ensuite)

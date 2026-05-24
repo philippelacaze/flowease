@@ -14,14 +14,16 @@ Retourne UNIQUEMENT un tableau JSON valide, sans texte avant ni après, avec ce 
   {
     "name": "nom de l'aliment en français",
     "quantity": "quantité mentionnée ou estimée (ex: 200g, 1 portion)",
-    "fodmapLevel": "low" | "medium" | "high" | "unknown",
+    "fodmap": { "level": "low" },
     "confirmed": false
   }
 ]
 
+Les valeurs possibles pour fodmap.level sont : "low", "medium", "high", "unknown".
+
 Règles :
 - confirmed est toujours false (l'utilisateur valide ensuite)
-- fodmapLevel basé sur les guidelines Monash University 2024
+- fodmap.level basé sur les guidelines Monash University 2024
 - Corrige les fautes d'orthographe et normalise les noms d'aliments
 - Si une quantité n'est pas mentionnée, estime une portion standard
 - Si le texte ne contient aucun aliment identifiable, retourne []

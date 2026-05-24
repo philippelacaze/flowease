@@ -22,7 +22,6 @@ import {
 import { IndexedDBAdapter } from './infrastructure/storage/indexeddb.adapter';
 import { LocalSettingsAdapter } from './infrastructure/storage/local-settings.adapter';
 import { AnthropicAdapter } from './infrastructure/ai/anthropic/anthropic.adapter';
-import { NullAIAdapter } from './infrastructure/ai/null/null-ai.adapter';
 import { ThemeService } from './presentation/core/theme.service';
 
 /**
@@ -30,16 +29,6 @@ import { ThemeService } from './presentation/core/theme.service';
  * Pas @Injectable — partagé entre app.config.ts et les guards.
  */
 export const localSettings = new LocalSettingsAdapter();
-
-/**
- * Factory générique pour les ports IA.
- * Retourne AnthropicAdapter si une clé API est configurée, NullAIAdapter sinon.
- * NullAIAdapter est instancié directement (pas de dépendances) pour ne pas
- * l'enregistrer dans le DI en conditions nominales.
- */
-function aiPortFactory(anthropic: AnthropicAdapter): unknown {
-  return localSettings.getApiKey() ? anthropic : new NullAIAdapter();
-}
 
 export const appConfig: ApplicationConfig = {
   providers: [
@@ -73,13 +62,14 @@ export const appConfig: ApplicationConfig = {
       multi: true,
     },
 
-    // Ports IA — factory : AnthropicAdapter si clé présente, new NullAIAdapter() sinon
-    { provide: MEAL_ANALYSIS_PORT, useFactory: aiPortFactory, deps: [AnthropicAdapter] },
-    { provide: NOTE_TAGGING_PORT,  useFactory: aiPortFactory, deps: [AnthropicAdapter] },
-    { provide: ANALYSIS_PORT,      useFactory: aiPortFactory, deps: [AnthropicAdapter] },
-    { provide: REPORT_PORT,        useFactory: aiPortFactory, deps: [AnthropicAdapter] },
-    { provide: COACH_PORT,         useFactory: aiPortFactory, deps: [AnthropicAdapter] },
-    // Test de clé — toujours AnthropicAdapter (appel réseau réel requis)
+    // Ports IA — AnthropicAdapter gère lui-même le cas "clé absente" (retourne null)
+    // La factory statique causait un bug : si la clé était ajoutée après démarrage,
+    // les ports restaient liés à NullAIAdapter pour toute la session.
+    { provide: MEAL_ANALYSIS_PORT, useExisting: AnthropicAdapter },
+    { provide: NOTE_TAGGING_PORT,  useExisting: AnthropicAdapter },
+    { provide: ANALYSIS_PORT,      useExisting: AnthropicAdapter },
+    { provide: REPORT_PORT,        useExisting: AnthropicAdapter },
+    { provide: COACH_PORT,         useExisting: AnthropicAdapter },
     { provide: API_KEY_TEST_PORT,  useExisting: AnthropicAdapter },
   ],
 };
