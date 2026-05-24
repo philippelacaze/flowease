@@ -1,5 +1,5 @@
 import { Component, inject, OnInit, signal } from '@angular/core';
-import { CommonModule } from '@angular/common';
+
 import { FormsModule, ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { MatButtonModule } from '@angular/material/button';
@@ -41,7 +41,6 @@ const CONDITION_LABELS: Record<MedicalCondition, string> = {
   selector: 'app-profile',
   standalone: true,
   imports: [
-    CommonModule,
     FormsModule,
     ReactiveFormsModule,
     RouterLink,
@@ -51,8 +50,8 @@ const CONDITION_LABELS: Record<MedicalCondition, string> = {
     MatInputModule,
     MatSelectModule,
     MatIconModule,
-    MatDividerModule,
-  ],
+    MatDividerModule
+],
   templateUrl: './profile.component.html',
   styleUrl: './profile.component.scss',
 })

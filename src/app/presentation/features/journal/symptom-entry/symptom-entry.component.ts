@@ -4,7 +4,7 @@ import {
   ChangeDetectorRef,
   inject,
 } from '@angular/core';
-import { NgFor, NgIf } from '@angular/common';
+
 import { Router } from '@angular/router';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
@@ -62,10 +62,12 @@ const SYMPTOM_DEFINITIONS: ReadonlyArray<
   selector: 'app-symptom-entry',
   standalone: true,
   imports: [
-    NgFor, NgIf,
-    MatButtonModule, MatIconModule,
-    IntensitySliderComponent, AbdominalMapComponent, BristolScaleComponent,
-  ],
+    MatButtonModule,
+    MatIconModule,
+    IntensitySliderComponent,
+    AbdominalMapComponent,
+    BristolScaleComponent
+],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './symptom-entry.component.html',
   styleUrl: './symptom-entry.component.scss',

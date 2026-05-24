@@ -1,5 +1,5 @@
 import { Component, inject, OnInit, signal } from '@angular/core';
-import { CommonModule } from '@angular/common';
+
 import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { MatButtonModule } from '@angular/material/button';
@@ -30,7 +30,6 @@ interface CoachPreferences {
   selector: 'app-coach-settings',
   standalone: true,
   imports: [
-    CommonModule,
     FormsModule,
     RouterLink,
     MatButtonModule,
@@ -39,8 +38,8 @@ interface CoachPreferences {
     MatFormFieldModule,
     MatSelectModule,
     MatIconModule,
-    MatDividerModule,
-  ],
+    MatDividerModule
+],
   templateUrl: './coach-settings.component.html',
   styleUrl: './coach-settings.component.scss',
 })

@@ -1,68 +1,74 @@
-    <div class="insights-wrapper">
-      <div *ngIf="loading" class="insights-state" role="status">Chargement…</div>
+<div class="insights-wrapper">
+  @if (loading) {
+    <div class="insights-state" role="status">Chargement…</div>
+  }
 
-      <ng-container *ngIf="!loading">
-        <div *ngIf="!lastResult" class="insights-state" role="status" data-testid="no-insights">
-          <mat-icon aria-hidden="true" class="empty-icon">auto_awesome</mat-icon>
-          <p>Aucune analyse effectuée.</p>
-          <p class="empty-hint">Appuyez sur le bouton ✨ pour lancer votre première analyse IA.</p>
-        </div>
-
-        <div *ngIf="lastResult && !lastResult.available" class="insights-state" role="status" data-testid="analysis-degraded">
-          <mat-icon aria-hidden="true" class="empty-icon">cloud_off</mat-icon>
-          <p>Analyse IA indisponible.</p>
-          <p class="empty-hint">Configurez votre clé API Anthropic dans les Paramètres.</p>
-        </div>
-
-        <ng-container *ngIf="lastResult?.available">
-          <!-- Analysis metadata -->
-          <div class="analysis-meta">
-            <span class="meta-date">
-              Analysé le {{ lastResult!.analyzedAt | date:'d MMM yyyy à HH:mm' }}
-              — fenêtre {{ lastResult!.windowDays }}&nbsp;j
-            </span>
-            <button
-              mat-stroked-button
-              class="copy-btn"
-              aria-label="Copier le résumé de l'analyse pour votre médecin"
-              data-testid="copy-for-doctor"
-              (click)="copyForDoctor()"
-            >
-              <mat-icon aria-hidden="true">content_copy</mat-icon>
-              Copier pour mon médecin
-            </button>
-          </div>
-
-          <div *ngIf="copied" class="copy-feedback" role="status">Copié !</div>
-
-          <!-- Insight cards by type -->
-          <ng-container *ngFor="let group of insightGroups">
-            <h3 class="group-title">
-              <mat-icon aria-hidden="true" class="group-icon">{{ group.icon }}</mat-icon>
-              {{ group.label }}
-            </h3>
-
-            <div class="insight-card" *ngFor="let card of group.cards" data-testid="insight-card">
-              <div class="card-header">
-                <span class="card-title">{{ card.insight.title }}</span>
-                <span
-                  class="confidence-badge"
-                  [class.confidence-high]="card.insight.confidence >= 0.8"
-                  [class.confidence-medium]="card.insight.confidence >= 0.5 && card.insight.confidence < 0.8"
-                  [class.confidence-low]="card.insight.confidence < 0.5"
-                  [attr.aria-label]="'Confiance : ' + (card.insight.confidence * 100 | number:'1.0-0') + '%'"
+  @if (!loading) {
+    @if (!lastResult) {
+      <div class="insights-state" role="status" data-testid="no-insights">
+        <mat-icon aria-hidden="true" class="empty-icon">auto_awesome</mat-icon>
+        <p>Aucune analyse effectuée.</p>
+        <p class="empty-hint">Appuyez sur le bouton ✨ pour lancer votre première analyse IA.</p>
+      </div>
+    }
+    @if (lastResult && !lastResult.available) {
+      <div class="insights-state" role="status" data-testid="analysis-degraded">
+        <mat-icon aria-hidden="true" class="empty-icon">cloud_off</mat-icon>
+        <p>Analyse IA indisponible.</p>
+        <p class="empty-hint">Configurez votre clé API Anthropic dans les Paramètres.</p>
+      </div>
+    }
+    @if (lastResult?.available) {
+      <!-- Analysis metadata -->
+      <div class="analysis-meta">
+        <span class="meta-date">
+          Analysé le {{ lastResult!.analyzedAt | date:'d MMM yyyy à HH:mm' }}
+          — fenêtre {{ lastResult!.windowDays }}&nbsp;j
+        </span>
+        <button
+          mat-stroked-button
+          class="copy-btn"
+          aria-label="Copier le résumé de l'analyse pour votre médecin"
+          data-testid="copy-for-doctor"
+          (click)="copyForDoctor()"
+          >
+          <mat-icon aria-hidden="true">content_copy</mat-icon>
+          Copier pour mon médecin
+        </button>
+      </div>
+      @if (copied) {
+        <div class="copy-feedback" role="status">Copié !</div>
+      }
+      <!-- Insight cards by type -->
+      @for (group of insightGroups; track group) {
+        <h3 class="group-title">
+          <mat-icon aria-hidden="true" class="group-icon">{{ group.icon }}</mat-icon>
+          {{ group.label }}
+        </h3>
+        @for (card of group.cards; track card) {
+          <div class="insight-card" data-testid="insight-card">
+            <div class="card-header">
+              <span class="card-title">{{ card.insight.title }}</span>
+              <span
+                class="confidence-badge"
+                [class.confidence-high]="card.insight.confidence >= 0.8"
+                [class.confidence-medium]="card.insight.confidence >= 0.5 && card.insight.confidence < 0.8"
+                [class.confidence-low]="card.insight.confidence < 0.5"
+                [attr.aria-label]="'Confiance : ' + (card.insight.confidence * 100 | number:'1.0-0') + '%'"
                 >
-                  {{ card.insight.confidence * 100 | number:'1.0-0' }}%
-                </span>
-              </div>
-              <p class="card-description">{{ card.insight.description }}</p>
+                {{ card.insight.confidence * 100 | number:'1.0-0' }}%
+              </span>
             </div>
-          </ng-container>
-
-          <div *ngIf="cards.length === 0" class="insights-state" role="status">
-            L'analyse n'a pas identifié d'insights sur cette période.
+            <p class="card-description">{{ card.insight.description }}</p>
           </div>
-        </ng-container>
-      </ng-container>
-    </div>
-  
+        }
+      }
+      @if (cards.length === 0) {
+        <div class="insights-state" role="status">
+          L'analyse n'a pas identifié d'insights sur cette période.
+        </div>
+      }
+    }
+  }
+</div>
+

@@ -1,60 +1,67 @@
-    <div class="history-wrapper">
+<div class="history-wrapper">
 
-      <!-- Header -->
-      <div class="history-header">
-        <button
-          mat-icon-button
-          aria-label="Retour au coach"
-          data-testid="btn-back"
-          (click)="goBack()">
-          <mat-icon>arrow_back</mat-icon>
-        </button>
-        <h2 class="history-title">Historique Coach</h2>
-        <button
-          mat-icon-button
-          aria-label="Supprimer tout l'historique des sessions"
-          data-testid="btn-delete-all"
-          matTooltip="Supprimer tout l'historique"
-          [disabled]="sessions.length === 0"
-          (click)="onDeleteAll()">
-          <mat-icon>delete_sweep</mat-icon>
-        </button>
-      </div>
+  <!-- Header -->
+  <div class="history-header">
+    <button
+      mat-icon-button
+      aria-label="Retour au coach"
+      data-testid="btn-back"
+      (click)="goBack()">
+      <mat-icon>arrow_back</mat-icon>
+    </button>
+    <h2 class="history-title">Historique Coach</h2>
+    <button
+      mat-icon-button
+      aria-label="Supprimer tout l'historique des sessions"
+      data-testid="btn-delete-all"
+      matTooltip="Supprimer tout l'historique"
+      [disabled]="sessions.length === 0"
+      (click)="onDeleteAll()">
+      <mat-icon>delete_sweep</mat-icon>
+    </button>
+  </div>
 
-      <!-- État vide -->
-      <div *ngIf="sessions.length === 0" class="empty-state" role="status">
-        <mat-icon aria-hidden="true" class="empty-icon">forum</mat-icon>
-        <p>Aucune session enregistrée</p>
-      </div>
+  <!-- État vide -->
+  @if (sessions.length === 0) {
+    <div class="empty-state" role="status">
+      <mat-icon aria-hidden="true" class="empty-icon">forum</mat-icon>
+      <p>Aucune session enregistrée</p>
+    </div>
+  }
 
-      <!-- Liste des sessions -->
-      <mat-list *ngIf="sessions.length > 0" role="list">
-        <ng-container *ngFor="let session of sessions; let i = index">
-          <mat-list-item
-            class="session-item"
-            role="listitem"
-            [attr.data-testid]="'session-item-' + i"
-            [attr.aria-label]="getAriaLabel(session)">
-            <mat-icon matListItemIcon aria-hidden="true">
-              {{ session.endedAt ? 'chat' : 'chat_bubble' }}
-            </mat-icon>
-            <span matListItemTitle>{{ getContextLabel(session.contextWindow) }}</span>
-            <span matListItemLine class="session-meta">
-              {{ session.startedAt | date:'d MMM yyyy HH:mm' }}
-              &bull; {{ session.messages.length }} messages
-              &bull; ~{{ session.totalTokens }} tokens
-            </span>
+  <!-- Liste des sessions -->
+  @if (sessions.length > 0) {
+    <mat-list role="list">
+      @for (session of sessions; track session; let i = $index) {
+        <mat-list-item
+          class="session-item"
+          role="listitem"
+          [attr.data-testid]="'session-item-' + i"
+          [attr.aria-label]="getAriaLabel(session)">
+          <mat-icon matListItemIcon aria-hidden="true">
+            {{ session.endedAt ? 'chat' : 'chat_bubble' }}
+          </mat-icon>
+          <span matListItemTitle>{{ getContextLabel(session.contextWindow) }}</span>
+          <span matListItemLine class="session-meta">
+            {{ session.startedAt | date:'d MMM yyyy HH:mm' }}
+            &bull; {{ session.messages.length }} messages
+            &bull; ~{{ session.totalTokens }} tokens
+          </span>
+          @if (session.summary) {
             <span
-              *ngIf="session.summary"
               matListItemLine
               class="session-summary"
               [attr.aria-label]="'Résumé : ' + session.summary.content">
               {{ session.summary.content | slice:0:130 }}{{ session.summary.content.length > 130 ? '…' : '' }}
             </span>
-          </mat-list-item>
-          <mat-divider *ngIf="i < sessions.length - 1"></mat-divider>
-        </ng-container>
-      </mat-list>
+          }
+        </mat-list-item>
+        @if (i < sessions.length - 1) {
+          <mat-divider></mat-divider>
+        }
+      }
+    </mat-list>
+  }
 
-    </div>
-  
+</div>
+

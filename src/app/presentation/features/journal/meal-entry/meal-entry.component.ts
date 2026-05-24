@@ -5,7 +5,7 @@ import {
   inject,
   OnInit,
 } from '@angular/core';
-import { NgFor, NgIf } from '@angular/common';
+
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { MatButtonModule } from '@angular/material/button';
@@ -38,11 +38,17 @@ import type { FoodItemVO, MealInputMode, MealType } from '../../../../domain/ent
   selector: 'app-meal-entry',
   standalone: true,
   imports: [
-    NgFor, NgIf, FormsModule,
-    MatButtonModule, MatButtonToggleModule, MatIconModule,
-    MatFormFieldModule, MatInputModule, MatSelectModule,
-    VoiceInputComponent, PhotoInputComponent, FoodChipComponent,
-  ],
+    FormsModule,
+    MatButtonModule,
+    MatButtonToggleModule,
+    MatIconModule,
+    MatFormFieldModule,
+    MatInputModule,
+    MatSelectModule,
+    VoiceInputComponent,
+    PhotoInputComponent,
+    FoodChipComponent
+],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './meal-entry.component.html',
   styleUrl: './meal-entry.component.scss',

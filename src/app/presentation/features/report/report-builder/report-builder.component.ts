@@ -1,5 +1,5 @@
 import { Component, inject, signal } from '@angular/core';
-import { CommonModule } from '@angular/common';
+
 import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { MatButtonModule } from '@angular/material/button';
@@ -32,7 +32,6 @@ type WindowPreset = 7 | 14 | 30 | 90;
   selector: 'app-report-builder',
   standalone: true,
   imports: [
-    CommonModule,
     FormsModule,
     RouterLink,
     MatButtonModule,
@@ -44,8 +43,8 @@ type WindowPreset = 7 | 14 | 30 | 90;
     MatInputModule,
     MatIconModule,
     MatProgressSpinnerModule,
-    MatDividerModule,
-  ],
+    MatDividerModule
+],
   templateUrl: './report-builder.component.html',
   styleUrl: './report-builder.component.scss',
 })

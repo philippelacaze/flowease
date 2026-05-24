@@ -1,67 +1,77 @@
-    <div class="note-entry">
-      <header class="page-header">
-        <button mat-icon-button aria-label="Retour au journal" (click)="back()">
-          <mat-icon>arrow_back</mat-icon>
-        </button>
-        <h1 class="page-title">Saisir une note</h1>
-      </header>
+<div class="note-entry">
+  <header class="page-header">
+    <button mat-icon-button aria-label="Retour au journal" (click)="back()">
+      <mat-icon>arrow_back</mat-icon>
+    </button>
+    <h1 class="page-title">Saisir une note</h1>
+  </header>
 
-      <!-- Mode selector -->
-      <div class="mode-selector">
-        <mat-button-toggle-group
-          [value]="mode"
-          aria-label="Mode de saisie de la note"
-          (change)="setMode($event.value)"
-        >
-          <mat-button-toggle value="text" aria-label="Mode texte">
-            <mat-icon aria-hidden="true">edit</mat-icon>
-          </mat-button-toggle>
-          <mat-button-toggle value="voice" aria-label="Mode vocal">
-            <mat-icon aria-hidden="true">mic</mat-icon>
-          </mat-button-toggle>
-          <mat-button-toggle value="photo" aria-label="Mode photo">
-            <mat-icon aria-hidden="true">camera_alt</mat-icon>
-          </mat-button-toggle>
-        </mat-button-toggle-group>
-        <div class="mode-label">{{ modeLabels[mode] }}</div>
+  <!-- Mode selector -->
+  <div class="mode-selector">
+    <mat-button-toggle-group
+      [value]="mode"
+      aria-label="Mode de saisie de la note"
+      (change)="setMode($event.value)"
+      >
+      <mat-button-toggle value="text" aria-label="Mode texte">
+        <mat-icon aria-hidden="true">edit</mat-icon>
+      </mat-button-toggle>
+      <mat-button-toggle value="voice" aria-label="Mode vocal">
+        <mat-icon aria-hidden="true">mic</mat-icon>
+      </mat-button-toggle>
+      <mat-button-toggle value="photo" aria-label="Mode photo">
+        <mat-icon aria-hidden="true">camera_alt</mat-icon>
+      </mat-button-toggle>
+    </mat-button-toggle-group>
+    <div class="mode-label">{{ modeLabels[mode] }}</div>
+  </div>
+
+  <div class="note-form">
+    <!-- Mode: Text -->
+    @if (mode === 'text') {
+      <div class="mode-content">
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>Contenu de la note</mat-label>
+          <textarea
+            matInput
+            [(ngModel)]="content"
+            rows="6"
+            placeholder="Écrivez votre observation…"
+            aria-label="Contenu textuel de la note"
+            data-testid="note-text-input"
+          ></textarea>
+        </mat-form-field>
       </div>
+    }
 
-      <div class="note-form">
-        <!-- Mode: Text -->
-        <div *ngIf="mode === 'text'" class="mode-content">
-          <mat-form-field appearance="outline" class="full-width">
-            <mat-label>Contenu de la note</mat-label>
-            <textarea
-              matInput
-              [(ngModel)]="content"
-              rows="6"
-              placeholder="Écrivez votre observation…"
-              aria-label="Contenu textuel de la note"
-              data-testid="note-text-input"
-            ></textarea>
-          </mat-form-field>
-        </div>
-
-        <!-- Mode: Voice -->
-        <div *ngIf="mode === 'voice'" class="mode-content">
-          <app-voice-input (transcript)="onTranscript($event)" />
-          <div *ngIf="content" class="voice-preview">
+    <!-- Mode: Voice -->
+    @if (mode === 'voice') {
+      <div class="mode-content">
+        <app-voice-input (transcript)="onTranscript($event)" />
+        @if (content) {
+          <div class="voice-preview">
             <p class="voice-preview-label">Transcription :</p>
             <p class="voice-preview-text" data-testid="voice-transcript">{{ content }}</p>
           </div>
-        </div>
+        }
+      </div>
+    }
 
-        <!-- Mode: Photo -->
-        <div *ngIf="mode === 'photo'" class="mode-content">
-          <app-photo-input (imageSelected)="onPhotoSelected($event)" />
-          <div *ngIf="imageBase64" class="photo-preview">
+    <!-- Mode: Photo -->
+    @if (mode === 'photo') {
+      <div class="mode-content">
+        <app-photo-input (imageSelected)="onPhotoSelected($event)" />
+        @if (imageBase64) {
+          <div class="photo-preview">
             <img
               [src]="'data:' + imageMediaType + ';base64,' + imageBase64"
               alt="Photo attachée à la note"
               class="photo-thumb"
-            />
+              />
           </div>
-          <mat-form-field *ngIf="imageBase64" appearance="outline" class="full-width photo-caption">
+        }
+        @if (imageBase64) {
+          <mat-form-field appearance="outline" class="full-width photo-caption">
             <mat-label>Description (optionnel)</mat-label>
             <textarea
               matInput
@@ -71,58 +81,69 @@
               aria-label="Description de la photo"
             ></textarea>
           </mat-form-field>
-        </div>
+        }
+      </div>
+    }
 
-        <!-- Tags IA (après sauvegarde) -->
-        <div *ngIf="savedTags.length > 0" class="tags-section">
-          <p class="tags-label">Tags générés par l'IA :</p>
-          <mat-chip-set aria-label="Tags générés par l'IA">
-            <mat-chip *ngFor="let tag of savedTags" [attr.aria-label]="tag">{{ tag }}</mat-chip>
-          </mat-chip-set>
-        </div>
+    <!-- Tags IA (après sauvegarde) -->
+    @if (savedTags.length > 0) {
+      <div class="tags-section">
+        <p class="tags-label">Tags générés par l'IA :</p>
+        <mat-chip-set aria-label="Tags générés par l'IA">
+          @for (tag of savedTags; track tag) {
+            <mat-chip [attr.aria-label]="tag">{{ tag }}</mat-chip>
+          }
+        </mat-chip-set>
+      </div>
+    }
 
-        <!-- Entrées liées -->
-        <div *ngIf="linkedEntries.length > 0" class="linked-section">
-          <p class="linked-label">Entrées liées :</p>
-          <div class="linked-list" role="list" aria-label="Entrées liées">
+    <!-- Entrées liées -->
+    @if (linkedEntries.length > 0) {
+      <div class="linked-section">
+        <p class="linked-label">Entrées liées :</p>
+        <div class="linked-list" role="list" aria-label="Entrées liées">
+          @for (link of linkedEntries; track link) {
             <div
-              *ngFor="let link of linkedEntries"
               class="linked-item"
               role="listitem"
-            >
+              >
               <mat-icon aria-hidden="true" class="linked-icon">{{ linkIcon(link) }}</mat-icon>
               <span>{{ link.entryType }} #{{ link.entryId.slice(0, 8) }}…</span>
             </div>
-          </div>
+          }
         </div>
-
-        <!-- Bouton Lier à... -->
-        <button
-          mat-stroked-button
-          class="link-btn"
-          aria-label="Lier cette note à d'autres entrées du journal"
-          data-testid="link-entries-btn"
-          (click)="openLinkSheet()"
-        >
-          <mat-icon aria-hidden="true">link</mat-icon>
-          Lier à…
-          <span *ngIf="linkedEntries.length > 0">({{ linkedEntries.length }})</span>
-        </button>
       </div>
+    }
 
-      <div class="submit-row">
-        <button
-          mat-raised-button
-          color="primary"
-          class="submit-btn"
-          [disabled]="!canSubmit || saving"
-          aria-label="Valider et enregistrer la note"
-          data-testid="submit-note"
-          (click)="submit()"
-        >
-          <mat-icon aria-hidden="true">check</mat-icon>
-          {{ saving ? 'Enregistrement…' : 'Valider la note' }}
-        </button>
-      </div>
-    </div>
-  
+    <!-- Bouton Lier à... -->
+    <button
+      mat-stroked-button
+      class="link-btn"
+      aria-label="Lier cette note à d'autres entrées du journal"
+      data-testid="link-entries-btn"
+      (click)="openLinkSheet()"
+      >
+      <mat-icon aria-hidden="true">link</mat-icon>
+      Lier à…
+      @if (linkedEntries.length > 0) {
+        <span>({{ linkedEntries.length }})</span>
+      }
+    </button>
+  </div>
+
+  <div class="submit-row">
+    <button
+      mat-raised-button
+      color="primary"
+      class="submit-btn"
+      [disabled]="!canSubmit || saving"
+      aria-label="Valider et enregistrer la note"
+      data-testid="submit-note"
+      (click)="submit()"
+      >
+      <mat-icon aria-hidden="true">check</mat-icon>
+      {{ saving ? 'Enregistrement…' : 'Valider la note' }}
+    </button>
+  </div>
+</div>
+

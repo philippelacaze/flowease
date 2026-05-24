@@ -5,7 +5,7 @@ import {
   OnInit,
   inject,
 } from '@angular/core';
-import { NgFor, NgIf, DatePipe, SlicePipe } from '@angular/common';
+import { DatePipe, SlicePipe } from '@angular/common';
 import { Router } from '@angular/router';
 import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
@@ -38,16 +38,14 @@ const CONTEXT_LABELS: Record<CoachContextWindow, string> = {
   selector: 'app-coach-history',
   standalone: true,
   imports: [
-    NgFor,
-    NgIf,
     DatePipe,
     SlicePipe,
     MatIconModule,
     MatButtonModule,
     MatListModule,
     MatDividerModule,
-    MatTooltipModule,
-  ],
+    MatTooltipModule
+],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './coach-history.component.html',
   styleUrl: './coach-history.component.scss',

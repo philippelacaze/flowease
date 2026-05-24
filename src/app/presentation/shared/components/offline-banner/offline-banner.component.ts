@@ -7,7 +7,7 @@ import {
   OnInit,
   OnDestroy,
 } from '@angular/core';
-import { NgIf } from '@angular/common';
+
 import { MatIconModule } from '@angular/material/icon';
 import { LOCAL_SETTINGS_PORT } from '../../../../application/tokens';
 import type { LocalSettingsRepository } from '../../../../domain/repositories/local-settings.repository';
@@ -29,7 +29,7 @@ const MESSAGES: Record<string, string> = {
 @Component({
   selector: 'app-offline-banner',
   standalone: true,
-  imports: [NgIf, MatIconModule],
+  imports: [MatIconModule],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './offline-banner.component.html',
   styleUrl: './offline-banner.component.scss',

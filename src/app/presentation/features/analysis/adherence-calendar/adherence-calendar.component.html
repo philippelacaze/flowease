@@ -1,35 +1,37 @@
-    <div class="cal-wrapper">
-      <div *ngIf="loading" class="cal-state" role="status">Chargement…</div>
+<div class="cal-wrapper">
+  @if (loading) {
+    <div class="cal-state" role="status">Chargement…</div>
+  }
 
-      <ng-container *ngIf="!loading">
-        <div *ngIf="stats.length === 0" class="cal-state" role="status" data-testid="no-treatments">
-          Aucun traitement enregistré.
-        </div>
-
-        <ng-container *ngIf="stats.length > 0">
-          <!-- Summary rate -->
-          <div class="adherence-summary">
-            <span class="adherence-rate" [ngClass]="'rate-' + rateColorClass" data-testid="adherence-rate">
-              {{ averageAdherence | percent:'1.0-0' }}
-            </span>
-            <span class="adherence-label">d'observance sur {{ windowDays }}&nbsp;j</span>
-          </div>
-
-          <!-- Month name -->
-          <p class="month-name">{{ currentMonthName }}</p>
-
-          <!-- Calendar grid -->
+  @if (!loading) {
+    @if (stats.length === 0) {
+      <div class="cal-state" role="status" data-testid="no-treatments">
+        Aucun traitement enregistré.
+      </div>
+    }
+    @if (stats.length > 0) {
+      <!-- Summary rate -->
+      <div class="adherence-summary">
+        <span class="adherence-rate" [ngClass]="'rate-' + rateColorClass" data-testid="adherence-rate">
+          {{ averageAdherence | percent:'1.0-0' }}
+        </span>
+        <span class="adherence-label">d'observance sur {{ windowDays }}&nbsp;j</span>
+      </div>
+      <!-- Month name -->
+      <p class="month-name">{{ currentMonthName }}</p>
+      <!-- Calendar grid -->
+      <div
+        class="calendar-grid"
+        role="grid"
+        aria-label="Calendrier mensuel d'observance"
+        >
+        @for (name of DAY_NAMES; track name) {
+          <div class="day-header" role="columnheader">{{ name }}</div>
+        }
+        @for (cell of calendarDays; track cell) {
           <div
-            class="calendar-grid"
-            role="grid"
-            aria-label="Calendrier mensuel d'observance"
-          >
-            <div *ngFor="let name of DAY_NAMES" class="day-header" role="columnheader">{{ name }}</div>
-
-            <div
-              *ngFor="let cell of calendarDays"
-              class="day-cell"
-              role="gridcell"
+            class="day-cell"
+            role="gridcell"
               [ngClass]="[
                 cell.day ? 'day-filled' : 'day-empty',
                 cell.inWindow ? ('day-' + cell.colorClass) : 'day-outside'
@@ -38,28 +40,31 @@
                 ? 'Jour ' + cell.day + (cell.inWindow ? ' : observance ' + rateColorClass : ' : hors période')
                 : null"
             >
-              <span *ngIf="cell.day">{{ cell.day }}</span>
-            </div>
+            @if (cell.day) {
+              <span>{{ cell.day }}</span>
+            }
           </div>
+        }
+      </div>
+      <!-- Legend -->
+      <div class="legend" aria-label="Légende du calendrier">
+        <span class="legend-item green">≥&nbsp;80%</span>
+        <span class="legend-item orange">50–80%</span>
+        <span class="legend-item red">&lt;&nbsp;50%</span>
+        <span class="legend-item outside">hors période</span>
+      </div>
+      <!-- Treatment list -->
+      <ul class="treatment-list" aria-label="Détail par traitement">
+        @for (s of stats; track s) {
+          <li class="treatment-item">
+            <span class="treatment-name">{{ s.treatmentName }}</span>
+            <span class="treatment-rate" [ngClass]="'rate-' + rateClass(s.adherenceRate)">
+              {{ s.adherenceRate | percent:'1.0-0' }}
+            </span>
+          </li>
+        }
+      </ul>
+    }
+  }
+</div>
 
-          <!-- Legend -->
-          <div class="legend" aria-label="Légende du calendrier">
-            <span class="legend-item green">≥&nbsp;80%</span>
-            <span class="legend-item orange">50–80%</span>
-            <span class="legend-item red">&lt;&nbsp;50%</span>
-            <span class="legend-item outside">hors période</span>
-          </div>
-
-          <!-- Treatment list -->
-          <ul class="treatment-list" aria-label="Détail par traitement">
-            <li *ngFor="let s of stats" class="treatment-item">
-              <span class="treatment-name">{{ s.treatmentName }}</span>
-              <span class="treatment-rate" [ngClass]="'rate-' + rateClass(s.adherenceRate)">
-                {{ s.adherenceRate | percent:'1.0-0' }}
-              </span>
-            </li>
-          </ul>
-        </ng-container>
-      </ng-container>
-    </div>
-  

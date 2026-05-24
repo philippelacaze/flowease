@@ -8,7 +8,7 @@ import {
   ViewChild,
   ElementRef,
 } from '@angular/core';
-import { NgIf } from '@angular/common';
+
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 
@@ -31,7 +31,7 @@ export interface PhotoSelectedEvent {
 @Component({
   selector: 'app-photo-input',
   standalone: true,
-  imports: [NgIf, MatButtonModule, MatIconModule],
+  imports: [MatButtonModule, MatIconModule],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './photo-input.component.html',
   styleUrl: './photo-input.component.scss',

@@ -1,5 +1,5 @@
 import { Component, inject, signal, OnInit } from '@angular/core';
-import { CommonModule } from '@angular/common';
+
 import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { MatButtonModule } from '@angular/material/button';
@@ -46,7 +46,6 @@ const DEFAULT_SYMPTOMS: Omit<SymptomConfig, 'order'>[] = [
   selector: 'app-symptoms-config',
   standalone: true,
   imports: [
-    CommonModule,
     FormsModule,
     RouterLink,
     MatButtonModule,
@@ -55,8 +54,8 @@ const DEFAULT_SYMPTOMS: Omit<SymptomConfig, 'order'>[] = [
     MatIconModule,
     MatListModule,
     MatDividerModule,
-    DragDropModule,
-  ],
+    DragDropModule
+],
   templateUrl: './symptoms-config.component.html',
   styleUrl: './symptoms-config.component.scss',
 })

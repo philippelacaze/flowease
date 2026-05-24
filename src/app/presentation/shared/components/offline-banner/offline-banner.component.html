@@ -1,11 +1,12 @@
-    <div
-      *ngIf="!isOnline"
-      class="offline-banner"
-      role="status"
-      aria-live="polite"
-      data-testid="offline-banner"
+@if (!isOnline) {
+  <div
+    class="offline-banner"
+    role="status"
+    aria-live="polite"
+    data-testid="offline-banner"
     >
-      <mat-icon aria-hidden="true" class="offline-icon">cloud_off</mat-icon>
-      <span>{{ offlineMessage }}</span>
-    </div>
-  
+    <mat-icon aria-hidden="true" class="offline-icon">cloud_off</mat-icon>
+    <span>{{ offlineMessage }}</span>
+  </div>
+}
+

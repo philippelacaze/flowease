@@ -5,7 +5,7 @@ import {
   inject,
   OnInit,
 } from '@angular/core';
-import { NgIf } from '@angular/common';
+
 import { MatButtonModule } from '@angular/material/button';
 import { MatButtonToggleModule } from '@angular/material/button-toggle';
 import { MatIconModule } from '@angular/material/icon';
@@ -36,7 +36,6 @@ import {
   selector: 'app-analysis-home',
   standalone: true,
   imports: [
-    NgIf,
     MatButtonModule,
     MatButtonToggleModule,
     MatIconModule,
@@ -44,8 +43,8 @@ import {
     SymptomChartComponent,
     AdherenceCalendarComponent,
     WellbeingHeatmapComponent,
-    AiInsightsComponent,
-  ],
+    AiInsightsComponent
+],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './analysis-home.component.html',
   styleUrl: './analysis-home.component.scss',

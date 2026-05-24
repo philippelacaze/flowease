@@ -9,7 +9,7 @@ import {
   inject,
 } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { NgFor, NgIf } from '@angular/common';
+
 import { Router } from '@angular/router';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
@@ -58,15 +58,13 @@ const SUGGESTED_QUESTIONS: readonly string[] = [
   standalone: true,
   imports: [
     FormsModule,
-    NgFor,
-    NgIf,
     MatFormFieldModule,
     MatInputModule,
     MatIconModule,
     MatButtonModule,
     MatTooltipModule,
-    TokenCounterComponent,
-  ],
+    TokenCounterComponent
+],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './coach-chat.component.html',
   styleUrl: './coach-chat.component.scss',

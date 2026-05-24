@@ -1,35 +1,38 @@
-    <div
-      class="food-chip"
-      [ngClass]="item.fodmap.level | fodmapColor"
-      role="listitem"
-    >
-      <span class="food-chip__name" [attr.aria-label]="chipAriaLabel">
-        {{ item.name }}
-        <span *ngIf="item.quantity" class="food-chip__qty"> {{ item.quantity }}{{ item.unit }}</span>
-      </span>
+<div
+  class="food-chip"
+  [ngClass]="item.fodmap.level | fodmapColor"
+  role="listitem"
+  >
+  <span class="food-chip__name" [attr.aria-label]="chipAriaLabel">
+    {{ item.name }}
+    @if (item.quantity) {
+      <span class="food-chip__qty"> {{ item.quantity }}{{ item.unit }}</span>
+    }
+  </span>
 
-      <span
-        *ngIf="!item.confirmed"
-        class="food-chip__ai-badge"
-        aria-label="Suggestion IA non validée"
-        title="Suggestion IA — appuyez pour valider"
-      >IA</span>
+  @if (!item.confirmed) {
+    <span
+      class="food-chip__ai-badge"
+      aria-label="Suggestion IA non validée"
+      title="Suggestion IA — appuyez pour valider"
+    >IA</span>
+  }
 
-      <ng-container *ngIf="editable">
-        <button
-          class="food-chip__btn"
-          [attr.aria-label]="'Modifier ' + item.name"
-          (click)="edit.emit(item)"
-        >
-          <mat-icon aria-hidden="true">edit</mat-icon>
-        </button>
-        <button
-          class="food-chip__btn food-chip__btn--remove"
-          [attr.aria-label]="'Supprimer ' + item.name"
-          (click)="remove.emit()"
-        >
-          <mat-icon aria-hidden="true">close</mat-icon>
-        </button>
-      </ng-container>
-    </div>
-  
+  @if (editable) {
+    <button
+      class="food-chip__btn"
+      [attr.aria-label]="'Modifier ' + item.name"
+      (click)="edit.emit(item)"
+      >
+      <mat-icon aria-hidden="true">edit</mat-icon>
+    </button>
+    <button
+      class="food-chip__btn food-chip__btn--remove"
+      [attr.aria-label]="'Supprimer ' + item.name"
+      (click)="remove.emit()"
+      >
+      <mat-icon aria-hidden="true">close</mat-icon>
+    </button>
+  }
+</div>
+

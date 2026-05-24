@@ -8,7 +8,7 @@ import {
   OnChanges,
   SimpleChanges,
 } from '@angular/core';
-import { NgIf, NgFor } from '@angular/common';
+
 import { FormsModule } from '@angular/forms';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatSelectModule } from '@angular/material/select';
@@ -49,7 +49,7 @@ const H = B - T; // chart height = 136
 @Component({
   selector: 'app-symptom-chart',
   standalone: true,
-  imports: [NgIf, NgFor, FormsModule, MatFormFieldModule, MatSelectModule],
+  imports: [FormsModule, MatFormFieldModule, MatSelectModule],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './symptom-chart.component.html',
   styleUrl: './symptom-chart.component.scss',

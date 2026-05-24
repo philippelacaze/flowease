@@ -5,7 +5,7 @@ import {
   EventEmitter,
   ChangeDetectionStrategy,
 } from '@angular/core';
-import { NgClass, NgFor } from '@angular/common';
+import { NgClass } from '@angular/common';
 import {
   AbdominalZone,
   ABDOMINAL_ZONES,
@@ -35,7 +35,7 @@ interface ZoneConfig {
 @Component({
   selector: 'app-abdominal-map',
   standalone: true,
-  imports: [NgClass, NgFor],
+  imports: [NgClass],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './abdominal-map.component.html',
   styleUrl: './abdominal-map.component.scss',

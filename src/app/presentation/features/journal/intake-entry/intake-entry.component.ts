@@ -6,7 +6,7 @@ import {
   OnInit,
   OnDestroy,
 } from '@angular/core';
-import { NgFor, NgIf } from '@angular/common';
+
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { MatButtonModule } from '@angular/material/button';
@@ -37,10 +37,13 @@ interface TreatmentState {
   selector: 'app-intake-entry',
   standalone: true,
   imports: [
-    NgFor, NgIf, FormsModule,
-    MatButtonModule, MatIconModule,
-    MatFormFieldModule, MatInputModule, MatSelectModule,
-  ],
+    FormsModule,
+    MatButtonModule,
+    MatIconModule,
+    MatFormFieldModule,
+    MatInputModule,
+    MatSelectModule
+],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './intake-entry.component.html',
   styleUrl: './intake-entry.component.scss',

@@ -5,7 +5,7 @@ import {
   EventEmitter,
   ChangeDetectionStrategy,
 } from '@angular/core';
-import { NgClass, NgIf } from '@angular/common';
+import { NgClass } from '@angular/common';
 import { MatIconModule } from '@angular/material/icon';
 import { MatChipsModule } from '@angular/material/chips';
 import { FoodItemVO } from '../../../../domain/entities/meal.entity';
@@ -26,7 +26,7 @@ import { FodmapColorPipe } from '../../pipes/fodmap-color.pipe';
 @Component({
   selector: 'app-food-chip',
   standalone: true,
-  imports: [NgClass, NgIf, MatIconModule, MatChipsModule, FodmapColorPipe],
+  imports: [NgClass, MatIconModule, MatChipsModule, FodmapColorPipe],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './food-chip.component.html',
   styleUrl: './food-chip.component.scss',

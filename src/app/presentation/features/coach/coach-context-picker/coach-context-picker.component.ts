@@ -4,7 +4,7 @@ import {
   inject,
   signal,
 } from '@angular/core';
-import { NgFor, NgIf } from '@angular/common';
+
 import { MatBottomSheetRef } from '@angular/material/bottom-sheet';
 import { MatListModule } from '@angular/material/list';
 import { MatIconModule } from '@angular/material/icon';
@@ -36,7 +36,7 @@ interface ContextOption {
 @Component({
   selector: 'app-coach-context-picker',
   standalone: true,
-  imports: [NgFor, NgIf, MatListModule, MatIconModule, MatButtonModule],
+  imports: [MatListModule, MatIconModule, MatButtonModule],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './coach-context-picker.component.html',
   styleUrl: './coach-context-picker.component.scss',

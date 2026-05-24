@@ -8,7 +8,7 @@ import {
   OnChanges,
   SimpleChanges,
 } from '@angular/core';
-import { NgIf, NgFor, DatePipe, DecimalPipe } from '@angular/common';
+import { DatePipe, DecimalPipe } from '@angular/common';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { GetInsightsUseCase } from '../../../../application/analysis/get-insights.usecase';
@@ -32,7 +32,7 @@ interface InsightCard {
 @Component({
   selector: 'app-ai-insights',
   standalone: true,
-  imports: [NgIf, NgFor, DatePipe, DecimalPipe, MatButtonModule, MatIconModule],
+  imports: [DatePipe, DecimalPipe, MatButtonModule, MatIconModule],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './ai-insights.component.html',
   styleUrl: './ai-insights.component.scss',

@@ -1,5 +1,5 @@
 import { Component, inject, signal } from '@angular/core';
-import { CommonModule } from '@angular/common';
+
 import { RouterLink } from '@angular/router';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
@@ -28,13 +28,12 @@ const STORES_TO_CLEAR = [
   selector: 'app-data-privacy',
   standalone: true,
   imports: [
-    CommonModule,
     RouterLink,
     MatButtonModule,
     MatIconModule,
     MatProgressSpinnerModule,
-    MatDividerModule,
-  ],
+    MatDividerModule
+],
   templateUrl: './data-privacy.component.html',
   styleUrl: './data-privacy.component.scss',
 })

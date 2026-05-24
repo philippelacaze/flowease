@@ -1,5 +1,5 @@
 import { Component, inject } from '@angular/core';
-import { NgFor, NgIf } from '@angular/common';
+
 import { MAT_BOTTOM_SHEET_DATA, MatBottomSheetRef } from '@angular/material/bottom-sheet';
 import { MatListModule } from '@angular/material/list';
 import { MatIconModule } from '@angular/material/icon';
@@ -19,7 +19,7 @@ import type { LinkedEntry } from '../../../../domain/entities/note.entity';
 @Component({
   selector: 'app-link-entries-sheet',
   standalone: true,
-  imports: [NgFor, NgIf, MatListModule, MatIconModule, MatButtonModule, MatCheckboxModule],
+  imports: [MatListModule, MatIconModule, MatButtonModule, MatCheckboxModule],
   templateUrl: './link-entries-sheet.component.html',
   styleUrl: './link-entries-sheet.component.scss',
 })

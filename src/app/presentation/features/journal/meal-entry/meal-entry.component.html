@@ -1,201 +1,219 @@
-    <div class="meal-entry">
-      <header class="page-header">
-        <button mat-icon-button aria-label="Retour au journal" (click)="back()">
-          <mat-icon>arrow_back</mat-icon>
-        </button>
-        <h1 class="page-title">Saisir un repas</h1>
-      </header>
+<div class="meal-entry">
+  <header class="page-header">
+    <button mat-icon-button aria-label="Retour au journal" (click)="back()">
+      <mat-icon>arrow_back</mat-icon>
+    </button>
+    <h1 class="page-title">Saisir un repas</h1>
+  </header>
 
-      <!-- Mode selector -->
-      <div class="mode-selector">
-        <mat-button-toggle-group
-          [value]="mode"
-          aria-label="Mode de saisie du repas"
-          (change)="setMode($event.value)"
-        >
-          <mat-button-toggle value="text" aria-label="Mode texte">
-            <mat-icon aria-hidden="true">edit</mat-icon>
-          </mat-button-toggle>
-          <mat-button-toggle value="voice" aria-label="Mode vocal">
-            <mat-icon aria-hidden="true">mic</mat-icon>
-          </mat-button-toggle>
-          <mat-button-toggle value="photo" aria-label="Mode photo">
-            <mat-icon aria-hidden="true">camera_alt</mat-icon>
-          </mat-button-toggle>
-          <mat-button-toggle value="recurring" aria-label="Mode aliments fréquents">
-            <mat-icon aria-hidden="true">history</mat-icon>
-          </mat-button-toggle>
-        </mat-button-toggle-group>
-        <div class="mode-label" aria-live="polite">
-          {{ modeLabels[mode] }}
-        </div>
+  <!-- Mode selector -->
+  <div class="mode-selector">
+    <mat-button-toggle-group
+      [value]="mode"
+      aria-label="Mode de saisie du repas"
+      (change)="setMode($event.value)"
+      >
+      <mat-button-toggle value="text" aria-label="Mode texte">
+        <mat-icon aria-hidden="true">edit</mat-icon>
+      </mat-button-toggle>
+      <mat-button-toggle value="voice" aria-label="Mode vocal">
+        <mat-icon aria-hidden="true">mic</mat-icon>
+      </mat-button-toggle>
+      <mat-button-toggle value="photo" aria-label="Mode photo">
+        <mat-icon aria-hidden="true">camera_alt</mat-icon>
+      </mat-button-toggle>
+      <mat-button-toggle value="recurring" aria-label="Mode aliments fréquents">
+        <mat-icon aria-hidden="true">history</mat-icon>
+      </mat-button-toggle>
+    </mat-button-toggle-group>
+    <div class="mode-label" aria-live="polite">
+      {{ modeLabels[mode] }}
+    </div>
+  </div>
+
+  <div class="meal-form">
+    <!-- Meal type + time -->
+    <div class="meal-meta">
+      <mat-form-field appearance="outline" class="meta-field">
+        <mat-label>Type de repas</mat-label>
+        <mat-select [(ngModel)]="mealType" aria-label="Type de repas">
+          <mat-option value="breakfast">Petit-déjeuner</mat-option>
+          <mat-option value="lunch">Déjeuner</mat-option>
+          <mat-option value="dinner">Dîner</mat-option>
+          <mat-option value="snack">Collation</mat-option>
+        </mat-select>
+      </mat-form-field>
+
+      <mat-form-field appearance="outline" class="meta-field">
+        <mat-label>Heure</mat-label>
+        <input
+          matInput
+          type="time"
+          [(ngModel)]="mealTime"
+          aria-label="Heure du repas"
+          data-testid="meal-time-input"
+          />
+      </mat-form-field>
+    </div>
+
+    <!-- Mode: Text -->
+    @if (mode === 'text') {
+      <div class="mode-content">
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>Décrire le repas</mat-label>
+          <textarea
+            matInput
+            [(ngModel)]="textInput"
+            rows="3"
+            placeholder="Ex : riz blanc, poulet grillé, carottes…"
+            aria-label="Description textuelle du repas"
+            data-testid="meal-text-input"
+          ></textarea>
+        </mat-form-field>
       </div>
+    }
 
-      <div class="meal-form">
-        <!-- Meal type + time -->
-        <div class="meal-meta">
-          <mat-form-field appearance="outline" class="meta-field">
-            <mat-label>Type de repas</mat-label>
-            <mat-select [(ngModel)]="mealType" aria-label="Type de repas">
-              <mat-option value="breakfast">Petit-déjeuner</mat-option>
-              <mat-option value="lunch">Déjeuner</mat-option>
-              <mat-option value="dinner">Dîner</mat-option>
-              <mat-option value="snack">Collation</mat-option>
-            </mat-select>
-          </mat-form-field>
-
-          <mat-form-field appearance="outline" class="meta-field">
-            <mat-label>Heure</mat-label>
-            <input
-              matInput
-              type="time"
-              [(ngModel)]="mealTime"
-              aria-label="Heure du repas"
-              data-testid="meal-time-input"
-            />
-          </mat-form-field>
-        </div>
-
-        <!-- Mode: Text -->
-        <div *ngIf="mode === 'text'" class="mode-content">
-          <mat-form-field appearance="outline" class="full-width">
-            <mat-label>Décrire le repas</mat-label>
-            <textarea
-              matInput
-              [(ngModel)]="textInput"
-              rows="3"
-              placeholder="Ex : riz blanc, poulet grillé, carottes…"
-              aria-label="Description textuelle du repas"
-              data-testid="meal-text-input"
-            ></textarea>
-          </mat-form-field>
-        </div>
-
-        <!-- Mode: Voice -->
-        <div *ngIf="mode === 'voice'" class="mode-content">
-          <app-voice-input (transcript)="onTranscript($event)" />
+    <!-- Mode: Voice -->
+    @if (mode === 'voice') {
+      <div class="mode-content">
+        <app-voice-input (transcript)="onTranscript($event)" />
+        @if (analyzing) {
           <div
-            *ngIf="analyzing"
             class="analyzing-hint"
             role="status"
             aria-live="polite"
-          >
+            >
             Analyse IA en cours…
           </div>
+        }
+        @if (aiUnavailable) {
           <div
-            *ngIf="aiUnavailable"
             class="ai-unavailable"
             role="status"
             data-testid="ai-unavailable"
-          >
+            >
             <mat-icon aria-hidden="true">info</mat-icon>
             Analyse IA indisponible — ajoutez les aliments manuellement
           </div>
-        </div>
+        }
+      </div>
+    }
 
-        <!-- Mode: Photo -->
-        <div *ngIf="mode === 'photo'" class="mode-content">
-          <app-photo-input (imageSelected)="onPhotoSelected($event)" />
+    <!-- Mode: Photo -->
+    @if (mode === 'photo') {
+      <div class="mode-content">
+        <app-photo-input (imageSelected)="onPhotoSelected($event)" />
+        @if (analyzing) {
           <div
-            *ngIf="analyzing"
             class="analyzing-hint"
             role="status"
             aria-live="polite"
-          >
+            >
             Analyse IA en cours…
           </div>
+        }
+        @if (aiUnavailable) {
           <div
-            *ngIf="aiUnavailable"
             class="ai-unavailable"
             role="status"
             data-testid="ai-unavailable"
-          >
+            >
             <mat-icon aria-hidden="true">info</mat-icon>
             Analyse IA indisponible — ajoutez les aliments manuellement
           </div>
-        </div>
+        }
+      </div>
+    }
 
-        <!-- Mode: Recurring -->
-        <div *ngIf="mode === 'recurring'" class="mode-content">
+    <!-- Mode: Recurring -->
+    @if (mode === 'recurring') {
+      <div class="mode-content">
+        @if (frequentFoods.length === 0) {
           <div
-            *ngIf="frequentFoods.length === 0"
             class="no-frequent"
             role="status"
-          >
+            >
             <mat-icon aria-hidden="true">info</mat-icon>
             Aucun historique disponible — ajoutez des aliments manuellement
           </div>
+        }
+        @if (frequentFoods.length > 0) {
           <div
-            *ngIf="frequentFoods.length > 0"
             class="frequent-list"
             role="list"
             aria-label="Aliments fréquents"
-          >
-            <button
-              *ngFor="let food of frequentFoods"
-              class="frequent-btn"
-              role="listitem"
-              [class.frequent-btn--selected]="isSelected(food)"
-              [attr.aria-label]="food.name + (isSelected(food) ? ' — sélectionné' : '')"
-              [attr.aria-pressed]="isSelected(food)"
-              (click)="toggleFrequent(food)"
-            >{{ food.name }}</button>
+            >
+            @for (food of frequentFoods; track food) {
+              <button
+                class="frequent-btn"
+                role="listitem"
+                [class.frequent-btn--selected]="isSelected(food)"
+                [attr.aria-label]="food.name + (isSelected(food) ? ' — sélectionné' : '')"
+                [attr.aria-pressed]="isSelected(food)"
+                (click)="toggleFrequent(food)"
+              >{{ food.name }}</button>
+            }
           </div>
-        </div>
+        }
+      </div>
+    }
 
-        <!-- Aliments du repas (chips éditables) -->
-        <div *ngIf="proposedItems.length > 0" class="proposed-items">
-          <h2 class="items-title">Aliments du repas</h2>
-          <div class="chips-row" role="list" aria-label="Aliments sélectionnés">
+    <!-- Aliments du repas (chips éditables) -->
+    @if (proposedItems.length > 0) {
+      <div class="proposed-items">
+        <h2 class="items-title">Aliments du repas</h2>
+        <div class="chips-row" role="list" aria-label="Aliments sélectionnés">
+          @for (item of proposedItems; track item; let i = $index) {
             <app-food-chip
-              *ngFor="let item of proposedItems; let i = index"
               [item]="item"
               [editable]="true"
               (remove)="removeItem(i)"
               (edit)="confirmItem(i)"
-            />
-          </div>
-        </div>
-
-        <!-- Ajout manuel d'un aliment -->
-        <div class="add-item-row">
-          <mat-form-field appearance="outline" class="add-item-field">
-            <mat-label>Ajouter un aliment</mat-label>
-            <input
-              matInput
-              [(ngModel)]="newItemName"
-              placeholder="Nom de l'aliment"
-              aria-label="Nom de l'aliment à ajouter"
-              data-testid="add-item-input"
-              (keydown.enter)="addManualItem()"
-            />
-          </mat-form-field>
-          <button
-            mat-icon-button
-            color="primary"
-            aria-label="Ajouter l'aliment"
-            [disabled]="!newItemName.trim()"
-            (click)="addManualItem()"
-          >
-            <mat-icon>add_circle</mat-icon>
-          </button>
+              />
+          }
         </div>
       </div>
+    }
 
-      <!-- Bouton Valider -->
-      <div class="submit-row">
-        <button
-          mat-raised-button
-          color="primary"
-          class="submit-btn"
-          [disabled]="!canSubmit || saving"
-          aria-label="Valider et enregistrer le repas"
-          data-testid="submit-meal"
-          (click)="submit()"
+    <!-- Ajout manuel d'un aliment -->
+    <div class="add-item-row">
+      <mat-form-field appearance="outline" class="add-item-field">
+        <mat-label>Ajouter un aliment</mat-label>
+        <input
+          matInput
+          [(ngModel)]="newItemName"
+          placeholder="Nom de l'aliment"
+          aria-label="Nom de l'aliment à ajouter"
+          data-testid="add-item-input"
+          (keydown.enter)="addManualItem()"
+          />
+      </mat-form-field>
+      <button
+        mat-icon-button
+        color="primary"
+        aria-label="Ajouter l'aliment"
+        [disabled]="!newItemName.trim()"
+        (click)="addManualItem()"
         >
-          <mat-icon aria-hidden="true">check</mat-icon>
-          {{ saving ? 'Enregistrement…' : 'Valider le repas' }}
-        </button>
-      </div>
+        <mat-icon>add_circle</mat-icon>
+      </button>
     </div>
-  
+  </div>
+
+  <!-- Bouton Valider -->
+  <div class="submit-row">
+    <button
+      mat-raised-button
+      color="primary"
+      class="submit-btn"
+      [disabled]="!canSubmit || saving"
+      aria-label="Valider et enregistrer le repas"
+      data-testid="submit-meal"
+      (click)="submit()"
+      >
+      <mat-icon aria-hidden="true">check</mat-icon>
+      {{ saving ? 'Enregistrement…' : 'Valider le repas' }}
+    </button>
+  </div>
+</div>
+

@@ -8,7 +8,7 @@ import {
   OnChanges,
   SimpleChanges,
 } from '@angular/core';
-import { NgFor, NgIf, NgClass, DecimalPipe } from '@angular/common';
+import { NgClass, DecimalPipe } from '@angular/common';
 import {
   GetSymptomTrendsUseCase,
   type TrendData,
@@ -38,7 +38,7 @@ const MONTH_NAMES = [
 @Component({
   selector: 'app-wellbeing-heatmap',
   standalone: true,
-  imports: [NgFor, NgIf, NgClass, DecimalPipe],
+  imports: [NgClass, DecimalPipe],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './wellbeing-heatmap.component.html',
   styleUrl: './wellbeing-heatmap.component.scss',

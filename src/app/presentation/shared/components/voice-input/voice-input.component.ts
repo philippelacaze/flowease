@@ -7,7 +7,7 @@ import {
   inject,
   OnDestroy,
 } from '@angular/core';
-import { NgIf, NgClass } from '@angular/common';
+import { NgClass } from '@angular/common';
 import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
 
@@ -68,7 +68,7 @@ interface SpeechRecognitionAlternative {
 @Component({
   selector: 'app-voice-input',
   standalone: true,
-  imports: [NgIf, NgClass, MatIconModule, MatButtonModule],
+  imports: [NgClass, MatIconModule, MatButtonModule],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './voice-input.component.html',
   styleUrl: './voice-input.component.scss',

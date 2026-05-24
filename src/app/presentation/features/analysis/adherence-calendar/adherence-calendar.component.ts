@@ -8,7 +8,7 @@ import {
   OnChanges,
   SimpleChanges,
 } from '@angular/core';
-import { NgFor, NgIf, NgClass, PercentPipe } from '@angular/common';
+import { NgClass, PercentPipe } from '@angular/common';
 import {
   GetAdherenceStatsUseCase,
   type AdherenceStat,
@@ -38,7 +38,7 @@ const MONTH_NAMES = [
 @Component({
   selector: 'app-adherence-calendar',
   standalone: true,
-  imports: [NgFor, NgIf, NgClass, PercentPipe],
+  imports: [NgClass, PercentPipe],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './adherence-calendar.component.html',
   styleUrl: './adherence-calendar.component.scss',

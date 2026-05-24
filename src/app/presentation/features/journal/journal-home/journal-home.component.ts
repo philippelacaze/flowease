@@ -7,7 +7,7 @@ import {
   OnDestroy,
   signal,
 } from '@angular/core';
-import { NgFor, NgIf, DatePipe } from '@angular/common';
+import { DatePipe } from '@angular/common';
 import { Router } from '@angular/router';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
@@ -35,7 +35,7 @@ const MEAL_LABELS: Record<string, string> = {
 @Component({
   selector: 'app-journal-home',
   standalone: true,
-  imports: [NgFor, NgIf, DatePipe, MatButtonModule, MatIconModule, MatRippleModule, OfflineBannerComponent],
+  imports: [DatePipe, MatButtonModule, MatIconModule, MatRippleModule, OfflineBannerComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './journal-home.component.html',
   styleUrl: './journal-home.component.scss',

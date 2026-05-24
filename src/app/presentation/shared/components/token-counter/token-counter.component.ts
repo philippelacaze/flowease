@@ -1,5 +1,5 @@
 import { Component, Input, ChangeDetectionStrategy, Inject } from '@angular/core';
-import { NgIf } from '@angular/common';
+
 import { LOCAL_SETTINGS_PORT } from '../../../../application/tokens';
 import type { LocalSettingsRepository } from '../../../../domain/repositories/local-settings.repository';
 
@@ -15,7 +15,7 @@ import type { LocalSettingsRepository } from '../../../../domain/repositories/lo
 @Component({
   selector: 'app-token-counter',
   standalone: true,
-  imports: [NgIf],
+  imports: [],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './token-counter.component.html',
   styleUrl: './token-counter.component.scss',

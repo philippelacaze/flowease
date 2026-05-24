@@ -4,7 +4,7 @@ import {
   ChangeDetectorRef,
   inject,
 } from '@angular/core';
-import { NgFor, NgIf } from '@angular/common';
+
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { MatButtonModule } from '@angular/material/button';
@@ -37,11 +37,16 @@ import type { NoteInputMode, LinkedEntry } from '../../../../domain/entities/not
   selector: 'app-note-entry',
   standalone: true,
   imports: [
-    NgFor, NgIf, FormsModule,
-    MatButtonModule, MatButtonToggleModule, MatIconModule,
-    MatFormFieldModule, MatInputModule, MatChipsModule,
-    VoiceInputComponent, PhotoInputComponent,
-  ],
+    FormsModule,
+    MatButtonModule,
+    MatButtonToggleModule,
+    MatIconModule,
+    MatFormFieldModule,
+    MatInputModule,
+    MatChipsModule,
+    VoiceInputComponent,
+    PhotoInputComponent
+],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './note-entry.component.html',
   styleUrl: './note-entry.component.scss',

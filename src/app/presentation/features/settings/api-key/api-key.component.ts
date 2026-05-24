@@ -1,5 +1,5 @@
 import { Component, inject, signal } from '@angular/core';
-import { CommonModule } from '@angular/common';
+
 import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { MatButtonModule } from '@angular/material/button';
@@ -27,7 +27,6 @@ type ApiKeyStatus = 'idle' | 'testing' | 'valid' | 'invalid';
   selector: 'app-api-key',
   standalone: true,
   imports: [
-    CommonModule,
     FormsModule,
     RouterLink,
     MatButtonModule,
@@ -35,8 +34,8 @@ type ApiKeyStatus = 'idle' | 'testing' | 'valid' | 'invalid';
     MatInputModule,
     MatIconModule,
     MatProgressSpinnerModule,
-    MatChipsModule,
-  ],
+    MatChipsModule
+],
   templateUrl: './api-key.component.html',
   styleUrl: './api-key.component.scss',
 })
