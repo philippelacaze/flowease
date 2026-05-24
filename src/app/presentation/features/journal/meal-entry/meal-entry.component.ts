@@ -110,8 +110,9 @@ export class MealEntryComponent implements OnInit {
     this.aiUnavailable = false;
     this.cdr.markForCheck();
     const items = await this.extractMealFromText.execute(text);
-    this.proposedItems = [...this.proposedItems, ...items];
-    this.aiUnavailable = items.length === 0;
+    // null = erreur technique (adapter a déjà notifié via la bannière)
+    this.aiUnavailable = items === null;
+    if (items !== null) this.proposedItems = [...this.proposedItems, ...items];
     this.analyzing = false;
     this.cdr.markForCheck();
   }
@@ -124,8 +125,9 @@ export class MealEntryComponent implements OnInit {
       base64Image: event.base64,
       mediaType: event.mediaType,
     });
-    this.proposedItems = [...this.proposedItems, ...items];
-    this.aiUnavailable = items.length === 0;
+    // null = erreur technique (adapter a déjà notifié via la bannière)
+    this.aiUnavailable = items === null;
+    if (items !== null) this.proposedItems = [...this.proposedItems, ...items];
     this.analyzing = false;
     this.cdr.markForCheck();
   }
