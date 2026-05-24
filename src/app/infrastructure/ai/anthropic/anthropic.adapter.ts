@@ -106,7 +106,7 @@ export class AnthropicAdapter implements MealAnalysisPort, NoteTaggingPort, Anal
         return null;
       }
       if (items.length === 0 && explanation) {
-        this.errorNotification.showInfo(explanation);
+        this.errorNotification.showWarning(explanation);
       }
       return items;
     } catch (err) {

@@ -6,7 +6,11 @@
     data-testid="error-banner"
   >
     <mat-icon class="banner-icon" aria-hidden="true">
-      {{ notif.type === 'error' ? 'error_outline' : 'info_outline' }}
+      @switch (notif.type) {
+        @case ('error')   { error_outline }
+        @case ('warning') { warning_amber }
+        @case ('success') { check_circle_outline }
+      }
     </mat-icon>
     <span class="banner-message">{{ notif.message }}</span>
     <button
