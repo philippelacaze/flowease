@@ -1,0 +1,14 @@
+    @if (notification.message()) {
+      <div class="error-banner" role="alert" aria-live="assertive" data-testid="error-banner">
+        <mat-icon class="banner-icon" aria-hidden="true">error_outline</mat-icon>
+        <span class="banner-message">{{ notification.message() }}</span>
+        <button
+          mat-icon-button
+          class="banner-close"
+          aria-label="Fermer le message d'erreur"
+          (click)="notification.dismiss()">
+          <mat-icon>close</mat-icon>
+        </button>
+      </div>
+    }
+  

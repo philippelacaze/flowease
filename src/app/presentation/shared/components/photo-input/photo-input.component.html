@@ -1,0 +1,31 @@
+    <div class="photo-input">
+      <input
+        #fileInput
+        type="file"
+        accept="image/*"
+        capture="environment"
+        class="photo-input__hidden"
+        [attr.aria-hidden]="true"
+        (change)="onFileChange($event)"
+      />
+
+      <button
+        mat-raised-button
+        color="primary"
+        [disabled]="isOffline"
+        [attr.aria-label]="isOffline ? 'Photo désactivée — connexion requise' : 'Prendre une photo ou choisir une image'"
+        (click)="fileInput.click()"
+      >
+        <mat-icon aria-hidden="true">{{ isOffline ? 'cloud_off' : 'camera_alt' }}</mat-icon>
+        {{ isOffline ? 'Photo (hors-ligne)' : 'Photo' }}
+      </button>
+
+      <span *ngIf="isOffline" class="photo-offline-hint" role="status">
+        Connexion requise pour l'analyse IA
+      </span>
+
+      <span *ngIf="loading" class="photo-loading" role="status" aria-live="polite">
+        Chargement…
+      </span>
+    </div>
+  

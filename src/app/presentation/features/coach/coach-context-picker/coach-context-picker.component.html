@@ -1,0 +1,23 @@
+    <div class="picker-header">
+      <h3>Choisir le contexte de données</h3>
+      <p class="picker-subtitle">Plus de contexte = réponses plus précises = plus de tokens</p>
+    </div>
+
+    <mat-nav-list>
+      <mat-list-item
+        *ngFor="let option of contextOptions"
+        (click)="onSelect(option)"
+        [attr.data-testid]="'context-option-' + option.key"
+        [attr.aria-label]="option.label + ' — ' + option.description + ', estimation ' + option.estimatedTokens"
+        class="context-option">
+        <mat-icon matListItemIcon aria-hidden="true">{{ option.icon }}</mat-icon>
+        <span matListItemTitle>{{ option.label }}</span>
+        <span matListItemLine>{{ option.description }}</span>
+        <span matListItemMeta class="token-estimate">{{ option.estimatedTokens }}</span>
+      </mat-list-item>
+    </mat-nav-list>
+
+    <div *ngIf="loading()" class="loading-overlay" role="status" aria-live="polite">
+      <span>Démarrage de la session...</span>
+    </div>
+  

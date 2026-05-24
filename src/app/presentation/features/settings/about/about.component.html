@@ -1,0 +1,76 @@
+    <div class="about-page">
+      <header class="page-header">
+        <a mat-icon-button routerLink=".." aria-label="Retour aux paramètres">
+          <mat-icon>arrow_back</mat-icon>
+        </a>
+        <h1>À propos</h1>
+      </header>
+
+      <div class="app-identity">
+        <div class="app-logo" aria-hidden="true">
+          <mat-icon class="logo-icon">favorite</mat-icon>
+        </div>
+        <h2 class="app-name">FlowEase</h2>
+        <p class="app-version" data-testid="app-version">Version {{ version }}</p>
+        <p class="app-tagline">
+          Journal de suivi SIBO &amp; gastroparésie
+        </p>
+      </div>
+
+      <mat-divider />
+
+      <mat-list>
+        <a
+          mat-list-item
+          href="https://github.com/flowease-app/flowease"
+          target="_blank"
+          rel="noopener noreferrer"
+          aria-label="Voir le code source sur GitHub (nouvel onglet)"
+          data-testid="github-link">
+          <mat-icon matListItemIcon>code</mat-icon>
+          <span matListItemTitle>Code source</span>
+          <span matListItemLine>github.com/flowease-app/flowease</span>
+          <mat-icon matListItemMeta>open_in_new</mat-icon>
+        </a>
+
+        <a
+          mat-list-item
+          href="https://console.anthropic.com"
+          target="_blank"
+          rel="noopener noreferrer"
+          aria-label="Documentation Claude par Anthropic (nouvel onglet)"
+          data-testid="anthropic-link">
+          <mat-icon matListItemIcon>smart_toy</mat-icon>
+          <span matListItemTitle>Propulsé par Claude (Anthropic)</span>
+          <span matListItemLine>console.anthropic.com</span>
+          <mat-icon matListItemMeta>open_in_new</mat-icon>
+        </a>
+      </mat-list>
+
+      <mat-divider />
+
+      <section class="legal-section" aria-label="Mentions légales">
+        <h3 class="legal-title">Mentions légales</h3>
+
+        <p class="legal-text">
+          FlowEase est une application personnelle de suivi de santé.
+          Elle ne remplace pas l'avis d'un professionnel de santé.
+          Consultez toujours votre médecin ou gastro-entérologue pour
+          tout suivi médical.
+        </p>
+
+        <p class="legal-text">
+          <strong>Données personnelles :</strong> Toutes vos données de santé
+          sont stockées uniquement sur votre appareil (IndexedDB). Aucune
+          donnée n'est transmise à nos serveurs. Seules les fonctions IA
+          transmettent des données anonymisées à l'API Anthropic, avec
+          votre clé API personnelle.
+        </p>
+
+        <p class="legal-text">
+          <strong>Clé API :</strong> Votre clé Anthropic est stockée dans
+          le localStorage de votre navigateur et n'est jamais partagée.
+        </p>
+      </section>
+    </div>
+  

@@ -1,0 +1,48 @@
+    .coach-settings-page {
+      max-width: 640px;
+      margin: 0 auto;
+      padding: 16px;
+    }
+    .page-header {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 16px;
+    }
+    .page-header h1 {
+      font-size: 1.4rem;
+      margin: 0;
+    }
+    .settings-content {
+      display: flex;
+      flex-direction: column;
+    }
+    .setting-section {
+      padding: 16px 0;
+    }
+    .section-title {
+      font-size: 1rem;
+      font-weight: 500;
+      margin: 0 0 4px;
+    }
+    .section-desc {
+      font-size: 0.85rem;
+      color: var(--mat-sys-on-surface-variant);
+      margin: 0 0 12px;
+    }
+    .mode-toggle {
+      flex-wrap: wrap;
+    }
+    .full-width {
+      width: 100%;
+    }
+    .save-actions {
+      padding: 16px 0;
+      display: flex;
+      justify-content: flex-end;
+    }
+    .save-btn {
+      min-height: 44px;
+      min-width: 140px;
+    }
+  

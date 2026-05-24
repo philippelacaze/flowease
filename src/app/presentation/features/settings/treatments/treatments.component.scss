@@ -1,0 +1,83 @@
+    .treatments-page {
+      max-width: 640px;
+      margin: 0 auto;
+      padding: 16px;
+    }
+    .page-header {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 16px;
+    }
+    .page-header h1 {
+      flex: 1;
+      font-size: 1.4rem;
+      margin: 0;
+    }
+    .empty-state {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 12px;
+      padding: 48px 16px;
+      text-align: center;
+      color: var(--mat-sys-on-surface-variant);
+    }
+    .empty-state mat-icon {
+      font-size: 48px;
+      width: 48px;
+      height: 48px;
+    }
+    .treatment-icon {
+      margin-right: 8px;
+      vertical-align: middle;
+    }
+    .inactive-chip {
+      margin-left: 8px;
+      font-size: 0.75rem;
+    }
+    .treatment-detail {
+      padding: 8px 0;
+    }
+    .treatment-detail p {
+      margin: 4px 0;
+      font-size: 0.9rem;
+    }
+    .treatment-actions {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-top: 12px;
+    }
+    .add-form {
+      margin-top: 24px;
+      padding: 16px;
+      border-radius: 8px;
+      background: var(--mat-sys-surface-container);
+    }
+    .add-form h2 {
+      font-size: 1.1rem;
+      margin: 0 0 16px;
+    }
+    .form-fields {
+      display: flex;
+      flex-direction: column;
+      gap: 0;
+    }
+    .full-width { width: 100%; }
+    .row-fields {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+    .row-fields mat-form-field {
+      flex: 1;
+      min-width: 100px;
+    }
+    .form-actions {
+      display: flex;
+      gap: 12px;
+      justify-content: flex-end;
+      margin-top: 8px;
+    }
+  

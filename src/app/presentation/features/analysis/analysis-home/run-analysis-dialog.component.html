@@ -1,0 +1,45 @@
+    <h2 mat-dialog-title>Lancer une analyse IA</h2>
+
+    <mat-dialog-content>
+      <p class="hint">
+        Claude analysera vos données pour identifier corrélations et patterns de santé.
+      </p>
+
+      <mat-form-field appearance="outline" class="window-field">
+        <mat-label>Fenêtre d'analyse</mat-label>
+        <mat-select
+          [(ngModel)]="selectedWindow"
+          aria-label="Fenêtre d'analyse en jours"
+          data-testid="analysis-window-select"
+        >
+          <mat-option *ngFor="let opt of windowOptions" [value]="opt.days">
+            {{ opt.label }}
+          </mat-option>
+        </mat-select>
+      </mat-form-field>
+
+      <p class="token-hint">
+        <span class="token-label">Estimation&nbsp;:</span>
+        {{ currentOption?.estimate }}
+      </p>
+    </mat-dialog-content>
+
+    <mat-dialog-actions align="end">
+      <button
+        mat-button
+        (click)="cancel()"
+        aria-label="Annuler l'analyse"
+      >
+        Annuler
+      </button>
+      <button
+        mat-flat-button
+        color="primary"
+        (click)="confirm()"
+        aria-label="Confirmer et lancer l'analyse"
+        data-testid="confirm-run-analysis"
+      >
+        Analyser
+      </button>
+    </mat-dialog-actions>
+  

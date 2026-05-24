@@ -1,0 +1,128 @@
+    <div class="symptom-entry">
+      <header class="page-header">
+        <button mat-icon-button aria-label="Retour au journal" (click)="back()">
+          <mat-icon>arrow_back</mat-icon>
+        </button>
+        <h1 class="page-title">Saisir des symptômes</h1>
+      </header>
+
+      <div class="symptom-form">
+        <!-- Bloc Digestifs -->
+        <section class="symptom-section" aria-label="Symptômes digestifs">
+          <h2 class="section-title">
+            <mat-icon aria-hidden="true">health_and_safety</mat-icon>
+            Digestifs
+          </h2>
+          <ng-container *ngFor="let row of digestiveRows">
+            <div class="symptom-row" [attr.data-testid]="'symptom-' + row.key">
+              <!-- Bristol (transit) -->
+              <ng-container *ngIf="row.hasBristol; else regularRow">
+                <h3 class="symptom-row-title">{{ row.labelFr }}</h3>
+                <app-intensity-slider
+                  [label]="'Intensité de la gêne'"
+                  [value]="row.intensity"
+                  (valueChange)="row.intensity = $event; markDirty()"
+                />
+                <div class="bristol-section">
+                  <p class="bristol-hint">Type de selle :</p>
+                  <app-bristol-scale
+                    [value]="row.bristolType"
+                    (valueChange)="row.bristolType = $event; markDirty()"
+                  />
+                </div>
+              </ng-container>
+
+              <!-- Row standard -->
+              <ng-template #regularRow>
+                <app-intensity-slider
+                  [label]="row.labelFr"
+                  [value]="row.intensity"
+                  (valueChange)="row.intensity = $event; markDirty()"
+                />
+
+                <!-- Abdominal map -->
+                <div *ngIf="row.hasMap && row.intensity > 0" class="pain-detail">
+                  <p class="pain-detail-label">Localisation :</p>
+                  <app-abdominal-map
+                    [selectedZones]="row.painZones"
+                    (zonesChange)="row.painZones = $event; markDirty()"
+                  />
+                </div>
+
+                <!-- Pain types -->
+                <div *ngIf="row.hasPainTypes && row.intensity > 0" class="pain-types">
+                  <p class="pain-detail-label">Type de douleur :</p>
+                  <div class="pain-type-grid" role="group" aria-label="Types de douleur">
+                    <button
+                      *ngFor="let pt of painTypes"
+                      class="pain-type-btn"
+                      [class.pain-type-btn--selected]="row.painTypes.includes(pt.id)"
+                      [attr.aria-label]="pt.labelFr + (row.painTypes.includes(pt.id) ? ' — sélectionné' : '')"
+                      [attr.aria-pressed]="row.painTypes.includes(pt.id)"
+                      (click)="togglePainType(row, pt.id)"
+                    >{{ pt.labelFr }}</button>
+                  </div>
+                </div>
+              </ng-template>
+            </div>
+          </ng-container>
+        </section>
+
+        <!-- Bloc Systémiques -->
+        <section class="symptom-section" aria-label="Symptômes systémiques">
+          <h2 class="section-title">
+            <mat-icon aria-hidden="true">person</mat-icon>
+            Systémiques
+          </h2>
+          <div
+            *ngFor="let row of systemicRows"
+            class="symptom-row"
+            [attr.data-testid]="'symptom-' + row.key"
+          >
+            <app-intensity-slider
+              [label]="row.labelFr"
+              [value]="row.intensity"
+              (valueChange)="row.intensity = $event; markDirty()"
+            />
+          </div>
+        </section>
+
+        <!-- Bloc Bien-être -->
+        <section class="symptom-section" aria-label="Indicateurs de bien-être">
+          <h2 class="section-title">
+            <mat-icon aria-hidden="true">sentiment_satisfied</mat-icon>
+            Bien-être
+          </h2>
+          <div
+            *ngFor="let row of wellbeingRows"
+            class="symptom-row"
+            [attr.data-testid]="'symptom-' + row.key"
+          >
+            <app-intensity-slider
+              [label]="row.labelFr"
+              [value]="row.intensity"
+              (valueChange)="row.intensity = $event; markDirty()"
+            />
+          </div>
+        </section>
+      </div>
+
+      <div class="submit-row">
+        <p *ngIf="!hasAnyRating" class="no-rating-hint" role="status">
+          Déplacez au moins un curseur pour activer la validation
+        </p>
+        <button
+          mat-raised-button
+          color="primary"
+          class="submit-btn"
+          [disabled]="!hasAnyRating || saving"
+          aria-label="Valider et enregistrer les symptômes"
+          data-testid="submit-symptoms"
+          (click)="submit()"
+        >
+          <mat-icon aria-hidden="true">check</mat-icon>
+          {{ saving ? 'Enregistrement…' : 'Valider les symptômes' }}
+        </button>
+      </div>
+    </div>
+  

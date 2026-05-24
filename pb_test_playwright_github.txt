@@ -1,0 +1,186 @@
+Run npx playwright test
+
+Running 11 tests using 2 workers
+TTTTFTTTTTT
+  1) [Mobile Chrome (Pixel 7)] › e2e/journal/intake-entry.spec.ts:13:7 › Saisie des prises de traitement › tap simple → statut "pris" visible
+    Test timeout of 20000ms exceeded while running "beforeEach" hook.
+      4 | test.describe('Saisie des prises de traitement', () => {
+      5 |
+    > 6 |   test.beforeEach(async ({ page }) => {
+        |        ^
+      7 |     await page.goto('/journal');
+      8 |     await page.waitForLoadState('networkidle');
+      9 |     await seedIndexedDB(page);
+        at /home/runner/work/flowease/flowease/e2e/journal/intake-entry.spec.ts:6:8
+    Error: page.evaluate: Test timeout of 20000ms exceeded.
+       at helpers/seed-indexeddb.ts:12
+      10 |  */
+      11 | export async function seedIndexedDB(page: Page): Promise<void> {
+    > 12 |   await page.evaluate(
+         |              ^
+      13 |     ({ treatmentId, mealFreqId, mealLinkId }) => {
+      14 |       return new Promise<void>((resolve, reject) => {
+      15 |         const request = indexedDB.open('flowease-db');
+        at seedIndexedDB (/home/runner/work/flowease/flowease/e2e/helpers/seed-indexeddb.ts:12:14)
+        at /home/runner/work/flowease/flowease/e2e/journal/intake-entry.spec.ts:9:24
+    Error Context: test-results/journal-intake-entry-Saisi-0d50b-imple-→-statut-pris-visible-Mobile-Chrome-Pixel-7-/error-context.md
+  2) [Mobile Chrome (Pixel 7)] › e2e/journal/intake-entry.spec.ts:23:7 › Saisie des prises de traitement › tap long → panneau détail → note ajoutée → prise confirmée
+    Test timeout of 20000ms exceeded while running "beforeEach" hook.
+      4 | test.describe('Saisie des prises de traitement', () => {
+      5 |
+    > 6 |   test.beforeEach(async ({ page }) => {
+        |        ^
+      7 |     await page.goto('/journal');
+      8 |     await page.waitForLoadState('networkidle');
+      9 |     await seedIndexedDB(page);
+        at /home/runner/work/flowease/flowease/e2e/journal/intake-entry.spec.ts:6:8
+    Error: page.evaluate: Test timeout of 20000ms exceeded.
+       at helpers/seed-indexeddb.ts:12
+      10 |  */
+      11 | export async function seedIndexedDB(page: Page): Promise<void> {
+    > 12 |   await page.evaluate(
+         |              ^
+      13 |     ({ treatmentId, mealFreqId, mealLinkId }) => {
+      14 |       return new Promise<void>((resolve, reject) => {
+      15 |         const request = indexedDB.open('flowease-db');
+        at seedIndexedDB (/home/runner/work/flowease/flowease/e2e/helpers/seed-indexeddb.ts:12:14)
+        at /home/runner/work/flowease/flowease/e2e/journal/intake-entry.spec.ts:9:24
+    Error Context: test-results/journal-intake-entry-Saisi-75d4b-e-ajoutée-→-prise-confirmée-Mobile-Chrome-Pixel-7-/error-context.md
+  3) [Mobile Chrome (Pixel 7)] › e2e/journal/meal-entry.spec.ts:9:7 › Saisie d'un repas › saisie texte → repas visible dans le journal
+    Test timeout of 20000ms exceeded.
+    Error: locator.fill: Test timeout of 20000ms exceeded.
+    Call log:
+      - waiting for locator('[data-testid="meal-text-input"]')
+      10 |     await page.goto('/journal/meal');
+      11 |
+    > 12 |     await page.locator('[data-testid="meal-text-input"]').fill('Poulet rôti, riz blanc');
+         |                                                           ^
+      13 |     await page.locator('[data-testid="submit-meal"]').click();
+      14 |
+      15 |     await page.waitForURL('**/journal');
+        at /home/runner/work/flowease/flowease/e2e/journal/meal-entry.spec.ts:12:59
+    Error Context: test-results/journal-meal-entry-Saisie--a8391-pas-visible-dans-le-journal-Mobile-Chrome-Pixel-7-/error-context.md
+  4) [Mobile Chrome (Pixel 7)] › e2e/journal/meal-entry.spec.ts:19:7 › Saisie d'un repas › saisie vocale → transcription mockée → AI indisponible affiché
+    Test timeout of 20000ms exceeded.
+    Error: locator.click: Test timeout of 20000ms exceeded.
+    Call log:
+      - waiting for getByLabel('Mode vocal')
+      21 |     await page.goto('/journal/meal');
+      22 |
+    > 23 |     await page.getByLabel('Mode vocal').click();
+         |                                         ^
+      24 |     await page.getByLabel('Démarrer la reconnaissance vocale').click();
+      25 |
+      26 |     await page.evaluate(() => {
+        at /home/runner/work/flowease/flowease/e2e/journal/meal-entry.spec.ts:23:41
+    Error Context: test-results/journal-meal-entry-Saisie--ca833-e-→-AI-indisponible-affiché-Mobile-Chrome-Pixel-7-/error-context.md
+  5) [Mobile Chrome (Pixel 7)] › e2e/journal/meal-entry.spec.ts:34:7 › Saisie d'un repas › bouton photo désactivé si hors-ligne
+    Error: page.goto: net::ERR_INTERNET_DISCONNECTED at http://localhost:4200/journal/meal
+    Call log:
+      - navigating to "http://localhost:4200/journal/meal", waiting until "load"
+      34 |   test('bouton photo désactivé si hors-ligne', async ({ page, context }) => {
+      35 |     await context.setOffline(true);
+    > 36 |     await page.goto('/journal/meal');
+         |                ^
+      37 |
+      38 |     await page.getByLabel('Mode photo').click();
+      39 |
+        at /home/runner/work/flowease/flowease/e2e/journal/meal-entry.spec.ts:36:16
+    Error Context: test-results/journal-meal-entry-Saisie--ac1a9-oto-désactivé-si-hors-ligne-Mobile-Chrome-Pixel-7-/error-context.md
+  6) [Mobile Chrome (Pixel 7)] › e2e/journal/meal-entry.spec.ts:45:7 › Saisie d'un repas › aliments fréquents → tap unique suffit → repas envoyé
+    Test timeout of 20000ms exceeded.
+    Error: page.evaluate: Test timeout of 20000ms exceeded.
+       at helpers/seed-indexeddb.ts:12
+      10 |  */
+      11 | export async function seedIndexedDB(page: Page): Promise<void> {
+    > 12 |   await page.evaluate(
+         |              ^
+      13 |     ({ treatmentId, mealFreqId, mealLinkId }) => {
+      14 |       return new Promise<void>((resolve, reject) => {
+      15 |         const request = indexedDB.open('flowease-db');
+        at seedIndexedDB (/home/runner/work/flowease/flowease/e2e/helpers/seed-indexeddb.ts:12:14)
+        at /home/runner/work/flowease/flowease/e2e/journal/meal-entry.spec.ts:48:24
+    Error Context: test-results/journal-meal-entry-Saisie--9aa14-nique-suffit-→-repas-envoyé-Mobile-Chrome-Pixel-7-/error-context.md
+  7) [Mobile Chrome (Pixel 7)] › e2e/journal/meal-entry.spec.ts:60:7 › Saisie d'un repas › heure du repas modifiable → heure affichée dans le journal
+    Test timeout of 20000ms exceeded.
+    Error: locator.fill: Test timeout of 20000ms exceeded.
+    Call log:
+      - waiting for locator('[data-testid="meal-text-input"]')
+      61 |     await page.goto('/journal/meal');
+      62 |
+    > 63 |     await page.locator('[data-testid="meal-text-input"]').fill('Soupe de légumes');
+         |                                                           ^
+      64 |     await page.locator('[data-testid="meal-time-input"]').fill('19:45');
+      65 |     await page.locator('[data-testid="submit-meal"]').click();
+      66 |
+        at /home/runner/work/flowease/flowease/e2e/journal/meal-entry.spec.ts:63:59
+    Error Context: test-results/journal-meal-entry-Saisie--d270e-re-affichée-dans-le-journal-Mobile-Chrome-Pixel-7-/error-context.md
+  8) [Mobile Chrome (Pixel 7)] › e2e/journal/note-entry.spec.ts:6:7 › Saisie d'une note › note texte → sauvegardée (sans tags si IA indisponible)
+    Test timeout of 20000ms exceeded.
+    Error: locator.fill: Test timeout of 20000ms exceeded.
+    Call log:
+      - waiting for locator('[data-testid="note-text-input"]')
+       7 |     await page.goto('/journal/note');
+       8 |
+    >  9 |     await page.locator('[data-testid="note-text-input"]').fill(
+         |                                                           ^
+      10 |       'Douleurs légères après le déjeuner, ballonnements modérés.',
+      11 |     );
+      12 |     await page.locator('[data-testid="submit-note"]').click();
+        at /home/runner/work/flowease/flowease/e2e/journal/note-entry.spec.ts:9:59
+    Error Context: test-results/journal-note-entry-Saisie--90b30-ns-tags-si-IA-indisponible--Mobile-Chrome-Pixel-7-/error-context.md
+  9) [Mobile Chrome (Pixel 7)] › e2e/journal/note-entry.spec.ts:18:7 › Saisie d'une note › lier à un repas → repas affiché dans les entrées liées
+    Test timeout of 20000ms exceeded.
+    Error: page.evaluate: Test timeout of 20000ms exceeded.
+       at helpers/seed-indexeddb.ts:12
+      10 |  */
+      11 | export async function seedIndexedDB(page: Page): Promise<void> {
+    > 12 |   await page.evaluate(
+         |              ^
+      13 |     ({ treatmentId, mealFreqId, mealLinkId }) => {
+      14 |       return new Promise<void>((resolve, reject) => {
+      15 |         const request = indexedDB.open('flowease-db');
+        at seedIndexedDB (/home/runner/work/flowease/flowease/e2e/helpers/seed-indexeddb.ts:12:14)
+        at /home/runner/work/flowease/flowease/e2e/journal/note-entry.spec.ts:22:24
+    Error Context: test-results/journal-note-entry-Saisie--bd042-iché-dans-les-entrées-liées-Mobile-Chrome-Pixel-7-/error-context.md
+  10) [Mobile Chrome (Pixel 7)] › e2e/journal/symptom-entry.spec.ts:5:7 › Saisie des symptômes › douleur abdominale → intensité + zone + type → visible dans le journal
+    Test timeout of 20000ms exceeded.
+    Error: locator.focus: Test timeout of 20000ms exceeded.
+    Call log:
+      - waiting for locator('[data-testid="symptom-abdominal_pain"]').locator('input[type="range"]').first()
+      11 |       .locator('input[type="range"]')
+      12 |       .first();
+    > 13 |     await painSlider.focus();
+         |                      ^
+      14 |     await page.keyboard.press('End');
+      15 |
+      16 |     // Sélectionner une zone abdominale (carte Épigastre)
+        at /home/runner/work/flowease/flowease/e2e/journal/symptom-entry.spec.ts:13:22
+    Error Context: test-results/journal-symptom-entry-Sais-2b452-e-→-visible-dans-le-journal-Mobile-Chrome-Pixel-7-/error-context.md
+  11) [Mobile Chrome (Pixel 7)] › e2e/journal/symptom-entry.spec.ts:28:7 › Saisie des symptômes › Bristol type 4 sélectionné → transit visible dans le journal
+    Test timeout of 20000ms exceeded.
+    Error: locator.click: Test timeout of 20000ms exceeded.
+    Call log:
+      - waiting for getByRole('radio', { name: /Type 4/ })
+      32 |     await page
+      33 |       .getByRole('radio', { name: /Type 4/ })
+    > 34 |       .click();
+         |        ^
+      35 |
+      36 |     await page.locator('[data-testid="submit-symptoms"]').click();
+      37 |
+        at /home/runner/work/flowease/flowease/e2e/journal/symptom-entry.spec.ts:34:8
+    Error Context: test-results/journal-symptom-entry-Sais-40485-sit-visible-dans-le-journal-Mobile-Chrome-Pixel-7-/error-context.md
+  11 failed
+    [Mobile Chrome (Pixel 7)] › e2e/journal/intake-entry.spec.ts:13:7 › Saisie des prises de traitement › tap simple → statut "pris" visible
+    [Mobile Chrome (Pixel 7)] › e2e/journal/intake-entry.spec.ts:23:7 › Saisie des prises de traitement › tap long → panneau détail → note ajoutée → prise confirmée
+    [Mobile Chrome (Pixel 7)] › e2e/journal/meal-entry.spec.ts:9:7 › Saisie d'un repas › saisie texte → repas visible dans le journal
+    [Mobile Chrome (Pixel 7)] › e2e/journal/meal-entry.spec.ts:19:7 › Saisie d'un repas › saisie vocale → transcription mockée → AI indisponible affiché
+    [Mobile Chrome (Pixel 7)] › e2e/journal/meal-entry.spec.ts:34:7 › Saisie d'un repas › bouton photo désactivé si hors-ligne
+    [Mobile Chrome (Pixel 7)] › e2e/journal/meal-entry.spec.ts:45:7 › Saisie d'un repas › aliments fréquents → tap unique suffit → repas envoyé
+    [Mobile Chrome (Pixel 7)] › e2e/journal/meal-entry.spec.ts:60:7 › Saisie d'un repas › heure du repas modifiable → heure affichée dans le journal
+    [Mobile Chrome (Pixel 7)] › e2e/journal/note-entry.spec.ts:6:7 › Saisie d'une note › note texte → sauvegardée (sans tags si IA indisponible)
+    [Mobile Chrome (Pixel 7)] › e2e/journal/note-entry.spec.ts:18:7 › Saisie d'une note › lier à un repas → repas affiché dans les entrées liées
+    [Mobile Chrome (Pixel 7)] › e2e/journal/symptom-entry.spec.ts:5:7 › Saisie des symptômes › douleur abdominale → intensité + zone + type → visible dans le journal
+    [Mobile Chrome (Pixel 7)] › e2e/journal/symptom-entry.spec.ts:28:7 › Saisie des symptômes › Bristol type 4 sélectionné → transit visible dans le journal
+Error: Process completed with exit code 1.

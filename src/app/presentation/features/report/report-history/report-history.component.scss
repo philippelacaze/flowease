@@ -1,0 +1,38 @@
+    .report-history {
+      max-width: 640px;
+      margin: 0 auto;
+      padding: 16px;
+    }
+    .page-header {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 16px;
+    }
+    .page-header h1 {
+      font-size: 1.4rem;
+      margin: 0;
+    }
+    .loading-state {
+      display: flex;
+      justify-content: center;
+      padding: 40px;
+    }
+    .empty-state {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 12px;
+      padding: 48px 16px;
+      text-align: center;
+      color: var(--mat-sys-on-surface-variant);
+    }
+    .empty-state mat-icon {
+      font-size: 48px;
+      width: 48px;
+      height: 48px;
+    }
+    .report-item {
+      min-height: 72px;
+    }
+  

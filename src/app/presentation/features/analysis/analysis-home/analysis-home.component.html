@@ -1,0 +1,79 @@
+    <div class="analysis-home">
+      <header class="analysis-header">
+        <h1 class="analysis-title">Analyse</h1>
+
+        <mat-button-toggle-group
+          [value]="windowDays"
+          aria-label="Fenêtre temporelle d'analyse"
+          data-testid="window-toggle"
+          (change)="onWindowChange($event.value)"
+        >
+          <mat-button-toggle [value]="7"  aria-label="7 jours">7j</mat-button-toggle>
+          <mat-button-toggle [value]="30" aria-label="30 jours">30j</mat-button-toggle>
+          <mat-button-toggle [value]="90" aria-label="90 jours">90j</mat-button-toggle>
+        </mat-button-toggle-group>
+      </header>
+
+      <div
+        *ngIf="lastAnalysisDate"
+        class="last-analysis-bar"
+        role="status"
+        aria-live="polite"
+        data-testid="last-analysis-bar"
+      >
+        <mat-icon aria-hidden="true" class="bar-icon">schedule</mat-icon>
+        Dernière analyse : {{ lastAnalysisDaysAgo }}
+      </div>
+
+      <div *ngIf="analyzing" class="analyzing-row" role="status" aria-live="polite">
+        <mat-spinner diameter="24" />
+        <span>Analyse en cours…</span>
+      </div>
+
+      <div class="analysis-sections">
+        <section class="analysis-section" aria-label="Évolution des symptômes">
+          <h2 class="section-title">
+            <mat-icon aria-hidden="true">trending_up</mat-icon>
+            Symptômes
+          </h2>
+          <app-symptom-chart [symptomKey]="'abdominal_pain'" [windowDays]="windowDays" />
+        </section>
+
+        <section class="analysis-section" aria-label="Observance des traitements">
+          <h2 class="section-title">
+            <mat-icon aria-hidden="true">medication</mat-icon>
+            Observance
+          </h2>
+          <app-adherence-calendar [windowDays]="windowDays" />
+        </section>
+
+        <section class="analysis-section" aria-label="Bien-être quotidien">
+          <h2 class="section-title">
+            <mat-icon aria-hidden="true">favorite</mat-icon>
+            Bien-être
+          </h2>
+          <app-wellbeing-heatmap [windowDays]="windowDays" />
+        </section>
+
+        <section class="analysis-section" aria-label="Insights IA">
+          <h2 class="section-title">
+            <mat-icon aria-hidden="true">auto_awesome</mat-icon>
+            Analyses IA
+          </h2>
+          <app-ai-insights [refreshKey]="insightsRefreshKey" />
+        </section>
+      </div>
+    </div>
+
+    <button
+      mat-fab
+      color="primary"
+      class="analysis-fab"
+      aria-label="Lancer une analyse IA"
+      data-testid="run-analysis-fab"
+      [disabled]="analyzing"
+      (click)="openRunDialog()"
+    >
+      <mat-icon>auto_awesome</mat-icon>
+    </button>
+  

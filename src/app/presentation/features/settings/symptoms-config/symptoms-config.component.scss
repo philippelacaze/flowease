@@ -1,0 +1,85 @@
+    .symptoms-config-page {
+      max-width: 640px;
+      margin: 0 auto;
+      padding: 16px;
+    }
+    .page-header {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 8px;
+    }
+    .page-header h1 {
+      font-size: 1.4rem;
+      margin: 0;
+    }
+    .hint {
+      font-size: 0.85rem;
+      color: var(--mat-sys-on-surface-variant);
+      margin-bottom: 16px;
+    }
+    .symptom-list {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      min-height: 60px;
+    }
+    .symptom-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 4px;
+      background: var(--mat-sys-surface-container);
+      border-radius: 8px;
+      min-height: 52px;
+      cursor: default;
+    }
+    .symptom-item.inactive {
+      opacity: 0.5;
+    }
+    .symptom-item.cdk-drag-preview {
+      box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+    }
+    .drag-handle {
+      cursor: grab;
+      color: var(--mat-sys-on-surface-variant);
+    }
+    .symptom-label {
+      flex: 1;
+      font-size: 0.95rem;
+    }
+    .custom-badge {
+      font-size: 16px;
+      width: 16px;
+      height: 16px;
+      color: var(--mat-sys-tertiary);
+    }
+    .section-title {
+      font-size: 1rem;
+      font-weight: 500;
+      color: var(--mat-sys-on-surface-variant);
+      margin: 16px 0 8px;
+    }
+    .add-row {
+      display: flex;
+      gap: 12px;
+      align-items: flex-start;
+      flex-wrap: wrap;
+    }
+    .add-field {
+      flex: 1;
+      min-width: 200px;
+    }
+    .add-btn {
+      min-height: 44px;
+      margin-top: 4px;
+    }
+    .save-actions {
+      display: flex;
+      justify-content: flex-end;
+      margin-top: 16px;
+    }
+    .save-btn {
+      min-height: 44px;
+    }
+  

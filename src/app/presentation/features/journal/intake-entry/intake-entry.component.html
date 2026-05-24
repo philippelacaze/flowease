@@ -1,0 +1,165 @@
+    <div class="intake-entry">
+      <header class="page-header">
+        <button mat-icon-button aria-label="Retour au journal" (click)="back()">
+          <mat-icon>arrow_back</mat-icon>
+        </button>
+        <h1 class="page-title">Saisir des prises</h1>
+      </header>
+
+      <div *ngIf="loading" class="loading" role="status" aria-live="polite">
+        Chargement des traitements…
+      </div>
+
+      <div *ngIf="!loading && treatmentStates.length === 0" class="empty-state" role="status">
+        <mat-icon aria-hidden="true" class="empty-icon">medication</mat-icon>
+        <p>Aucun traitement actif.</p>
+        <p class="empty-hint">Configurez vos traitements dans les Paramètres.</p>
+        <button
+          mat-stroked-button
+          aria-label="Aller aux paramètres des traitements"
+          (click)="goToSettings()"
+        >
+          Configurer les traitements
+        </button>
+      </div>
+
+      <div *ngIf="!loading && treatmentStates.length > 0" class="treatment-list">
+        <p class="list-hint" role="status">
+          Appui court = pris · Appui long = détail
+        </p>
+
+        <div
+          *ngFor="let state of treatmentStates"
+          class="treatment-card"
+          [class.treatment-card--taken]="state.confirmed"
+          [class.treatment-card--skipped]="state.skipped"
+          [attr.data-testid]="'treatment-' + state.treatment.id"
+          role="button"
+          [attr.aria-label]="state.treatment.name + ' — ' + treatmentStatus(state)"
+          [attr.aria-pressed]="state.confirmed"
+          (pointerdown)="onPointerDown($event, state)"
+          (pointerup)="onPointerUp($event, state)"
+          (pointercancel)="onPointerCancel()"
+          (contextmenu)="$event.preventDefault()"
+        >
+          <div class="treatment-info">
+            <span class="treatment-name">{{ state.treatment.name }}</span>
+            <span class="treatment-dose">{{ state.treatment.dosage }} {{ state.treatment.unit }}</span>
+          </div>
+          <div class="treatment-status">
+            <mat-icon
+              aria-hidden="true"
+              class="status-icon"
+              [class.status-icon--taken]="state.confirmed"
+              [class.status-icon--skipped]="state.skipped"
+            >
+              {{ state.confirmed ? 'check_circle' : state.skipped ? 'cancel' : 'radio_button_unchecked' }}
+            </mat-icon>
+          </div>
+        </div>
+
+        <!-- Panneau détail (long press) -->
+        <div
+          *ngIf="detailState"
+          class="detail-panel"
+          role="dialog"
+          [attr.aria-label]="'Détail de la prise — ' + detailState.treatment.name"
+        >
+          <div class="detail-header">
+            <h2 class="detail-title">{{ detailState.treatment.name }}</h2>
+            <button mat-icon-button aria-label="Fermer le panneau détail" (click)="closeDetail()">
+              <mat-icon>close</mat-icon>
+            </button>
+          </div>
+
+          <div class="detail-form">
+            <mat-form-field appearance="outline" class="detail-field">
+              <mat-label>Heure de prise</mat-label>
+              <input
+                matInput
+                type="time"
+                [(ngModel)]="detailTime"
+                aria-label="Heure effective de la prise"
+                data-testid="detail-time"
+              />
+            </mat-form-field>
+
+            <mat-form-field appearance="outline" class="detail-field">
+              <mat-label>Dose réelle (optionnel)</mat-label>
+              <input
+                matInput
+                [(ngModel)]="detailDose"
+                [placeholder]="detailState.treatment.dosage + ' ' + detailState.treatment.unit"
+                aria-label="Dose réelle prise"
+                data-testid="detail-dose"
+              />
+            </mat-form-field>
+
+            <mat-form-field appearance="outline" class="detail-field">
+              <mat-label>Note (optionnel)</mat-label>
+              <textarea
+                matInput
+                [(ngModel)]="detailNotes"
+                rows="2"
+                aria-label="Note sur la prise"
+                data-testid="detail-notes"
+              ></textarea>
+            </mat-form-field>
+
+            <mat-form-field appearance="outline" class="detail-field">
+              <mat-label>Raison de saut (si non pris)</mat-label>
+              <mat-select [(ngModel)]="detailSkipReason" aria-label="Raison de saut">
+                <mat-option value="">— Aucune —</mat-option>
+                <mat-option value="forgot">Oublié</mat-option>
+                <mat-option value="side_effects">Effets secondaires</mat-option>
+                <mat-option value="unavailable">Non disponible</mat-option>
+                <mat-option value="other">Autre</mat-option>
+              </mat-select>
+            </mat-form-field>
+          </div>
+
+          <div class="detail-actions">
+            <button
+              mat-raised-button
+              color="primary"
+              class="detail-btn"
+              aria-label="Confirmer la prise"
+              data-testid="confirm-taken"
+              (click)="confirmFromDetail('taken')"
+            >
+              <mat-icon aria-hidden="true">check_circle</mat-icon>
+              Pris
+            </button>
+            <button
+              mat-stroked-button
+              class="detail-btn"
+              aria-label="Marquer comme sauté"
+              data-testid="confirm-skipped"
+              (click)="confirmFromDetail('skipped')"
+            >
+              <mat-icon aria-hidden="true">cancel</mat-icon>
+              Sauté
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <div *ngIf="!loading && treatmentStates.length > 0" class="submit-row">
+        <p class="confirmed-count" role="status" aria-live="polite">
+          {{ confirmedCount }} traitement(s) confirmé(s) sur {{ treatmentStates.length }}
+        </p>
+        <button
+          mat-raised-button
+          color="primary"
+          class="submit-btn"
+          [disabled]="confirmedCount === 0"
+          aria-label="Retourner au journal"
+          data-testid="done-intake"
+          (click)="back()"
+        >
+          <mat-icon aria-hidden="true">check</mat-icon>
+          Terminer
+        </button>
+      </div>
+    </div>
+  

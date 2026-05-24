@@ -1,0 +1,91 @@
+    <div class="coach-settings-page">
+      <header class="page-header">
+        <a mat-icon-button routerLink=".." aria-label="Retour aux paramètres">
+          <mat-icon>arrow_back</mat-icon>
+        </a>
+        <h1>Préférences Coach</h1>
+      </header>
+
+      <div class="settings-content">
+
+        <!-- Mode Coach -->
+        <section class="setting-section">
+          <h2 class="section-title">Mode de réponse</h2>
+          <p class="section-desc">Détermine le niveau de détail des réponses du Coach IA.</p>
+          <mat-button-toggle-group
+            [(ngModel)]="prefs.mode"
+            aria-label="Mode de réponse du Coach"
+            class="mode-toggle">
+            <mat-button-toggle value="concise" data-testid="mode-concise">
+              Concis
+            </mat-button-toggle>
+            <mat-button-toggle value="standard" data-testid="mode-standard">
+              Standard
+            </mat-button-toggle>
+            <mat-button-toggle value="detailed" data-testid="mode-detailed">
+              Détaillé
+            </mat-button-toggle>
+          </mat-button-toggle-group>
+        </section>
+
+        <mat-divider />
+
+        <!-- Contexte par défaut -->
+        <section class="setting-section">
+          <h2 class="section-title">Fenêtre de contexte par défaut</h2>
+          <p class="section-desc">Données chargées automatiquement au démarrage d'une session Coach.</p>
+          <mat-form-field appearance="outline" class="full-width">
+            <mat-label>Fenêtre de contexte</mat-label>
+            <mat-select [(ngModel)]="prefs.defaultContext" aria-label="Fenêtre de contexte par défaut" data-testid="context-select">
+              <mat-option value="today">Aujourd'hui uniquement</mat-option>
+              <mat-option value="7">7 derniers jours</mat-option>
+              <mat-option value="14">14 derniers jours (recommandé)</mat-option>
+              <mat-option value="30">30 derniers jours</mat-option>
+              <mat-option value="profile">Profil uniquement (moins de tokens)</mat-option>
+            </mat-select>
+          </mat-form-field>
+        </section>
+
+        <mat-divider />
+
+        <!-- Compteur de tokens -->
+        <section class="setting-section">
+          <h2 class="section-title">Affichage des tokens</h2>
+          <mat-slide-toggle
+            [(ngModel)]="prefs.showTokenCounter"
+            aria-label="Afficher le compteur de tokens dans l'interface Coach"
+            data-testid="token-counter-toggle">
+            Afficher le compteur de tokens
+          </mat-slide-toggle>
+          <p class="section-desc">Affiche une estimation du nombre de tokens consommés par session.</p>
+        </section>
+
+        <mat-divider />
+
+        <!-- Langue du Coach -->
+        <section class="setting-section">
+          <h2 class="section-title">Langue du Coach</h2>
+          <mat-form-field appearance="outline" class="full-width">
+            <mat-label>Langue des réponses</mat-label>
+            <mat-select [(ngModel)]="prefs.language" aria-label="Langue du Coach" data-testid="language-select">
+              <mat-option value="fr">Français</mat-option>
+              <mat-option value="en">English</mat-option>
+            </mat-select>
+          </mat-form-field>
+        </section>
+
+        <div class="save-actions">
+          <button
+            mat-raised-button
+            color="primary"
+            (click)="onSave()"
+            aria-label="Enregistrer les préférences du Coach"
+            data-testid="save-coach-btn"
+            class="save-btn">
+            <mat-icon>save</mat-icon>
+            Enregistrer
+          </button>
+        </div>
+      </div>
+    </div>
+  

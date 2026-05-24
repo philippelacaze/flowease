@@ -1,0 +1,38 @@
+    .history-wrapper {
+      display: flex;
+      flex-direction: column;
+      height: 100%;
+    }
+    .history-header {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px;
+      border-bottom: 1px solid var(--mat-sys-outline-variant);
+      flex-shrink: 0;
+    }
+    .history-title {
+      flex: 1;
+      font-size: 18px;
+      font-weight: 500;
+      margin: 0;
+    }
+    .empty-state {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 12px;
+      padding: 64px 16px;
+      color: var(--mat-sys-outline);
+    }
+    .empty-icon { font-size: 48px; width: 48px; height: 48px; }
+    .session-item { min-height: 72px; }
+    .session-meta { font-size: 12px; opacity: 0.8; }
+    .session-summary {
+      font-size: 12px;
+      font-style: italic;
+      opacity: 0.7;
+      white-space: normal;
+      line-height: 1.4;
+    }
+  

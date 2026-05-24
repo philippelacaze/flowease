@@ -1,0 +1,30 @@
+    .picker-header {
+      padding: 16px 16px 8px;
+    }
+    h3 {
+      margin: 0 0 4px;
+      font-size: 16px;
+      font-weight: 500;
+    }
+    .picker-subtitle {
+      margin: 0;
+      font-size: 13px;
+      color: var(--mat-sys-outline);
+    }
+    .context-option {
+      min-height: 64px;
+    }
+    .token-estimate {
+      font-size: 11px;
+      color: var(--mat-sys-outline);
+    }
+    .loading-overlay {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: rgba(var(--mat-sys-surface-rgb, 255 255 255) / 0.85);
+      font-size: 14px;
+    }
+  

@@ -1,0 +1,46 @@
+    <div class="abdominal-map-container" role="group" aria-label="Cartographie des douleurs abdominales">
+      <svg
+        viewBox="0 0 200 280"
+        xmlns="http://www.w3.org/2000/svg"
+        class="abdominal-svg"
+        aria-hidden="true"
+      >
+        <!-- Silhouette abdominale -->
+        <ellipse cx="100" cy="140" rx="80" ry="120" fill="var(--mat-sys-surface-variant)" stroke="var(--mat-sys-outline)" stroke-width="1.5"/>
+
+        <!-- Zones cliquables -->
+        <rect *ngFor="let zone of zones"
+          [attr.x]="zone.x"
+          [attr.y]="zone.y"
+          [attr.width]="zone.width"
+          [attr.height]="zone.height"
+          rx="8"
+          [ngClass]="isSelected(zone.id) ? 'zone-selected' : 'zone-idle'"
+          (click)="toggleZone(zone.id)"
+          style="cursor:pointer"
+        />
+
+        <!-- Labels centrés dans chaque zone -->
+        <text *ngFor="let zone of zones"
+          [attr.x]="zone.x + zone.width / 2"
+          [attr.y]="zone.y + zone.height / 2 + 4"
+          text-anchor="middle"
+          font-size="9"
+          class="zone-label"
+          pointer-events="none"
+        >{{ zone.labelFr }}</text>
+      </svg>
+
+      <!-- Boutons accessibles en overlay (≥ 44px) -->
+      <div class="zone-buttons" role="group">
+        <button
+          *ngFor="let zone of zones"
+          class="zone-btn"
+          [class.zone-btn--selected]="isSelected(zone.id)"
+          [attr.aria-label]="zone.labelFr + (isSelected(zone.id) ? ' — sélectionnée' : '')"
+          [attr.aria-pressed]="isSelected(zone.id)"
+          (click)="toggleZone(zone.id)"
+        >{{ zone.labelFr }}</button>
+      </div>
+    </div>
+  

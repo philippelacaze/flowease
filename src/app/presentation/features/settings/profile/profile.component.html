@@ -1,0 +1,94 @@
+    <div class="profile-page">
+      <header class="page-header">
+        <a mat-icon-button routerLink=".." aria-label="Retour aux paramètres">
+          <mat-icon>arrow_back</mat-icon>
+        </a>
+        <h1>Mon profil</h1>
+      </header>
+
+      <form [formGroup]="form" (ngSubmit)="onSave()" class="profile-form">
+
+        <!-- Prénom -->
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>Prénom (facultatif)</mat-label>
+          <input
+            matInput
+            formControlName="firstName"
+            aria-label="Prénom"
+            data-testid="first-name" />
+        </mat-form-field>
+
+        <mat-divider />
+
+        <!-- Conditions médicales -->
+        <section class="form-section">
+          <h2 class="section-title">Conditions médicales</h2>
+          <div class="conditions-grid">
+            @for (entry of conditionEntries; track entry.key) {
+              <mat-checkbox
+                [checked]="isConditionChecked(entry.key)"
+                (change)="onConditionChange(entry.key, $event.checked)"
+                [attr.aria-label]="entry.label"
+                [attr.data-testid]="'condition-' + entry.key">
+                {{ entry.label }}
+              </mat-checkbox>
+            }
+          </div>
+        </section>
+
+        <mat-divider />
+
+        <!-- Protocole FODMAP -->
+        <section class="form-section">
+          <h2 class="section-title">Protocole alimentaire</h2>
+          <mat-form-field appearance="outline" class="full-width">
+            <mat-label>Protocole FODMAP</mat-label>
+            <mat-select formControlName="protocol" aria-label="Protocole FODMAP" data-testid="protocol-select">
+              <mat-option value="strict">Strict (élimination)</mat-option>
+              <mat-option value="reintroduction">Réintroduction</mat-option>
+              <mat-option value="maintenance">Maintenance</mat-option>
+              <mat-option value="none">Aucun</mat-option>
+            </mat-select>
+          </mat-form-field>
+        </section>
+
+        <mat-divider />
+
+        <!-- Préférences -->
+        <section class="form-section">
+          <h2 class="section-title">Préférences</h2>
+
+          <mat-form-field appearance="outline" class="full-width">
+            <mat-label>Langue de l'interface</mat-label>
+            <mat-select formControlName="language" aria-label="Langue" data-testid="language-select">
+              <mat-option value="fr">Français</mat-option>
+              <mat-option value="en">English</mat-option>
+            </mat-select>
+          </mat-form-field>
+
+          <mat-form-field appearance="outline" class="full-width">
+            <mat-label>Thème visuel</mat-label>
+            <mat-select formControlName="theme" aria-label="Thème" data-testid="theme-select">
+              <mat-option value="auto">Automatique (système)</mat-option>
+              <mat-option value="light">Clair</mat-option>
+              <mat-option value="dark">Sombre</mat-option>
+            </mat-select>
+          </mat-form-field>
+        </section>
+
+        <div class="form-actions">
+          <button
+            mat-raised-button
+            color="primary"
+            type="submit"
+            [disabled]="saving()"
+            aria-label="Enregistrer le profil"
+            data-testid="save-profile-btn"
+            class="save-btn">
+            <mat-icon>save</mat-icon>
+            Enregistrer
+          </button>
+        </div>
+      </form>
+    </div>
+  

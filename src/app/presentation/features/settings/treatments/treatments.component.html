@@ -1,0 +1,147 @@
+    <div class="treatments-page">
+      <header class="page-header">
+        <a mat-icon-button routerLink=".." aria-label="Retour aux paramètres">
+          <mat-icon>arrow_back</mat-icon>
+        </a>
+        <h1>Traitements</h1>
+        <button
+          mat-icon-button
+          (click)="onAdd()"
+          aria-label="Ajouter un traitement"
+          data-testid="add-treatment-btn">
+          <mat-icon>add</mat-icon>
+        </button>
+      </header>
+
+      <!-- Liste des traitements -->
+      @if (treatments().length === 0) {
+        <div class="empty-state" data-testid="empty-treatments">
+          <mat-icon>medication</mat-icon>
+          <p>Aucun traitement enregistré.</p>
+          <button mat-stroked-button (click)="onAdd()">Ajouter un traitement</button>
+        </div>
+      } @else {
+        <mat-accordion>
+          @for (treatment of treatments(); track treatment.id) {
+            <mat-expansion-panel [attr.data-testid]="'treatment-' + treatment.id">
+              <mat-expansion-panel-header>
+                <mat-panel-title>
+                  <mat-icon class="treatment-icon">medication</mat-icon>
+                  {{ treatment.name }}
+                </mat-panel-title>
+                <mat-panel-description>
+                  {{ treatment.dosage }} {{ treatment.unit }} — {{ treatment.frequency }}×/j
+                  @if (!treatment.active) {
+                    <mat-chip class="inactive-chip">Inactif</mat-chip>
+                  }
+                </mat-panel-description>
+              </mat-expansion-panel-header>
+
+              <div class="treatment-detail">
+                <p><strong>Catégorie :</strong> {{ treatment.category }}</p>
+                <p><strong>Mode :</strong> {{ treatment.mode }}</p>
+                @if (treatment.notes) {
+                  <p><strong>Notes :</strong> {{ treatment.notes }}</p>
+                }
+                <p><strong>Début :</strong> {{ treatment.startedAt | date:'dd/MM/yyyy' }}</p>
+                @if (treatment.endedAt) {
+                  <p><strong>Fin :</strong> {{ treatment.endedAt | date:'dd/MM/yyyy' }}</p>
+                }
+
+                <div class="treatment-actions">
+                  <mat-slide-toggle
+                    [checked]="treatment.active"
+                    (change)="onToggleActive(treatment, $event.checked)"
+                    [attr.aria-label]="treatment.active ? 'Désactiver ' + treatment.name : 'Activer ' + treatment.name"
+                    [attr.data-testid]="'toggle-' + treatment.id">
+                    {{ treatment.active ? 'Actif' : 'Inactif' }}
+                  </mat-slide-toggle>
+                  <button
+                    mat-icon-button
+                    color="warn"
+                    (click)="onDelete(treatment)"
+                    [attr.aria-label]="'Supprimer ' + treatment.name"
+                    [attr.data-testid]="'delete-' + treatment.id">
+                    <mat-icon>delete</mat-icon>
+                  </button>
+                </div>
+              </div>
+            </mat-expansion-panel>
+          }
+        </mat-accordion>
+      }
+
+      <!-- Formulaire d'ajout -->
+      @if (showForm()) {
+        <div class="add-form" data-testid="add-form">
+          <h2>Nouveau traitement</h2>
+          <form [formGroup]="form" (ngSubmit)="onSave()" class="form-fields">
+
+            <mat-form-field appearance="outline" class="full-width">
+              <mat-label>Nom du traitement</mat-label>
+              <input matInput formControlName="name" aria-label="Nom du traitement" data-testid="treatment-name" />
+            </mat-form-field>
+
+            <div class="row-fields">
+              <mat-form-field appearance="outline">
+                <mat-label>Dosage</mat-label>
+                <input matInput formControlName="dosage" aria-label="Dosage" data-testid="treatment-dosage" />
+              </mat-form-field>
+
+              <mat-form-field appearance="outline">
+                <mat-label>Unité</mat-label>
+                <input matInput formControlName="unit" placeholder="mg, ml…" aria-label="Unité" />
+              </mat-form-field>
+
+              <mat-form-field appearance="outline">
+                <mat-label>Prises/jour</mat-label>
+                <input matInput type="number" formControlName="frequency" min="1" aria-label="Fréquence quotidienne" />
+              </mat-form-field>
+            </div>
+
+            <mat-form-field appearance="outline" class="full-width">
+              <mat-label>Catégorie</mat-label>
+              <mat-select formControlName="category" aria-label="Catégorie" data-testid="treatment-category">
+                <mat-option value="antibiotic">Antibiotique</mat-option>
+                <mat-option value="probiotic">Probiotique</mat-option>
+                <mat-option value="prokinetic">Prokinétique</mat-option>
+                <mat-option value="antispasmodic">Antispasmodique</mat-option>
+                <mat-option value="supplement">Complément</mat-option>
+                <mat-option value="enzyme">Enzyme</mat-option>
+                <mat-option value="other">Autre</mat-option>
+              </mat-select>
+            </mat-form-field>
+
+            <mat-form-field appearance="outline" class="full-width">
+              <mat-label>Mode d'administration</mat-label>
+              <mat-select formControlName="mode" aria-label="Mode d'administration">
+                <mat-option value="oral">Oral</mat-option>
+                <mat-option value="sublingual">Sublingual</mat-option>
+                <mat-option value="topical">Cutané</mat-option>
+                <mat-option value="injectable">Injectable</mat-option>
+                <mat-option value="inhaled">Inhalé</mat-option>
+              </mat-select>
+            </mat-form-field>
+
+            <mat-form-field appearance="outline" class="full-width">
+              <mat-label>Notes (facultatif)</mat-label>
+              <textarea matInput formControlName="notes" rows="2" aria-label="Notes sur le traitement"></textarea>
+            </mat-form-field>
+
+            <div class="form-actions">
+              <button mat-stroked-button type="button" (click)="showForm.set(false)">Annuler</button>
+              <button
+                mat-raised-button
+                color="primary"
+                type="submit"
+                [disabled]="form.invalid"
+                aria-label="Enregistrer le traitement"
+                data-testid="save-treatment-btn">
+                Enregistrer
+              </button>
+            </div>
+          </form>
+        </div>
+      }
+    </div>
+  

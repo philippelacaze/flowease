@@ -1,0 +1,10 @@
+    .intensity-slider { display: flex; flex-direction: column; gap: 4px; }
+    .intensity-label {
+      display: flex;
+      justify-content: space-between;
+      font-size: 14px;
+      color: var(--mat-sys-on-surface-variant);
+    }
+    .intensity-value { font-weight: 600; color: var(--mat-sys-primary); }
+    .full-width { width: 100%; }
+  

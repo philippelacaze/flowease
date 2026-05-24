@@ -1,0 +1,15 @@
+    .offline-banner {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      padding: 8px 16px;
+      background: var(--mat-sys-error-container);
+      color: var(--mat-sys-on-error-container);
+      font-size: 13px;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+    .offline-icon { font-size: 16px; width: 16px; height: 16px; }
+  

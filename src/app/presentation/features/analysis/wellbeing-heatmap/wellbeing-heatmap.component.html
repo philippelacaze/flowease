@@ -1,0 +1,60 @@
+    <div class="heatmap-wrapper">
+      <div *ngIf="loading" class="heatmap-state" role="status">Chargement…</div>
+
+      <ng-container *ngIf="!loading">
+        <div *ngIf="noData" class="heatmap-state" role="status" data-testid="no-wellbeing-data">
+          Aucun score de bien-être enregistré.
+          <br>
+          <small>Saisissez un score dans le journal (symptôme "wellbeing_score").</small>
+        </div>
+
+        <ng-container *ngIf="!noData">
+          <!-- Monthly average -->
+          <div class="wellbeing-summary" *ngIf="monthlyAverage !== null">
+            <span class="wellbeing-score" [ngClass]="'score-' + avgColorClass" data-testid="wellbeing-average">
+              {{ monthlyAverage | number:'1.1-1' }}/10
+            </span>
+            <span class="wellbeing-label">bien-être moyen sur {{ windowDays }}&nbsp;j</span>
+          </div>
+
+          <!-- Month name -->
+          <p class="month-name">{{ currentMonthName }}</p>
+
+          <!-- Calendar grid -->
+          <div
+            class="calendar-grid"
+            role="grid"
+            aria-label="Calendrier mensuel de bien-être"
+          >
+            <div *ngFor="let name of DAY_NAMES" class="day-header" role="columnheader">{{ name }}</div>
+
+            <div
+              *ngFor="let cell of calendarDays"
+              class="day-cell"
+              role="gridcell"
+              [ngClass]="[
+                cell.day ? 'day-filled' : 'day-empty',
+                cell.inWindow
+                  ? (cell.score !== null ? ('day-' + cell.colorClass) : 'day-nodata')
+                  : 'day-outside'
+              ]"
+              [attr.aria-label]="cell.day
+                ? ('Jour ' + cell.day + (cell.score !== null ? ' : ' + cell.score + '/10' : ' : pas de saisie'))
+                : null"
+              [attr.title]="cell.score !== null ? (cell.score + '/10') : null"
+            >
+              <span *ngIf="cell.day">{{ cell.day }}</span>
+            </div>
+          </div>
+
+          <!-- Legend -->
+          <div class="legend" aria-label="Légende du calendrier">
+            <span class="legend-item green">≥&nbsp;7</span>
+            <span class="legend-item orange">4–6</span>
+            <span class="legend-item red">≤&nbsp;3</span>
+            <span class="legend-item nodata">pas de saisie</span>
+          </div>
+        </ng-container>
+      </ng-container>
+    </div>
+  

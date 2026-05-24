@@ -1,0 +1,47 @@
+    .profile-page {
+      max-width: 640px;
+      margin: 0 auto;
+      padding: 16px;
+    }
+    .page-header {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 16px;
+    }
+    .page-header h1 {
+      font-size: 1.4rem;
+      margin: 0;
+    }
+    .profile-form {
+      display: flex;
+      flex-direction: column;
+      gap: 0;
+    }
+    .form-section {
+      padding: 16px 0;
+    }
+    .section-title {
+      font-size: 1rem;
+      font-weight: 500;
+      color: var(--mat-sys-on-surface-variant);
+      margin: 0 0 12px;
+    }
+    .conditions-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+    }
+    .full-width {
+      width: 100%;
+    }
+    .form-actions {
+      padding: 16px 0;
+      display: flex;
+      justify-content: flex-end;
+    }
+    .save-btn {
+      min-height: 44px;
+      min-width: 140px;
+    }
+  

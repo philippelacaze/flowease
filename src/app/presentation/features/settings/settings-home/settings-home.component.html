@@ -1,0 +1,22 @@
+    <div class="settings-home">
+      <header class="page-header">
+        <h1>Paramètres</h1>
+      </header>
+
+      <mat-nav-list>
+        @for (item of items; track item.route) {
+          <a
+            mat-list-item
+            [routerLink]="item.route"
+            [attr.aria-label]="item.label"
+            [attr.data-testid]="'settings-' + item.route"
+            class="settings-item">
+            <mat-icon matListItemIcon>{{ item.icon }}</mat-icon>
+            <span matListItemTitle>{{ item.label }}</span>
+            <span matListItemLine>{{ item.description }}</span>
+            <mat-icon matListItemMeta>chevron_right</mat-icon>
+          </a>
+        }
+      </mat-nav-list>
+    </div>
+  

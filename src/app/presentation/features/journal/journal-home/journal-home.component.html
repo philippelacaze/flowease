@@ -1,0 +1,189 @@
+    <app-offline-banner />
+
+    <div class="journal-home">
+
+      <!-- En-tête navigation jour -->
+      <header class="journal-header">
+        <button mat-icon-button aria-label="Jour précédent" data-testid="prev-day" (click)="prevDay()">
+          <mat-icon>chevron_left</mat-icon>
+        </button>
+        <h1 class="journal-title">{{ currentDate | date:'EEEE d MMMM' }}</h1>
+        <button mat-icon-button [disabled]="isToday" aria-label="Jour suivant" data-testid="next-day" (click)="nextDay()">
+          <mat-icon>chevron_right</mat-icon>
+        </button>
+      </header>
+
+      <!-- Accès rapide aux saisies -->
+      <section class="quick-actions" aria-label="Nouvelle saisie">
+
+        <!-- Repas — pleine largeur avec micro + appareil photo -->
+        <div class="action-card action-card--full" matRipple
+             role="button" tabindex="0"
+             aria-label="Saisir un repas"
+             data-testid="action-meal"
+             (click)="navigate('/journal/meal')"
+             (keydown.enter)="navigate('/journal/meal')"
+             (keydown.space)="navigate('/journal/meal')">
+          <div class="action-card-main">
+            <mat-icon class="action-icon" aria-hidden="true">restaurant</mat-icon>
+            <span class="action-label">Repas</span>
+          </div>
+          <div class="action-card-shortcuts">
+            <button mat-icon-button
+                    aria-label="Dicter un repas"
+                    data-testid="action-meal-mic"
+                    [class.recording]="isRecording()"
+                    (click)="startVoice($event)">
+              <mat-icon>{{ isRecording() ? 'stop' : 'mic' }}</mat-icon>
+            </button>
+            <button mat-icon-button
+                    aria-label="Photographier un repas"
+                    data-testid="action-meal-camera"
+                    (click)="openCamera($event)">
+              <mat-icon>photo_camera</mat-icon>
+            </button>
+          </div>
+        </div>
+        <input #photoInput type="file" accept="image/*" capture="environment"
+               class="hidden-input"
+               aria-hidden="true"
+               (change)="onPhotoChosen($event)" />
+
+        <!-- Symptômes — pleine largeur -->
+        <div class="action-card action-card--full" matRipple
+             role="button" tabindex="0"
+             aria-label="Saisir un symptôme"
+             data-testid="action-symptom"
+             (click)="navigate('/journal/symptom')"
+             (keydown.enter)="navigate('/journal/symptom')"
+             (keydown.space)="navigate('/journal/symptom')">
+          <div class="action-card-main">
+            <mat-icon class="action-icon" aria-hidden="true">health_and_safety</mat-icon>
+            <span class="action-label">Symptômes</span>
+          </div>
+        </div>
+
+        <!-- Prises + Note — grille 2 colonnes -->
+        <div class="action-card action-card--half" matRipple
+             role="button" tabindex="0"
+             aria-label="Saisir une prise"
+             data-testid="action-intake"
+             (click)="navigate('/journal/intake')"
+             (keydown.enter)="navigate('/journal/intake')"
+             (keydown.space)="navigate('/journal/intake')">
+          <mat-icon class="action-icon" aria-hidden="true">medication</mat-icon>
+          <span class="action-label">Prises</span>
+        </div>
+
+        <div class="action-card action-card--half" matRipple
+             role="button" tabindex="0"
+             aria-label="Saisir une note"
+             data-testid="action-note"
+             (click)="navigate('/journal/note')"
+             (keydown.enter)="navigate('/journal/note')"
+             (keydown.space)="navigate('/journal/note')">
+          <mat-icon class="action-icon" aria-hidden="true">edit_note</mat-icon>
+          <span class="action-label">Note</span>
+        </div>
+
+      </section>
+
+      <!-- Journal du jour -->
+      <div *ngIf="loading" class="loading" role="status" aria-live="polite">Chargement…</div>
+
+      <div *ngIf="!loading" class="journal-entries">
+
+        <ng-container *ngIf="entries.length > 0; else emptyState">
+
+          <!-- Repas -->
+          <section *ngIf="meals.length > 0" class="entry-section" aria-label="Repas du jour">
+            <h2 class="section-title">
+              <mat-icon aria-hidden="true">restaurant</mat-icon>Repas
+            </h2>
+            <div *ngFor="let e of meals" class="entry-card" data-testid="meal-entry">
+              <div class="entry-head">
+                <span class="entry-label">{{ mealLabel(e.data.type) }}</span>
+                <span class="entry-time">{{ e.data.occurredAt | date:'HH:mm' }}</span>
+              </div>
+              <ul class="food-list" aria-label="Aliments">
+                <li *ngFor="let item of e.data.items" class="food-item">
+                  <span class="food-name">{{ item.name }}</span>
+                  <span *ngIf="item.quantity" class="food-qty">{{ item.quantity }}</span>
+                  <span class="fodmap-dot fodmap-{{ item.fodmap?.level }}" [attr.aria-label]="'FODMAP ' + (item.fodmap?.level ?? 'inconnu')"></span>
+                </li>
+              </ul>
+            </div>
+          </section>
+
+          <!-- Symptômes -->
+          <section *ngIf="symptoms.length > 0" class="entry-section" aria-label="Symptômes du jour">
+            <h2 class="section-title">
+              <mat-icon aria-hidden="true">health_and_safety</mat-icon>Symptômes
+            </h2>
+            <div *ngFor="let e of symptoms" class="entry-card" data-testid="symptom-entry">
+              <div class="entry-head">
+                <span class="entry-label">{{ e.data.symptomKey }}</span>
+                <span class="entry-time">{{ e.data.occurredAt | date:'HH:mm' }}</span>
+              </div>
+              <div class="intensity-row" [attr.aria-label]="'Intensité ' + e.data.intensity + ' sur 10'">
+                <div class="intensity-bar">
+                  <div class="intensity-fill" [style.width.%]="e.data.intensity * 10"
+                       [class.intensity-low]="e.data.intensity <= 3"
+                       [class.intensity-mid]="e.data.intensity > 3 && e.data.intensity <= 6"
+                       [class.intensity-high]="e.data.intensity > 6">
+                  </div>
+                </div>
+                <span class="intensity-value">{{ e.data.intensity }}/10</span>
+              </div>
+              <p *ngIf="e.data.notes" class="entry-notes">{{ e.data.notes }}</p>
+            </div>
+          </section>
+
+          <!-- Prises -->
+          <section *ngIf="intakes.length > 0" class="entry-section" aria-label="Prises du jour">
+            <h2 class="section-title">
+              <mat-icon aria-hidden="true">medication</mat-icon>Prises
+            </h2>
+            <div *ngFor="let e of intakes" class="entry-card" data-testid="intake-entry">
+              <div class="entry-head">
+                <span class="entry-label">{{ e.data.treatmentId }}</span>
+                <span class="entry-time">{{ e.data.confirmedAt | date:'HH:mm' }}</span>
+              </div>
+              <span class="status-badge"
+                    [class.status-taken]="e.data.status === 'taken'"
+                    [class.status-skipped]="e.data.status === 'skipped'">
+                <mat-icon aria-hidden="true">{{ e.data.status === 'taken' ? 'check_circle' : 'cancel' }}</mat-icon>
+                {{ e.data.status === 'taken' ? 'Pris' : 'Sauté' }}
+              </span>
+            </div>
+          </section>
+
+          <!-- Notes -->
+          <section *ngIf="notes.length > 0" class="entry-section" aria-label="Notes du jour">
+            <h2 class="section-title">
+              <mat-icon aria-hidden="true">edit_note</mat-icon>Notes
+            </h2>
+            <div *ngFor="let e of notes" class="entry-card" data-testid="note-entry">
+              <div class="entry-head">
+                <span class="entry-time">{{ e.data.occurredAt | date:'HH:mm' }}</span>
+              </div>
+              <p class="note-content">{{ e.data.content }}</p>
+              <div *ngIf="e.data.tags.length > 0" class="note-tags">
+                <span *ngFor="let tag of e.data.tags" class="note-tag">#{{ tag }}</span>
+              </div>
+            </div>
+          </section>
+
+        </ng-container>
+
+        <ng-template #emptyState>
+          <div class="empty-state" role="status">
+            <mat-icon aria-hidden="true" class="empty-icon">today</mat-icon>
+            <p>Aucune entrée pour ce jour.</p>
+            <p class="empty-hint">Utilisez les boutons ci-dessus pour commencer.</p>
+          </div>
+        </ng-template>
+
+      </div>
+    </div>
+  

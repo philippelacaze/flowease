@@ -1,0 +1,16 @@
+    .voice-input { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+    .voice-btn--recording { animation: pulse 1s ease-in-out infinite; }
+    @keyframes pulse {
+      0%, 100% { transform: scale(1); }
+      50%       { transform: scale(1.08); }
+    }
+    .voice-status  { font-size: 13px; color: var(--mat-sys-primary); }
+    .voice-error   { font-size: 13px; color: var(--mat-sys-error); }
+    .voice-unsupported {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 13px;
+      color: var(--mat-sys-on-surface-variant);
+    }
+  
