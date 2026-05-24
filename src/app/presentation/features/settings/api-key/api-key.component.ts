@@ -10,8 +10,10 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { MatChipsModule } from '@angular/material/chips';
 import { LocalSettingsAdapter } from '../../../../infrastructure/storage/local-settings.adapter';
+import { TestApiKeyUseCase } from '../../../../application/settings/test-api-key.usecase';
 
 type ApiKeyStatus = 'idle' | 'testing' | 'valid' | 'invalid';
+
 
 /**
  * Page de configuration de la clé API Anthropic.
@@ -86,12 +88,12 @@ type ApiKeyStatus = 'idle' | 'testing' | 'valid' | 'invalid';
         @if (testStatus() === 'valid') {
           <p class="status-msg success" role="status" data-testid="test-valid">
             <mat-icon>check_circle</mat-icon>
-            Format valide — enregistrez pour activer Claude.
+            Clé valide — enregistrez pour activer Claude.
           </p>
         } @else if (testStatus() === 'invalid') {
           <p class="status-msg error" role="alert" data-testid="test-invalid">
             <mat-icon>error</mat-icon>
-            Format invalide — la clé doit commencer par <code>sk-ant-</code>.
+            {{ testError() }}
           </p>
         }
 
@@ -226,18 +228,25 @@ type ApiKeyStatus = 'idle' | 'testing' | 'valid' | 'invalid';
 export class ApiKeyComponent {
   private readonly settings = inject(LocalSettingsAdapter);
   private readonly snackBar = inject(MatSnackBar);
+  private readonly testUseCase = inject(TestApiKeyUseCase);
 
   protected apiKeyInput = '';
   protected showKey = false;
   protected hasKey = signal(this.settings.hasApiKey());
   protected testStatus = signal<ApiKeyStatus>('idle');
+  protected testError = signal<string | null>(null);
 
-  protected onTest(): void {
+  protected async onTest(): Promise<void> {
     if (!this.apiKeyInput) return;
-    // L'API Anthropic ne supporte pas les appels CORS depuis un navigateur —
-    // on valide uniquement le format de la clé.
-    const valid = /^sk-ant-[a-zA-Z0-9_-]{20,}$/.test(this.apiKeyInput.trim());
-    this.testStatus.set(valid ? 'valid' : 'invalid');
+    this.testStatus.set('testing');
+    this.testError.set(null);
+    const result = await this.testUseCase.execute(this.apiKeyInput);
+    if (result.ok) {
+      this.testStatus.set('valid');
+    } else {
+      this.testStatus.set('invalid');
+      this.testError.set(result.errorMessage ?? 'Erreur inconnue');
+    }
   }
 
   protected onSave(): void {
@@ -246,6 +255,7 @@ export class ApiKeyComponent {
     this.hasKey.set(true);
     this.apiKeyInput = '';
     this.testStatus.set('idle');
+    this.testError.set(null);
     this.snackBar.open('Clé API enregistrée', 'OK', { duration: 2000 });
   }
 
@@ -253,6 +263,7 @@ export class ApiKeyComponent {
     this.settings.clearApiKey();
     this.hasKey.set(false);
     this.testStatus.set('idle');
+    this.testError.set(null);
     this.snackBar.open('Clé API supprimée', 'OK', { duration: 2000 });
   }
 }

@@ -6,6 +6,7 @@ import type { NoteTaggingPort } from '../domain/repositories/ai/note-tagging.por
 import type { AnalysisPort } from '../domain/repositories/ai/analysis.port';
 import type { ReportPort } from '../domain/repositories/ai/report.port';
 import type { CoachPort } from '../domain/repositories/ai/coach.port';
+import type { ApiKeyTestPort } from '../domain/repositories/ai/api-key-test.port';
 
 /**
  * Token d'injection pour le port de stockage générique.
@@ -66,3 +67,12 @@ export const COACH_PORT = new InjectionToken<CoachPort>('COACH_PORT');
  * — la clé API circule uniquement dans la couche infrastructure.
  */
 export const LOCAL_SETTINGS_PORT = new InjectionToken<LocalSettingsRepository>('LOCAL_SETTINGS_PORT');
+
+/**
+ * Token d'injection pour le port de test de clé API.
+ *
+ * @remarks
+ * Toujours résolu vers AnthropicAdapter (jamais NullAIAdapter) car le test
+ * nécessite un vrai appel réseau. Utilisé par TestApiKeyUseCase uniquement.
+ */
+export const API_KEY_TEST_PORT = new InjectionToken<ApiKeyTestPort>('API_KEY_TEST_PORT');

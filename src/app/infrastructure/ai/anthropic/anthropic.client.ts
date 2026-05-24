@@ -1,5 +1,5 @@
-import { HttpClient, HttpHeaders } from '@angular/common/http';
-import { EMPTY, Observable } from 'rxjs';
+import { HttpClient, HttpHeaders, HttpErrorResponse } from '@angular/common/http';
+import { Observable, throwError } from 'rxjs';
 import { catchError } from 'rxjs/operators';
 
 const ANTHROPIC_API_URL = 'https://api.anthropic.com/v1/messages';
@@ -11,8 +11,9 @@ const ANTHROPIC_VERSION = '2023-06-01';
  * @remarks
  * Classe simple (pas @Injectable) — instanciée par AnthropicAdapter qui
  * lui passe HttpClient. Responsabilité unique : construire les headers et
- * gérer les erreurs réseau sans jamais propager la clé API.
- * La clé API n'est jamais stockée en propriété de classe.
+ * convertir les erreurs HTTP en Error typées par status.
+ * La clé API n'est jamais stockée en propriété de classe ni incluse dans
+ * les messages d'erreur.
  */
 export class AnthropicClient {
   constructor(private readonly http: HttpClient) {}
@@ -22,36 +23,49 @@ export class AnthropicClient {
    *
    * @param payload - Corps de la requête (model, messages, max_tokens, etc.)
    * @param apiKey - Clé API lue depuis LocalSettingsAdapter — jamais loguée
-   * @returns Observable<T> ou EMPTY en cas d'erreur réseau
+   * @returns Observable<T> ou throwError avec message lisible par status HTTP
    */
   post<T>(payload: Record<string, unknown>, apiKey: string): Observable<T> {
     return this.http
       .post<T>(ANTHROPIC_API_URL, payload, {
         headers: this.buildHeaders(apiKey),
       })
-      .pipe(catchError(() => this.handleError()));
+      .pipe(catchError((err: HttpErrorResponse) => this.handleHttpError(err)));
   }
 
   /**
    * Construit les headers requis par l'API Anthropic.
    *
    * @param apiKey - Clé API — jamais loguée, jamais incluse dans les erreurs
-   * @returns HttpHeaders avec x-api-key, anthropic-version et content-type
+   * @returns HttpHeaders avec x-api-key, anthropic-version, content-type
+   *          et anthropic-dangerous-direct-browser-access (requis en navigateur)
    */
   buildHeaders(apiKey: string): HttpHeaders {
     return new HttpHeaders({
       'x-api-key': apiKey,
       'anthropic-version': ANTHROPIC_VERSION,
       'content-type': 'application/json',
+      'anthropic-dangerous-direct-browser-access': 'true',
     });
   }
 
   /**
-   * Retourne EMPTY en cas d'erreur réseau — jamais throw, jamais log de clé.
+   * Convertit une HttpErrorResponse en Error avec message lisible par status.
+   * La clé API n'apparaît jamais dans le message.
    *
-   * @returns Observable<never> (EMPTY)
+   * @param err - Erreur HTTP d'Angular HttpClient
+   * @returns Observable<never> (throwError)
    */
-  private handleError(): Observable<never> {
-    return EMPTY;
+  private handleHttpError(err: HttpErrorResponse): Observable<never> {
+    if (err.status === 401) {
+      return throwError(() => new Error('Clé API invalide — vérifiez votre clé sur console.anthropic.com (401)'));
+    }
+    if (err.status === 429) {
+      return throwError(() => new Error('Quota Anthropic dépassé — réessayez plus tard (429)'));
+    }
+    if (err.status > 0) {
+      return throwError(() => new Error(`Erreur Anthropic ${err.status}`));
+    }
+    return throwError(() => new Error('Erreur réseau — vérifiez votre connexion internet'));
   }
 }

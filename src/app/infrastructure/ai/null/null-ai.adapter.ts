@@ -5,6 +5,7 @@ import type { NoteTaggingPort, NoteTaggingResult } from '../../../domain/reposit
 import type { AnalysisPort, AnalysisContext, AnalysisResult } from '../../../domain/repositories/ai/analysis.port';
 import type { ReportPort, ReportData } from '../../../domain/repositories/ai/report.port';
 import type { CoachMessage, CoachContext, CoachPort } from '../../../domain/repositories/ai/coach.port';
+import type { ApiKeyTestPort } from '../../../domain/repositories/ai/api-key-test.port';
 
 /**
  * Implémentation Null Object de tous les ports IA.
@@ -24,7 +25,7 @@ import type { CoachMessage, CoachContext, CoachPort } from '../../../domain/repo
  * ```
  */
 @Injectable()
-export class NullAIAdapter implements MealAnalysisPort, NoteTaggingPort, AnalysisPort, ReportPort, CoachPort {
+export class NullAIAdapter implements MealAnalysisPort, NoteTaggingPort, AnalysisPort, ReportPort, CoachPort, ApiKeyTestPort {
 
   // --- MealAnalysisPort ---
 
@@ -87,5 +88,14 @@ export class NullAIAdapter implements MealAnalysisPort, NoteTaggingPort, Analysi
    */
   async summarizeSession(_messages: readonly CoachMessage[]): Promise<string | null> {
     return null;
+  }
+
+  // --- ApiKeyTestPort ---
+
+  /**
+   * @returns message d'erreur — IA non configurée
+   */
+  async testApiKey(_apiKey: string): Promise<string | null> {
+    return 'IA non configurée';
   }
 }

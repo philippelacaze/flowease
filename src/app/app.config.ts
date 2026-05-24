@@ -17,6 +17,7 @@ import {
   ANALYSIS_PORT,
   REPORT_PORT,
   COACH_PORT,
+  API_KEY_TEST_PORT,
 } from './application/tokens';
 import { IndexedDBAdapter } from './infrastructure/storage/indexeddb.adapter';
 import { LocalSettingsAdapter } from './infrastructure/storage/local-settings.adapter';
@@ -78,5 +79,7 @@ export const appConfig: ApplicationConfig = {
     { provide: ANALYSIS_PORT,      useFactory: aiPortFactory, deps: [AnthropicAdapter] },
     { provide: REPORT_PORT,        useFactory: aiPortFactory, deps: [AnthropicAdapter] },
     { provide: COACH_PORT,         useFactory: aiPortFactory, deps: [AnthropicAdapter] },
+    // Test de clé — toujours AnthropicAdapter (appel réseau réel requis)
+    { provide: API_KEY_TEST_PORT,  useExisting: AnthropicAdapter },
   ],
 };

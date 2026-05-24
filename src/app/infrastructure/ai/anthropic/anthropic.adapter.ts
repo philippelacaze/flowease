@@ -8,6 +8,7 @@ import type { NoteTaggingPort, NoteTaggingResult } from '../../../domain/reposit
 import type { AnalysisPort, AnalysisContext, AnalysisResult } from '../../../domain/repositories/ai/analysis.port';
 import type { ReportPort, ReportData } from '../../../domain/repositories/ai/report.port';
 import type { CoachMessage, CoachContext, CoachPort } from '../../../domain/repositories/ai/coach.port';
+import type { ApiKeyTestPort } from '../../../domain/repositories/ai/api-key-test.port';
 import { LocalSettingsAdapter } from '../../storage/local-settings.adapter';
 import { AnthropicClient } from './anthropic.client';
 import { MEAL_PHOTO_PROMPT } from './prompts/meal-photo.prompt';
@@ -49,7 +50,7 @@ interface AnthropicResponse {
  * ```
  */
 @Injectable({ providedIn: 'root' })
-export class AnthropicAdapter implements MealAnalysisPort, NoteTaggingPort, AnalysisPort, ReportPort, CoachPort {
+export class AnthropicAdapter implements MealAnalysisPort, NoteTaggingPort, AnalysisPort, ReportPort, CoachPort, ApiKeyTestPort {
   private readonly settings = inject(LocalSettingsAdapter);
   private readonly client: AnthropicClient;
 
@@ -93,7 +94,8 @@ export class AnthropicAdapter implements MealAnalysisPort, NoteTaggingPort, Anal
       );
       if (!response) return null;
       return this.parseFoodItems(response.content[0]?.text ?? '');
-    } catch {
+    } catch (err) {
+      console.error('[AnthropicAdapter] analyzeMealPhoto:', err instanceof Error ? err.message : 'Erreur inconnue');
       return null;
     }
   }
@@ -241,6 +243,7 @@ export class AnthropicAdapter implements MealAnalysisPort, NoteTaggingPort, Anal
           'x-api-key': apiKey,
           'anthropic-version': ANTHROPIC_VERSION,
           'content-type': 'application/json',
+          'anthropic-dangerous-direct-browser-access': 'true',
         },
         body: JSON.stringify({
           model: MODEL_DEFAULT,
@@ -254,7 +257,18 @@ export class AnthropicAdapter implements MealAnalysisPort, NoteTaggingPort, Anal
       return;
     }
 
-    if (!response.ok || !response.body) return;
+    if (response.status === 401) {
+      console.error('[AnthropicAdapter] sendMessage: clé API invalide (401)');
+      return;
+    }
+    if (response.status === 429) {
+      console.error('[AnthropicAdapter] sendMessage: quota dépassé (429)');
+      return;
+    }
+    if (!response.ok || !response.body) {
+      console.error(`[AnthropicAdapter] sendMessage: erreur ${response.status}`);
+      return;
+    }
 
     const reader = response.body.getReader();
     const decoder = new TextDecoder();
@@ -311,12 +325,30 @@ export class AnthropicAdapter implements MealAnalysisPort, NoteTaggingPort, Anal
     return this.callApi(MODEL_FAST, prompt, apiKey);
   }
 
-  // --- Helpers privés ---
+  // --- ApiKeyTestPort ---
 
   /**
-   * Appel API Anthropic simplifié pour les requêtes texte → texte.
-   * Retourne null si la clé est absente, si le réseau échoue, ou si la réponse est vide.
+   * Effectue un appel minimal pour vérifier qu'une clé peut atteindre Anthropic.
+   *
+   * @param apiKey - Clé à tester — jamais loguée
+   * @returns null si valide, message d'erreur lisible sinon
    */
+  async testApiKey(apiKey: string): Promise<string | null> {
+    try {
+      await firstValueFrom(
+        this.client.post<AnthropicResponse>(
+          { model: MODEL_FAST, max_tokens: 1, messages: [{ role: 'user', content: 'ping' }] },
+          apiKey,
+        ),
+      );
+      return null;
+    } catch (err) {
+      return err instanceof Error ? err.message : 'Erreur inconnue';
+    }
+  }
+
+  // --- Helpers privés ---
+
   private async callApi(model: string, userMessage: string, apiKey: string): Promise<string | null> {
     const payload = {
       model,
@@ -331,7 +363,8 @@ export class AnthropicAdapter implements MealAnalysisPort, NoteTaggingPort, Anal
       if (!response) return null;
       const text = response.content[0]?.text?.trim() ?? '';
       return text || null;
-    } catch {
+    } catch (err) {
+      console.error('[AnthropicAdapter] callApi:', err instanceof Error ? err.message : 'Erreur inconnue');
       return null;
     }
   }
