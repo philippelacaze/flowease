@@ -1,14 +1,21 @@
-    @if (notification.message()) {
-      <div class="error-banner" role="alert" aria-live="assertive" data-testid="error-banner">
-        <mat-icon class="banner-icon" aria-hidden="true">error_outline</mat-icon>
-        <span class="banner-message">{{ notification.message() }}</span>
-        <button
-          mat-icon-button
-          class="banner-close"
-          aria-label="Fermer le message d'erreur"
-          (click)="notification.dismiss()">
-          <mat-icon>close</mat-icon>
-        </button>
-      </div>
-    }
-  
+@if (svc.current(); as notif) {
+  <div
+    class="banner banner--{{ notif.type }}"
+    role="alert"
+    aria-live="assertive"
+    data-testid="error-banner"
+  >
+    <mat-icon class="banner-icon" aria-hidden="true">
+      {{ notif.type === 'error' ? 'error_outline' : 'info_outline' }}
+    </mat-icon>
+    <span class="banner-message">{{ notif.message }}</span>
+    <button
+      mat-icon-button
+      class="banner-close"
+      aria-label="Fermer le message"
+      (click)="svc.dismiss()"
+    >
+      <mat-icon>close</mat-icon>
+    </button>
+  </div>
+}

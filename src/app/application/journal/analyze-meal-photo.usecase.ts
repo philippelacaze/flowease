@@ -37,10 +37,11 @@ export class AnalyzeMealPhotoUseCase {
    * Appelle le port d'analyse photo et retourne les aliments identifiés.
    *
    * @param input - Image en base64 et type MIME
-   * @returns Liste de FoodItemVO suggérés par l'IA, ou [] si IA indisponible
+   * @returns FoodItemVO[] si l'IA a répondu (liste vide = aucun aliment détecté),
+   *          null si l'IA est indisponible (clé absente ou erreur réseau/HTTP).
+   *          L'adapter a déjà notifié l'utilisateur dans les deux cas d'erreur.
    */
-  async execute(input: AnalyzeMealPhotoInput): Promise<FoodItemVO[]> {
-    const result = await this.mealAnalysisPort.analyzeMealPhoto(input.base64Image, input.mediaType);
-    return result ?? [];
+  async execute(input: AnalyzeMealPhotoInput): Promise<FoodItemVO[] | null> {
+    return this.mealAnalysisPort.analyzeMealPhoto(input.base64Image, input.mediaType);
   }
 }

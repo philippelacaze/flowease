@@ -1,27 +1,47 @@
 import { Injectable, signal } from '@angular/core';
 
+/** Distingue une erreur technique (rouge) d'un retour fonctionnel de l'IA (bleu). */
+export type NotifType = 'error' | 'info';
+
+export interface AppNotif {
+  message: string;
+  type: NotifType;
+}
+
 /**
- * Service partagé de notification d'erreur — accessible depuis toutes les couches.
+ * Service partagé de notification — accessible depuis toutes les couches.
  *
  * @remarks
- * Préoccupation transversale (cross-cutting concern) : ni domain, ni application,
- * ni infrastructure, ni presentation. Les adapters l'alimentent, le shell l'affiche.
+ * Préoccupation transversale : les adapters l'alimentent, le shell l'affiche.
  * Singleton racine — une seule bannière active à la fois.
+ * `type: 'error'` → fond rouge (erreur technique).
+ * `type: 'info'`  → fond bleu (retour fonctionnel de l'IA, ex. "pas de repas détecté").
  */
 @Injectable({ providedIn: 'root' })
 export class ErrorNotificationService {
-  readonly message = signal<string | null>(null);
+  readonly current = signal<AppNotif | null>(null);
 
   /**
-   * Affiche un message d'erreur dans la bannière globale.
-   * @param message - Message lisible par l'utilisateur (sans clé API ni détail technique)
+   * Affiche une notification dans la bannière globale.
+   *
+   * @param message - Message lisible (sans clé API ni détail technique)
+   * @param type    - 'error' (défaut) ou 'info'
    */
-  show(message: string): void {
-    this.message.set(message);
+  show(message: string, type: NotifType = 'error'): void {
+    this.current.set({ message, type });
+  }
+
+  /**
+   * Raccourci pour afficher un retour fonctionnel de l'IA (type 'info').
+   *
+   * @param message - Explication retournée par l'IA
+   */
+  showInfo(message: string): void {
+    this.current.set({ message, type: 'info' });
   }
 
   /** Ferme la bannière. */
   dismiss(): void {
-    this.message.set(null);
+    this.current.set(null);
   }
 }

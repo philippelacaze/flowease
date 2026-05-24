@@ -95,7 +95,20 @@ export class AnthropicAdapter implements MealAnalysisPort, NoteTaggingPort, Anal
         this.client.post<AnthropicResponse>(payload, apiKey),
       );
       if (!response) return null;
-      return this.parseFoodItems(response.content[0]?.text ?? '');
+
+      const rawText = response.content[0]?.text ?? '';
+      const { json, explanation } = this.extractJsonBlock(rawText);
+      const items = this.parseJsonArray(json);
+
+      if (items === null) {
+        console.error('[AnthropicAdapter] analyzeMealPhoto: réponse JSON invalide');
+        this.errorNotification.show('Réponse IA illisible — réessayez');
+        return null;
+      }
+      if (items.length === 0 && explanation) {
+        this.errorNotification.showInfo(explanation);
+      }
+      return items;
     } catch (err) {
       const msg = err instanceof Error ? err.message : 'Erreur inconnue';
       console.error('[AnthropicAdapter] analyzeMealPhoto:', msg);
@@ -117,7 +130,14 @@ export class AnthropicAdapter implements MealAnalysisPort, NoteTaggingPort, Anal
     const prompt = MEAL_TEXT_PROMPT.replace('{{MEAL_TEXT}}', text);
     const response = await this.callApi(MODEL_FAST, prompt, apiKey);
     if (response === null) return null;
-    return this.parseFoodItems(response);
+
+    const { json } = this.extractJsonBlock(response);
+    const items = this.parseJsonArray(json);
+    if (items === null) {
+      this.errorNotification.show('Réponse IA illisible — réessayez');
+      return null;
+    }
+    return items;
   }
 
   // --- NoteTaggingPort ---
@@ -137,7 +157,7 @@ export class AnthropicAdapter implements MealAnalysisPort, NoteTaggingPort, Anal
     if (text === null) return null;
 
     try {
-      const parsed = JSON.parse(this.stripCodeFences(text)) as { tags: string[]; summary: string };
+      const parsed = JSON.parse(this.extractJsonBlock(text).json) as { tags: string[]; summary: string };
       return {
         tags: Array.isArray(parsed.tags) ? parsed.tags : [],
         summary: parsed.summary ?? '',
@@ -175,7 +195,7 @@ export class AnthropicAdapter implements MealAnalysisPort, NoteTaggingPort, Anal
     if (text === null) return null;
 
     try {
-      const parsed = JSON.parse(this.stripCodeFences(text)) as { insights: AnalysisResult['insights'] };
+      const parsed = JSON.parse(this.extractJsonBlock(text).json) as { insights: AnalysisResult['insights'] };
       return {
         available: true,
         insights: Array.isArray(parsed.insights) ? parsed.insights : [],
@@ -383,27 +403,35 @@ export class AnthropicAdapter implements MealAnalysisPort, NoteTaggingPort, Anal
   }
 
   /**
-   * Supprime les blocs de code markdown (```json … ```) que Claude ajoute parfois
-   * avant de parser le JSON. Sans ça, JSON.parse lève SyntaxError.
+   * Extrait le bloc JSON d'une réponse Anthropic pouvant contenir :
+   *   - du JSON brut
+   *   - un bloc ```json … ``` suivi d'un texte explicatif
+   *
+   * @returns json      - Chaîne JSON à parser
+   * @returns explanation - Texte après le bloc de code (explication fonctionnelle de l'IA)
    */
-  private stripCodeFences(text: string): string {
-    return text.replace(/^```(?:json)?\s*/i, '').replace(/\s*```\s*$/, '').trim();
+  private extractJsonBlock(text: string): { json: string; explanation: string | null } {
+    const fenceMatch = text.match(/```(?:json)?\s*([\s\S]*?)```([\s\S]*)/i);
+    if (fenceMatch) {
+      return {
+        json: fenceMatch[1].trim(),
+        explanation: fenceMatch[2].trim() || null,
+      };
+    }
+    return { json: text.trim(), explanation: null };
   }
 
   /**
-   * Parse une réponse JSON contenant un tableau de FoodItemVO.
-   * Retourne [] si le JSON est invalide — jamais throw.
+   * Parse un tableau JSON de FoodItemVO.
+   * Retourne null si le JSON est invalide (erreur technique) — jamais throw.
    */
-  private parseFoodItems(text: string): FoodItemVO[] {
+  private parseJsonArray(json: string): FoodItemVO[] | null {
     try {
-      const parsed = JSON.parse(this.stripCodeFences(text));
-      if (!Array.isArray(parsed)) return [];
+      const parsed = JSON.parse(json);
+      if (!Array.isArray(parsed)) return null;
       return parsed as FoodItemVO[];
-    } catch (err) {
-      const msg = err instanceof Error ? err.message : 'Erreur de parsing';
-      console.error('[AnthropicAdapter] parseFoodItems:', msg);
-      this.errorNotification.show('Réponse IA illisible — réessayez');
-      return [];
+    } catch {
+      return null;
     }
   }
 }
