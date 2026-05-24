@@ -12,11 +12,11 @@
 # Error details
 
 ```
-Test timeout of 30000ms exceeded.
+Test timeout of 20000ms exceeded.
 ```
 
 ```
-Error: locator.click: Test timeout of 30000ms exceeded.
+Error: locator.click: Test timeout of 20000ms exceeded.
 Call log:
   - waiting for getByRole('button', { name: /Riz blanc/ })
 
@@ -53,7 +53,7 @@ Call log:
                 - img [ref=e47]
           - generic [ref=e52]:
             - generic [ref=e53]: Heure
-            - textbox "Heure du repas" [ref=e55]: 16:36
+            - textbox "Heure du repas" [ref=e55]: 15:05
         - list "Aliments fréquents" [ref=e58]:
           - listitem "Riz blanc" [ref=e59] [cursor=pointer]
           - listitem "Poulet grillé" [ref=e60] [cursor=pointer]
@@ -148,7 +148,7 @@ Call log:
   51 |     await page.getByLabel('Mode aliments fréquents').click();
   52 | 
 > 53 |     await page.getByRole('button', { name: /Riz blanc/ }).click();
-     |                                                           ^ Error: locator.click: Test timeout of 30000ms exceeded.
+     |                                                           ^ Error: locator.click: Test timeout of 20000ms exceeded.
   54 | 
   55 |     await page.locator('[data-testid="submit-meal"]').click();
   56 |     await page.waitForURL('**/journal');

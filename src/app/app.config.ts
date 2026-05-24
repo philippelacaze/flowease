@@ -1,9 +1,13 @@
 import {
   ApplicationConfig,
   APP_INITIALIZER,
+  LOCALE_ID,
   provideBrowserGlobalErrorListeners,
   inject,
 } from '@angular/core';
+import { registerLocaleData } from '@angular/common';
+import localeFr from '@angular/common/locales/fr';
+registerLocaleData(localeFr);
 import { provideRouter } from '@angular/router';
 import { provideAnimationsAsync } from '@angular/platform-browser/animations/async';
 import { provideHttpClient } from '@angular/common/http';
@@ -34,6 +38,7 @@ export const appConfig: ApplicationConfig = {
   providers: [
     provideBrowserGlobalErrorListeners(),
     provideRouter(routes),
+    { provide: LOCALE_ID, useValue: 'fr-FR' },
     provideAnimationsAsync(),
     provideHttpClient(),
 

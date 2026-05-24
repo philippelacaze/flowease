@@ -12,28 +12,14 @@
 # Error details
 
 ```
-Error: page.goto: net::ERR_INTERNET_DISCONNECTED at http://localhost:4200/journal/meal
-Call log:
-  - navigating to "http://localhost:4200/journal/meal", waiting until "load"
-
+Test timeout of 20000ms exceeded.
 ```
 
-# Page snapshot
+```
+Error: locator.click: Test timeout of 20000ms exceeded.
+Call log:
+  - waiting for getByLabel('Mode photo')
 
-```yaml
-- generic [ref=e3]:
-  - generic [ref=e5]:
-    - heading "Appuyez sur le dinosaure pour jouer" [level=1] [ref=e6]
-    - generic [ref=e7]:
-      - paragraph [ref=e8]: "Voici quelques conseils :"
-      - list [ref=e9]:
-        - listitem [ref=e10]: Vérifiez les câbles réseau, le modem et le routeur.
-        - listitem [ref=e11]: Reconnectez-vous au réseau Wi-Fi
-        - listitem [ref=e12]:
-          - link "Exécutez les diagnostics réseau de Windows" [ref=e13] [cursor=pointer]:
-            - /url: javascript:diagnoseErrors()
-    - generic [ref=e14]: ERR_INTERNET_DISCONNECTED
-  - button "Jeu du dino, appuyer pour jouer" [ref=e16]
 ```
 
 # Test source
@@ -74,10 +60,10 @@ Call log:
   33 | 
   34 |   test('bouton photo désactivé si hors-ligne', async ({ page, context }) => {
   35 |     await context.setOffline(true);
-> 36 |     await page.goto('/journal/meal');
-     |                ^ Error: page.goto: net::ERR_INTERNET_DISCONNECTED at http://localhost:4200/journal/meal
+  36 |     await page.goto('/journal/meal');
   37 | 
-  38 |     await page.getByLabel('Mode photo').click();
+> 38 |     await page.getByLabel('Mode photo').click();
+     |                                         ^ Error: locator.click: Test timeout of 20000ms exceeded.
   39 | 
   40 |     await expect(
   41 |       page.getByLabel('Photo désactivée — connexion requise'),
