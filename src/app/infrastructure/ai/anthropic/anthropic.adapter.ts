@@ -105,8 +105,10 @@ export class AnthropicAdapter implements MealAnalysisPort, NoteTaggingPort, Anal
         this.errorNotification.show('Réponse IA illisible — réessayez');
         return null;
       }
-      if (items.length === 0 && explanation) {
-        this.errorNotification.showWarning(explanation);
+      if (items.length === 0) {
+        this.errorNotification.showWarning(
+          explanation ?? 'Aucun aliment identifié dans cette image.',
+        );
       }
       return items;
     } catch (err) {
@@ -131,11 +133,16 @@ export class AnthropicAdapter implements MealAnalysisPort, NoteTaggingPort, Anal
     const response = await this.callApi(MODEL_FAST, prompt, apiKey);
     if (response === null) return null;
 
-    const { json } = this.extractJsonBlock(response);
+    const { json, explanation } = this.extractJsonBlock(response);
     const items = this.parseJsonArray(json);
     if (items === null) {
       this.errorNotification.show('Réponse IA illisible — réessayez');
       return null;
+    }
+    if (items.length === 0) {
+      this.errorNotification.showWarning(
+        explanation ?? 'Aucun aliment identifié dans ce texte.',
+      );
     }
     return items;
   }
