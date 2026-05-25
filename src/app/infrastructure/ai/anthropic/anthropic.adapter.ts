@@ -70,7 +70,7 @@ export class AnthropicAdapter implements MealAnalysisPort, NoteTaggingPort, Anal
    * @returns FoodItemVO[] ou null si IA indisponible
    */
   async analyzeMealPhoto(base64Image: string, mediaType: string): Promise<FoodItemVO[] | null> {
-    const apiKey = this.settings.getApiKey();
+    const apiKey = this.requireApiKey();
     if (!apiKey) return null;
 
     const payload = {
@@ -126,7 +126,7 @@ export class AnthropicAdapter implements MealAnalysisPort, NoteTaggingPort, Anal
    * @returns FoodItemVO[] ou null si IA indisponible
    */
   async extractMealFromText(text: string): Promise<FoodItemVO[] | null> {
-    const apiKey = this.settings.getApiKey();
+    const apiKey = this.requireApiKey();
     if (!apiKey) return null;
 
     const prompt = MEAL_TEXT_PROMPT.replace('{{MEAL_TEXT}}', text);
@@ -156,7 +156,7 @@ export class AnthropicAdapter implements MealAnalysisPort, NoteTaggingPort, Anal
    * @returns NoteTaggingResult ou null si IA indisponible
    */
   async tagNote(content: string): Promise<NoteTaggingResult | null> {
-    const apiKey = this.settings.getApiKey();
+    const apiKey = this.requireApiKey();
     if (!apiKey) return null;
 
     const prompt = NOTE_TAGGING_PROMPT.replace('{{NOTE_CONTENT}}', content);
@@ -183,7 +183,7 @@ export class AnthropicAdapter implements MealAnalysisPort, NoteTaggingPort, Anal
    * @returns AnalysisResult ou null si IA indisponible
    */
   async analyzeData(context: AnalysisContext): Promise<AnalysisResult | null> {
-    const apiKey = this.settings.getApiKey();
+    const apiKey = this.requireApiKey();
     if (!apiKey) return null;
 
     const contextData = JSON.stringify({
@@ -223,7 +223,7 @@ export class AnthropicAdapter implements MealAnalysisPort, NoteTaggingPort, Anal
    * @returns Synthèse markdown ou null si IA indisponible
    */
   async generateReportSummary(data: ReportData): Promise<string | null> {
-    const apiKey = this.settings.getApiKey();
+    const apiKey = this.requireApiKey();
     if (!apiKey) return null;
 
     const reportData = JSON.stringify({
@@ -251,7 +251,7 @@ export class AnthropicAdapter implements MealAnalysisPort, NoteTaggingPort, Anal
     history: readonly CoachMessage[],
     context: CoachContext,
   ): AsyncIterable<string> {
-    const apiKey = this.settings.getApiKey();
+    const apiKey = this.requireApiKey();
     if (!apiKey) return;
 
     const systemPrompt = COACH_SYSTEM_PROMPT
@@ -351,7 +351,7 @@ export class AnthropicAdapter implements MealAnalysisPort, NoteTaggingPort, Anal
    * @returns Résumé textuel ou null si IA indisponible
    */
   async summarizeSession(messages: readonly CoachMessage[]): Promise<string | null> {
-    const apiKey = this.settings.getApiKey();
+    const apiKey = this.requireApiKey();
     if (!apiKey) return null;
 
     const transcript = messages
@@ -386,6 +386,20 @@ export class AnthropicAdapter implements MealAnalysisPort, NoteTaggingPort, Anal
   }
 
   // --- Helpers privés ---
+
+  /**
+   * Retourne la clé API ou notifie l'utilisateur si elle est absente.
+   * Centralise le message "clé manquante" pour tous les ports.
+   */
+  private requireApiKey(): string | null {
+    const apiKey = this.settings.getApiKey();
+    if (!apiKey) {
+      this.errorNotification.showWarning(
+        'Clé API Anthropic non configurée — rendez-vous dans Paramètres',
+      );
+    }
+    return apiKey;
+  }
 
   private async callApi(model: string, userMessage: string, apiKey: string): Promise<string | null> {
     const payload = {

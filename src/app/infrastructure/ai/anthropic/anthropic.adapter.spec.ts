@@ -4,6 +4,7 @@ import { provideHttpClientTesting, HttpTestingController } from '@angular/common
 import { vi, describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { AnthropicAdapter } from './anthropic.adapter';
 import { LocalSettingsAdapter } from '../../storage/local-settings.adapter';
+import { ErrorNotificationService } from '../../../core/error-notification.service';
 
 const API_URL = 'https://api.anthropic.com/v1/messages';
 
@@ -15,9 +16,13 @@ describe('AnthropicAdapter', () => {
   let adapter: AnthropicAdapter;
   let httpTesting: HttpTestingController;
   let getApiKey: ReturnType<typeof vi.fn>;
+  let showWarning: ReturnType<typeof vi.fn>;
+  let show: ReturnType<typeof vi.fn>;
 
   beforeEach(() => {
     getApiKey = vi.fn();
+    showWarning = vi.fn();
+    show = vi.fn();
 
     TestBed.configureTestingModule({
       providers: [
@@ -25,6 +30,7 @@ describe('AnthropicAdapter', () => {
         provideHttpClient(),
         provideHttpClientTesting(),
         { provide: LocalSettingsAdapter, useValue: { getApiKey, hasApiKey: vi.fn() } },
+        { provide: ErrorNotificationService, useValue: { show, showWarning, showSuccess: vi.fn(), dismiss: vi.fn() } },
       ],
     });
 
@@ -43,22 +49,25 @@ describe('AnthropicAdapter', () => {
       getApiKey.mockReturnValue(null);
     });
 
-    it('extractMealFromText retourne null sans effectuer de requête HTTP', async () => {
+    it('extractMealFromText retourne null, n\'effectue pas de requête HTTP et notifie l\'utilisateur', async () => {
       const result = await adapter.extractMealFromText('soupe de légumes');
       expect(result).toBeNull();
       httpTesting.expectNone(API_URL);
+      expect(showWarning).toHaveBeenCalledWith('Clé API Anthropic non configurée — rendez-vous dans Paramètres');
     });
 
-    it('analyzeMealPhoto retourne null sans effectuer de requête HTTP', async () => {
+    it('analyzeMealPhoto retourne null, n\'effectue pas de requête HTTP et notifie l\'utilisateur', async () => {
       const result = await adapter.analyzeMealPhoto('base64', 'image/jpeg');
       expect(result).toBeNull();
       httpTesting.expectNone(API_URL);
+      expect(showWarning).toHaveBeenCalledWith('Clé API Anthropic non configurée — rendez-vous dans Paramètres');
     });
 
-    it('tagNote retourne null sans effectuer de requête HTTP', async () => {
+    it('tagNote retourne null, n\'effectue pas de requête HTTP et notifie l\'utilisateur', async () => {
       const result = await adapter.tagNote('note test');
       expect(result).toBeNull();
       httpTesting.expectNone(API_URL);
+      expect(showWarning).toHaveBeenCalledWith('Clé API Anthropic non configurée — rendez-vous dans Paramètres');
     });
   });
 
@@ -117,7 +126,7 @@ describe('AnthropicAdapter', () => {
   // --- Cas : JSON invalide ---
 
   describe('JSON invalide dans la réponse', () => {
-    it('extractMealFromText retourne un tableau vide si le JSON est invalide', async () => {
+    it('extractMealFromText retourne null et affiche une erreur si le JSON est invalide', async () => {
       getApiKey.mockReturnValue('sk-ant-test-key');
 
       const promise = adapter.extractMealFromText('riz blanc');
@@ -125,10 +134,11 @@ describe('AnthropicAdapter', () => {
       req.flush(mockResponse('INVALID JSON {{{'));
 
       const result = await promise;
-      expect(result).toEqual([]);
+      expect(result).toBeNull();
+      expect(show).toHaveBeenCalledWith('Réponse IA illisible — réessayez');
     });
 
-    it('analyzeMealPhoto retourne un tableau vide si le JSON est invalide', async () => {
+    it('analyzeMealPhoto retourne null et affiche une erreur si le JSON est invalide', async () => {
       getApiKey.mockReturnValue('sk-ant-test-key');
 
       const promise = adapter.analyzeMealPhoto('abc123', 'image/jpeg');
@@ -136,7 +146,64 @@ describe('AnthropicAdapter', () => {
       req.flush(mockResponse('pas du JSON'));
 
       const result = await promise;
+      expect(result).toBeNull();
+      expect(show).toHaveBeenCalledWith('Réponse IA illisible — réessayez');
+    });
+  });
+
+  // --- Cas à la marge : image/texte sans nourriture ---
+
+  describe('image ne contenant pas de nourriture', () => {
+    it('analyzeMealPhoto retourne [] et affiche le message par défaut si IA retourne un tableau vide sans explication', async () => {
+      getApiKey.mockReturnValue('sk-ant-test-key');
+
+      const promise = adapter.analyzeMealPhoto('abc123', 'image/jpeg');
+      const req = httpTesting.expectOne(API_URL);
+      req.flush(mockResponse('[]'));
+
+      const result = await promise;
       expect(result).toEqual([]);
+      expect(showWarning).toHaveBeenCalledWith('Aucun aliment identifié dans cette image.');
+    });
+
+    it('analyzeMealPhoto retourne [] et affiche l\'explication de l\'IA quand elle envoie un bloc ```json``` avec texte', async () => {
+      getApiKey.mockReturnValue('sk-ant-test-key');
+
+      const aiResponse = '```json\n[]\n```\nCette photo montre une forêt, pas un repas.';
+      const promise = adapter.analyzeMealPhoto('abc123', 'image/jpeg');
+      const req = httpTesting.expectOne(API_URL);
+      req.flush(mockResponse(aiResponse));
+
+      const result = await promise;
+      expect(result).toEqual([]);
+      expect(showWarning).toHaveBeenCalledWith('Cette photo montre une forêt, pas un repas.');
+    });
+  });
+
+  describe('texte ne décrivant pas un repas', () => {
+    it('extractMealFromText retourne [] et affiche le message par défaut si IA retourne un tableau vide sans explication', async () => {
+      getApiKey.mockReturnValue('sk-ant-test-key');
+
+      const promise = adapter.extractMealFromText('je me sens fatigué aujourd\'hui');
+      const req = httpTesting.expectOne(API_URL);
+      req.flush(mockResponse('[]'));
+
+      const result = await promise;
+      expect(result).toEqual([]);
+      expect(showWarning).toHaveBeenCalledWith('Aucun aliment identifié dans ce texte.');
+    });
+
+    it('extractMealFromText retourne [] et affiche l\'explication de l\'IA quand elle envoie un bloc ```json``` avec texte', async () => {
+      getApiKey.mockReturnValue('sk-ant-test-key');
+
+      const aiResponse = '```json\n[]\n```\nAucun aliment mentionné dans ce message.';
+      const promise = adapter.extractMealFromText('comment vas-tu ?');
+      const req = httpTesting.expectOne(API_URL);
+      req.flush(mockResponse(aiResponse));
+
+      const result = await promise;
+      expect(result).toEqual([]);
+      expect(showWarning).toHaveBeenCalledWith('Aucun aliment mentionné dans ce message.');
     });
   });
 

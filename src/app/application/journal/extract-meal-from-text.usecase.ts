@@ -27,10 +27,10 @@ export class ExtractMealFromTextUseCase {
    * Appelle le port d'extraction textuelle et retourne les aliments identifiés.
    *
    * @param text - Texte décrivant le repas (transcription vocale ou saisie libre)
-   * @returns FoodItemVO[] si l'IA a répondu (liste vide = rien extrait),
-   *          null si l'IA est indisponible (clé absente ou erreur réseau/HTTP).
+   * @returns FoodItemVO[] — liste vide si IA indisponible ou aucun aliment extrait.
+   *          L'adapter a déjà notifié l'utilisateur via ErrorNotificationService.
    */
-  async execute(text: string): Promise<FoodItemVO[] | null> {
-    return this.mealAnalysisPort.extractMealFromText(text);
+  async execute(text: string): Promise<FoodItemVO[]> {
+    return (await this.mealAnalysisPort.extractMealFromText(text)) ?? [];
   }
 }

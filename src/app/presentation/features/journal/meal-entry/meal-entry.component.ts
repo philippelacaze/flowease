@@ -18,6 +18,7 @@ import { AddMealUseCase } from '../../../../application/journal/add-meal.usecase
 import { AnalyzeMealPhotoUseCase } from '../../../../application/journal/analyze-meal-photo.usecase';
 import { ExtractMealFromTextUseCase } from '../../../../application/journal/extract-meal-from-text.usecase';
 import { GetFrequentFoodsUseCase } from '../../../../application/journal/get-frequent-foods.usecase';
+import { ErrorNotificationService } from '../../../../core/error-notification.service';
 import { VoiceInputComponent } from '../../../shared/components/voice-input/voice-input.component';
 import {
   PhotoInputComponent,
@@ -60,6 +61,7 @@ export class MealEntryComponent implements OnInit {
   private readonly getFrequentFoods = inject(GetFrequentFoodsUseCase);
   private readonly router = inject(Router);
   private readonly cdr = inject(ChangeDetectorRef);
+  private readonly errorNotification = inject(ErrorNotificationService);
 
   protected mode: MealInputMode = 'text';
   protected mealType: MealType = 'lunch';
@@ -69,7 +71,8 @@ export class MealEntryComponent implements OnInit {
   protected proposedItems: FoodItemVO[] = [];
   protected frequentFoods: FoodItemVO[] = [];
   protected analyzing = false;
-  protected aiUnavailable = false;
+  /** Message affiché inline sous le bouton — même texte que la bannière globale, null si succès. */
+  protected aiUnavailableReason: string | null = null;
   protected saving = false;
 
   protected readonly modeLabels: Record<MealInputMode, string> = {
@@ -100,34 +103,38 @@ export class MealEntryComponent implements OnInit {
 
   protected setMode(m: MealInputMode): void {
     this.mode = m;
-    this.aiUnavailable = false;
+    this.aiUnavailableReason = null;
     this.cdr.markForCheck();
   }
 
   protected async onTranscript(text: string): Promise<void> {
     if (!text.trim() || this.analyzing) return;
     this.analyzing = true;
-    this.aiUnavailable = false;
+    this.aiUnavailableReason = null;
     this.cdr.markForCheck();
     const items = await this.extractMealFromText.execute(text);
-    // null = erreur technique (adapter a déjà notifié via la bannière)
-    this.aiUnavailable = items === null;
-    if (items !== null) this.proposedItems = [...this.proposedItems, ...items];
+    if (items.length === 0) {
+      this.aiUnavailableReason = this.errorNotification.current()?.message
+        ?? 'Analyse IA indisponible — ajoutez les aliments manuellement';
+    }
+    this.proposedItems = [...this.proposedItems, ...items];
     this.analyzing = false;
     this.cdr.markForCheck();
   }
 
   protected async onPhotoSelected(event: PhotoSelectedEvent): Promise<void> {
     this.analyzing = true;
-    this.aiUnavailable = false;
+    this.aiUnavailableReason = null;
     this.cdr.markForCheck();
     const items = await this.analyzeMealPhoto.execute({
       base64Image: event.base64,
       mediaType: event.mediaType,
     });
-    // null = erreur technique (adapter a déjà notifié via la bannière)
-    this.aiUnavailable = items === null;
-    if (items !== null) this.proposedItems = [...this.proposedItems, ...items];
+    if (items.length === 0) {
+      this.aiUnavailableReason = this.errorNotification.current()?.message
+        ?? 'Analyse IA indisponible — ajoutez les aliments manuellement';
+    }
+    this.proposedItems = [...this.proposedItems, ...items];
     this.analyzing = false;
     this.cdr.markForCheck();
   }

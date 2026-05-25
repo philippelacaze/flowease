@@ -8,6 +8,7 @@ import { AddMealUseCase } from '../../../../application/journal/add-meal.usecase
 import { AnalyzeMealPhotoUseCase } from '../../../../application/journal/analyze-meal-photo.usecase';
 import { ExtractMealFromTextUseCase } from '../../../../application/journal/extract-meal-from-text.usecase';
 import { GetFrequentFoodsUseCase } from '../../../../application/journal/get-frequent-foods.usecase';
+import { ErrorNotificationService } from '../../../../core/error-notification.service';
 import type { FoodItemVO } from '../../../../domain/entities/meal.entity';
 import type { PhotoSelectedEvent } from '../../../shared/components/photo-input/photo-input.component';
 
@@ -117,6 +118,21 @@ describe('MealEntryComponent', () => {
 
       const unavailable = fixture.debugElement.query(By.css('[data-testid="ai-unavailable"]'));
       expect(unavailable).not.toBeNull();
+    });
+
+    it('affiche le message exact de la bannière globale dans la zone inline', async () => {
+      const notifService = TestBed.inject(ErrorNotificationService);
+      notifService.showWarning('Cette photo montre un chat, pas un repas.');
+
+      const comp = fixture.componentInstance as unknown as ComponentPrivate;
+      comp.setMode('photo');
+      fixture.detectChanges();
+
+      await comp.onPhotoSelected({ base64: 'abc', mediaType: 'image/jpeg' });
+      fixture.detectChanges();
+
+      const unavailable = fixture.debugElement.query(By.css('[data-testid="ai-unavailable"]'));
+      expect(unavailable.nativeElement.textContent).toContain('Cette photo montre un chat, pas un repas.');
     });
 
     it('laisse le champ d\'ajout manuel accessible après l\'échec IA', async () => {

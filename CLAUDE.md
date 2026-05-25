@@ -66,7 +66,11 @@ return result ?? VALEUR_VIDE; // jamais throw
 - Utilisé dans les tests ET quand aucune clé API n'est configurée
 - Toute nouvelle méthode ajoutée à un port doit être ajoutée à NullAIAdapter
 
-## Tests
+## Tests — règle absolue
+Toute modification de code (nouvelle feature, bug fix, refacto) entraîne obligatoirement
+la création ou la mise à jour des tests unitaires correspondants, **sans qu'il soit nécessaire
+de le demander explicitement**. Vérifier `npm test` vert avant de déclarer la tâche terminée.
+
 - Vitest (Angular 21 natif) pour unitaires et composants
 - fake-indexeddb pour les tests IndexedDBAdapter
 - NullAIAdapter injecté dans les tests qui ne testent pas l'IA

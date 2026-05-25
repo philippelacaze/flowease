@@ -40,6 +40,7 @@ Générer 3 blocs describe :
 ```typescript
 // MON-USE-CASE.usecase.spec.ts
 import { TestBed } from '@angular/core/testing';
+import { vi, describe, it, expect, beforeEach } from 'vitest';
 import { MonUseCase } from './mon-use-case.usecase';
 import { MON_PORT_TOKEN } from '../tokens';
 import { NullAIAdapter } from '../../infrastructure/ai/null/null-ai.adapter';
@@ -47,22 +48,21 @@ import { NullAIAdapter } from '../../infrastructure/ai/null/null-ai.adapter';
 describe('MonUseCase', () => {
 
   describe('comportement nominal — IA disponible', () => {
-    let useCase: MonUseCase;
-    let mockPort: jasmine.SpyObj<MonPort>;
+    const mockPort = { maMethode: vi.fn() };
 
     beforeEach(() => {
-      mockPort = jasmine.createSpyObj('MonPort', ['maMethode']);
+      vi.clearAllMocks();
+      mockPort.maMethode.mockResolvedValue([/* données valides */]);
       TestBed.configureTestingModule({
         providers: [
           MonUseCase,
           { provide: MON_PORT_TOKEN, useValue: mockPort }
         ]
       });
-      useCase = TestBed.inject(MonUseCase);
     });
 
     it('retourne le résultat du port quand disponible', async () => {
-      mockPort.maMethode.and.resolveTo([/* données valides */]);
+      const useCase = TestBed.inject(MonUseCase);
       const result = await useCase.execute(/* input */);
       expect(result).toEqual(/* attendu */);
     });
@@ -82,14 +82,6 @@ describe('MonUseCase', () => {
       const useCase = TestBed.inject(MonUseCase);
       const result = await useCase.execute(/* input */);
       expect(result).toEqual(/* état vide */);
-    });
-  });
-
-  describe('erreur de stockage', () => {
-    it('propage l\'erreur si le repository rejette', async () => {
-      // mock repository qui rejette
-      await expectAsync(useCase.execute(/* input */))
-        .toBeRejectedWithError(/* message */);
     });
   });
 });
@@ -121,21 +113,29 @@ null si erreur réseau, [] si JSON invalide.
 ## Template Presentation (composants TestBed)
 
 ```typescript
+import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { vi, describe, it, expect, beforeEach } from 'vitest';
+import { By } from '@angular/platform-browser';
+import { NoopAnimationsModule } from '@angular/platform-browser/animations';
+
 describe('MonComposant', () => {
   let fixture: ComponentFixture<MonComposant>;
-  let mockUseCase: jasmine.SpyObj<MonUseCase>;
+  const mockUseCase = { execute: vi.fn() };
 
   beforeEach(async () => {
-    mockUseCase = jasmine.createSpyObj('MonUseCase', ['execute']);
+    vi.clearAllMocks();
+    mockUseCase.execute.mockResolvedValue(/* valeur par défaut */);
     await TestBed.configureTestingModule({
-      imports: [MonComposant],
+      imports: [MonComposant, NoopAnimationsModule],
       providers: [{ provide: MonUseCase, useValue: mockUseCase }]
     }).compileComponents();
     fixture = TestBed.createComponent(MonComposant);
     fixture.detectChanges();
+    await fixture.whenStable();
   });
 
-  // Tests interactions + mode dégradé IA + accessibilité
+  // Tests interactions + mode dégradé IA visible mais non bloquant
+  // data-testid et aria-label présents
 });
 ```
 Cas obligatoires : interaction principale, mode dégradé IA visible mais non bloquant,

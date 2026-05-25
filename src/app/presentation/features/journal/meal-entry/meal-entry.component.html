@@ -86,14 +86,14 @@
             Analyse IA en cours…
           </div>
         }
-        @if (aiUnavailable) {
+        @if (aiUnavailableReason) {
           <div
             class="ai-unavailable"
             role="status"
             data-testid="ai-unavailable"
             >
             <mat-icon aria-hidden="true">warning</mat-icon>
-            Erreur technique IA — ajoutez les aliments manuellement
+            {{ aiUnavailableReason }}
           </div>
         }
       </div>
@@ -112,14 +112,14 @@
             Analyse IA en cours…
           </div>
         }
-        @if (aiUnavailable) {
+        @if (aiUnavailableReason) {
           <div
             class="ai-unavailable"
             role="status"
             data-testid="ai-unavailable"
             >
             <mat-icon aria-hidden="true">warning</mat-icon>
-            Erreur technique IA — ajoutez les aliments manuellement
+            {{ aiUnavailableReason }}
           </div>
         }
       </div>
