@@ -1,4 +1,5 @@
 <div class="abdominal-map-container" role="group" aria-label="Cartographie des douleurs abdominales">
+  <!-- SVG : indicateur visuel uniquement — interaction via les boutons ci-dessous -->
   <svg
     viewBox="0 0 200 280"
     xmlns="http://www.w3.org/2000/svg"
@@ -6,9 +7,12 @@
     aria-hidden="true"
     >
     <!-- Silhouette abdominale -->
-    <ellipse cx="100" cy="140" rx="80" ry="120" fill="var(--mat-sys-surface-variant)" stroke="var(--mat-sys-outline)" stroke-width="1.5"/>
+    <ellipse cx="100" cy="140" rx="80" ry="120"
+             fill="var(--surface-var)"
+             stroke="var(--border)"
+             stroke-width="1.5"/>
 
-    <!-- Zones cliquables -->
+    <!-- Zones (visuelles seulement, pointer-events désactivés) -->
     @for (zone of zones; track zone) {
       <rect
         [attr.x]="zone.x"
@@ -16,13 +20,12 @@
         [attr.width]="zone.width"
         [attr.height]="zone.height"
         rx="8"
-        [ngClass]="isSelected(zone.id) ? 'zone-selected' : 'zone-idle'"
-        (click)="toggleZone(zone.id)"
-        style="cursor:pointer"
+        [class]="isSelected(zone.id) ? 'zone-selected' : 'zone-idle'"
+        pointer-events="none"
         />
     }
 
-    <!-- Labels centrés dans chaque zone -->
+    <!-- Labels dans les zones -->
     @for (zone of zones; track zone) {
       <text
         [attr.x]="zone.x + zone.width / 2"
@@ -35,7 +38,7 @@
     }
   </svg>
 
-  <!-- Boutons accessibles en overlay (≥ 44px) -->
+  <!-- Boutons accessibles (seuls éléments interactifs) -->
   <div class="zone-buttons" role="group">
     @for (zone of zones; track zone) {
       <button
@@ -48,4 +51,3 @@
     }
   </div>
 </div>
-
