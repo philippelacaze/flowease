@@ -4,8 +4,6 @@ import {
   ChangeDetectorRef,
   inject,
   OnInit,
-  OnDestroy,
-  signal,
 } from '@angular/core';
 import { DatePipe } from '@angular/common';
 import { Router } from '@angular/router';
@@ -41,7 +39,7 @@ const MEAL_LABELS: Record<string, string> = {
   templateUrl: './journal-home.component.html',
   styleUrl: './journal-home.component.scss',
 })
-export class JournalHomeComponent implements OnInit, OnDestroy {
+export class JournalHomeComponent implements OnInit {
   private readonly getJournalDay = inject(GetJournalDayUseCase);
   private readonly router = inject(Router);
   private readonly cdr = inject(ChangeDetectorRef);
@@ -49,15 +47,11 @@ export class JournalHomeComponent implements OnInit, OnDestroy {
   protected currentDate = new Date();
   protected entries: JournalEntry[] = [];
   protected loading = true;
-  protected readonly isRecording = signal(false);
 
   protected showWellbeing = false;
   protected wellbeingScore: number | null = null;
   protected wellbeingTime = '';
   protected readonly wellbeingOptions = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
-
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  private recognition: any = null;
 
   protected get meals() {
     return this.entries.filter((e): e is Extract<JournalEntry, { kind: 'meal' }> => e.kind === 'meal');
@@ -78,10 +72,6 @@ export class JournalHomeComponent implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     void this.loadEntries();
-  }
-
-  ngOnDestroy(): void {
-    this.stopRecognition();
   }
 
   protected prevDay(): void {
@@ -135,56 +125,7 @@ export class JournalHomeComponent implements OnInit, OnDestroy {
 
   protected startVoice(event: Event): void {
     event.stopPropagation();
-
-    if (this.isRecording()) {
-      this.stopRecognition();
-      return;
-    }
-
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const w = window as any;
-    const SpeechRecognitionCtor = w['SpeechRecognition'] ?? w['webkitSpeechRecognition'];
-
-    if (!SpeechRecognitionCtor) {
-      // Fallback : naviguer directement en mode saisie vocale manuelle
-      void this.router.navigate(['/journal/meal'], { queryParams: { mode: 'voice' } }).catch(() => undefined);
-      return;
-    }
-
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const rec: any = new SpeechRecognitionCtor();
-    rec.lang = 'fr-FR';
-    rec.interimResults = false;
-    rec.maxAlternatives = 1;
-
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    rec.onresult = (ev: any) => {
-      const transcript: string = ev.results[0]?.[0]?.transcript ?? '';
-      this.isRecording.set(false);
-      this.recognition = null;
-      // Passer queryParams + state pour que meal-entry démarre l'analyse immédiatement
-      void this.router.navigate(['/journal/meal'], {
-        queryParams: { mode: 'voice' },
-        state: { transcript },
-      }).catch(() => undefined);
-    };
-
-    rec.onerror = () => {
-      this.isRecording.set(false);
-      this.recognition = null;
-      this.cdr.markForCheck();
-    };
-
-    rec.onend = () => {
-      this.isRecording.set(false);
-      this.recognition = null;
-      this.cdr.markForCheck();
-    };
-
-    this.recognition = rec;
-    this.isRecording.set(true);
-    this.cdr.markForCheck();
-    rec.start();
+    void this.router.navigate(['/journal/meal'], { queryParams: { mode: 'voice' } }).catch(() => undefined);
   }
 
   protected openCamera(event: Event): void {
@@ -211,12 +152,6 @@ export class JournalHomeComponent implements OnInit, OnDestroy {
 
     // reset so same file can be re-selected
     (event.target as HTMLInputElement).value = '';
-  }
-
-  private stopRecognition(): void {
-    this.recognition?.stop();
-    this.recognition = null;
-    this.isRecording.set(false);
   }
 
   private async loadEntries(): Promise<void> {

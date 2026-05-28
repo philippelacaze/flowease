@@ -128,6 +128,11 @@ export class MealEntryComponent implements OnInit, OnDestroy {
   protected async onTranscript(text: string): Promise<void> {
     if (!text.trim()) return;
     this.aiUnavailableReason = null;
+    if (this.phase !== 'processing') {
+      this.phase = 'processing';
+      this.startProcessing();
+      this.cdr.markForCheck();
+    }
     const items = await this.extractMealFromText.execute(text);
     this.clearProcessingTimers();
     if (items.length === 0) {

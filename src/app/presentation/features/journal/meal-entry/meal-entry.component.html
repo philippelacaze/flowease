@@ -115,7 +115,7 @@
       <app-photo-input (imageSelected)="onPhotoSelected($event)" />
     }
     @if (srcMode === 'voice') {
-      <app-voice-input (transcript)="onTranscript($event)" />
+      <app-voice-input [autoStart]="true" (transcript)="onTranscript($event)" />
     }
     @if (srcMode === 'text') {
       <div class="add-item-row">

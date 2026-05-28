@@ -1,11 +1,13 @@
 import {
   Component,
+  Input,
   Output,
   EventEmitter,
   ChangeDetectionStrategy,
   ChangeDetectorRef,
   inject,
   OnDestroy,
+  AfterViewInit,
 } from '@angular/core';
 import { NgClass } from '@angular/common';
 import { MatIconModule } from '@angular/material/icon';
@@ -73,7 +75,10 @@ interface SpeechRecognitionAlternative {
   templateUrl: './voice-input.component.html',
   styleUrl: './voice-input.component.scss',
 })
-export class VoiceInputComponent implements OnDestroy {
+export class VoiceInputComponent implements AfterViewInit, OnDestroy {
+  /** Démarre l'enregistrement automatiquement à l'initialisation du composant. */
+  @Input() autoStart = false;
+
   /** Émis en temps réel avec la transcription partielle ou finale. */
   @Output() transcript = new EventEmitter<string>();
 
@@ -98,10 +103,15 @@ export class VoiceInputComponent implements OnDestroy {
 
       this.recognition.onresult = (event: SpeechRecognitionEvent) => {
         let text = '';
+        let hasFinal = false;
         for (let i = 0; i < event.results.length; i++) {
           text += event.results[i][0].transcript;
+          if (event.results[i].isFinal) hasFinal = true;
         }
-        this.transcript.emit(text);
+        if (hasFinal) {
+          this.transcript.emit(text);
+          this.state = 'idle';
+        }
         this.cdr.markForCheck();
       };
 
@@ -120,6 +130,14 @@ export class VoiceInputComponent implements OnDestroy {
     }
   }
 
+  ngAfterViewInit(): void {
+    if (this.autoStart && this.supported) {
+      // Délai minimal pour rester dans le contexte du geste utilisateur
+      // après la navigation Angular (lazy loading).
+      setTimeout(() => this.startRecording(), 50);
+    }
+  }
+
   ngOnDestroy(): void {
     this.recognition?.stop();
   }
@@ -129,9 +147,14 @@ export class VoiceInputComponent implements OnDestroy {
       this.recognition?.stop();
       this.state = 'idle';
     } else {
-      this.state = 'recording';
-      this.recognition?.start();
+      this.startRecording();
     }
+    this.cdr.markForCheck();
+  }
+
+  private startRecording(): void {
+    this.state = 'recording';
+    this.recognition?.start();
     this.cdr.markForCheck();
   }
 }
