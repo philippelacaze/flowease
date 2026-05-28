@@ -1,18 +1,7 @@
 import { Component, inject, signal } from '@angular/core';
 
-import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
-import { MatButtonModule } from '@angular/material/button';
-import { MatButtonToggleModule } from '@angular/material/button-toggle';
-import { MatCheckboxModule } from '@angular/material/checkbox';
-import { MatDatepickerModule } from '@angular/material/datepicker';
-import { MatNativeDateModule } from '@angular/material/core';
-import { MatFormFieldModule } from '@angular/material/form-field';
-import { MatInputModule } from '@angular/material/input';
-import { MatIconModule } from '@angular/material/icon';
-import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatSnackBar } from '@angular/material/snack-bar';
-import { MatDividerModule } from '@angular/material/divider';
 import { BuildReportUseCase } from '../../../../application/report/build-report.usecase';
 import { GenerateReportSummaryUseCase } from '../../../../application/report/generate-report-summary.usecase';
 import type { ReportEntity, ReportFormat } from '../../../../domain/entities/report.entity';
@@ -27,24 +16,13 @@ type WindowPreset = 7 | 14 | 30 | 90;
  * Respecte SRP — orchestre uniquement BuildReportUseCase et
  * GenerateReportSummaryUseCase. La génération PDF est assurée
  * par downloadAsPdf() côté présentation uniquement.
+ * Les sélecteurs de fenêtre et de format utilisent des boutons natifs
+ * (pas MatButtonToggle/MatCheckbox) pour alléger la dépendance Material.
  */
 @Component({
   selector: 'app-report-builder',
   standalone: true,
-  imports: [
-    FormsModule,
-    RouterLink,
-    MatButtonModule,
-    MatButtonToggleModule,
-    MatCheckboxModule,
-    MatDatepickerModule,
-    MatNativeDateModule,
-    MatFormFieldModule,
-    MatInputModule,
-    MatIconModule,
-    MatProgressSpinnerModule,
-    MatDividerModule
-],
+  imports: [RouterLink],
   templateUrl: './report-builder.component.html',
   styleUrl: './report-builder.component.scss',
 })
@@ -53,27 +31,25 @@ export class ReportBuilderComponent {
   private readonly generateSummary = inject(GenerateReportSummaryUseCase);
   private readonly snackBar = inject(MatSnackBar);
 
-  protected windowPreset: WindowPreset | 0 = 14;
+  protected windowPreset: WindowPreset = 14;
   protected format: ReportFormat = 'text';
   protected includeAiSummary = false;
-  protected customStart: Date | null = null;
-  protected customEnd: Date | null = null;
 
   protected generating = signal(false);
   protected generatedReport = signal<ReportEntity | null>(null);
   protected aiSummaryText = signal<string | null>(null);
 
-  protected onPresetChange(value: WindowPreset | 0): void {
-    if (value !== 0) {
-      this.customStart = null;
-      this.customEnd = null;
-    }
+  protected readonly formats = [
+    { value: 'text' as ReportFormat, icon: '📄', label: 'Texte' },
+    { value: 'pdf'  as ReportFormat, icon: '📑', label: 'PDF' },
+  ] as const;
+
+  protected setWindowPreset(d: number): void {
+    this.windowPreset = d as WindowPreset;
   }
 
   protected isRangeValid(): boolean {
-    if (this.windowPreset !== 0) return true;
-    return this.customStart !== null && this.customEnd !== null &&
-      this.customStart <= (this.customEnd ?? this.customStart);
+    return this.windowPreset > 0;
   }
 
   protected async onGenerate(): Promise<void> {
@@ -139,22 +115,10 @@ export class ReportBuilderComponent {
   private computeRange(): { startDate: Date; endDate: Date; windowDays: number } {
     const endDate = new Date();
     endDate.setHours(23, 59, 59, 999);
-
-    if (this.windowPreset !== 0) {
-      const startDate = new Date();
-      startDate.setDate(startDate.getDate() - this.windowPreset);
-      startDate.setHours(0, 0, 0, 0);
-      return { startDate, endDate, windowDays: this.windowPreset };
-    }
-
-    const startDate = new Date(this.customStart!);
+    const startDate = new Date();
+    startDate.setDate(startDate.getDate() - this.windowPreset);
     startDate.setHours(0, 0, 0, 0);
-    const customEnd = new Date(this.customEnd!);
-    customEnd.setHours(23, 59, 59, 999);
-    const windowDays = Math.round(
-      (customEnd.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24),
-    );
-    return { startDate, endDate: customEnd, windowDays };
+    return { startDate, endDate, windowDays: this.windowPreset };
   }
 
   private buildTextContent(report: ReportEntity): string {

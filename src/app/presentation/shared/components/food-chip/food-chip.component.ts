@@ -5,7 +5,6 @@ import {
   EventEmitter,
   ChangeDetectionStrategy,
 } from '@angular/core';
-import { NgClass } from '@angular/common';
 import { FoodItemVO } from '../../../../domain/entities/meal.entity';
 
 /**
@@ -23,7 +22,7 @@ import { FoodItemVO } from '../../../../domain/entities/meal.entity';
 @Component({
   selector: 'app-food-chip',
   standalone: true,
-  imports: [NgClass],
+  imports: [],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './food-chip.component.html',
   styleUrl: './food-chip.component.scss',
@@ -52,7 +51,4 @@ export class FoodChipComponent {
     return `${this.item.name}${fodmap}${ai}`;
   }
 
-  protected get levelClass(): string {
-    return `food-chip--${this.item.fodmap?.level ?? 'unknown'}`;
-  }
 }

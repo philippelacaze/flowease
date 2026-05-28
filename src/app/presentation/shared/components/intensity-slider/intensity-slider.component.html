@@ -1,24 +1,18 @@
-    <div class="intensity-slider">
-      <label class="intensity-label" [id]="labelId">
-        {{ label }}
-        <span class="intensity-value" aria-live="polite">{{ value }}/10</span>
-      </label>
-      <mat-slider
-        [min]="1"
-        [max]="10"
-        [step]="1"
-        [attr.aria-labelledby]="labelId"
-        [attr.aria-valuemin]="1"
-        [attr.aria-valuemax]="10"
-        [attr.aria-valuenow]="value"
-        [attr.aria-valuetext]="value + ' sur 10'"
-        class="full-width"
-      >
-        <input
-          matSliderThumb
-          [value]="value"
-          (valueChange)="onValueChange($event)"
-        />
-      </mat-slider>
-    </div>
-  
+<div class="intensity-slider">
+  <div class="intensity-header">
+    <span class="intensity-label">{{ label }}</span>
+    <span class="intensity-val" [style.color]="scoreColor">
+      {{ value > 0 ? value + '/10' : '—' }}
+    </span>
+  </div>
+  <input type="range" min="0" max="10" step="1"
+         [value]="value"
+         [style.accent-color]="scoreColor"
+         class="intensity-range"
+         [attr.aria-label]="label + ' — ' + (value > 0 ? value + ' sur 10' : 'absent')"
+         data-testid="intensity-range"
+         (input)="onInput($event)" />
+  <div class="intensity-legend" aria-hidden="true">
+    <span>Absent</span><span>Modéré</span><span>Intense</span>
+  </div>
+</div>

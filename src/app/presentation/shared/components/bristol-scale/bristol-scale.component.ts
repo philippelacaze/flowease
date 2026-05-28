@@ -31,12 +31,25 @@ export class BristolScaleComponent {
   /** Type Bristol sélectionné, ou null si non renseigné. */
   @Input() value: BristolType | null = null;
 
+  /** Réduit la grille à un bouton récapitulatif par défaut. */
+  @Input() collapsed = true;
+
   /** Émis quand l'utilisateur sélectionne un type. */
   @Output() valueChange = new EventEmitter<BristolType>();
 
   protected readonly descriptions = BRISTOL_DESCRIPTIONS;
 
+  protected toggle(): void {
+    this.collapsed = !this.collapsed;
+  }
+
   protected select(type: BristolType): void {
     this.valueChange.emit(type);
+    this.collapsed = true;
+  }
+
+  protected labelFor(type: BristolType | null): string {
+    if (type === null) return '';
+    return this.descriptions.find(d => d.type === type)?.labelFr ?? '';
   }
 }

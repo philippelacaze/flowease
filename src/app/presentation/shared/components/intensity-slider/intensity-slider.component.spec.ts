@@ -1,5 +1,4 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { By } from '@angular/platform-browser';
 import { vi } from 'vitest';
 import { IntensitySliderComponent } from './intensity-slider.component';
 import { NoopAnimationsModule } from '@angular/platform-browser/animations';
@@ -18,50 +17,87 @@ describe('IntensitySliderComponent', () => {
   });
 
   describe('rendu initial', () => {
-    it('affiche la valeur initiale dans le label', () => {
+    it('affiche "—" quand la valeur est 0 (absent)', () => {
+      component.value = 0;
+      component.label = 'Douleur';
+      fixture.detectChanges();
+      expect(fixture.nativeElement.textContent).toContain('—');
+    });
+
+    it('affiche X/10 quand la valeur est > 0', () => {
       component.value = 7;
       component.label = 'Douleur abdominale';
       fixture.detectChanges();
-      const text = fixture.nativeElement.textContent as string;
-      expect(text).toContain('7/10');
+      expect(fixture.nativeElement.textContent).toContain('7/10');
     });
 
     it('affiche le label fourni en Input', () => {
       component.label = 'Intensité des nausées';
       component.value = 3;
       fixture.detectChanges();
+      expect(fixture.nativeElement.textContent).toContain('Intensité des nausées');
+    });
+
+    it('rend un input[type="range"] dans le DOM', () => {
+      fixture.detectChanges();
+      const range = fixture.nativeElement.querySelector('input[type="range"]');
+      expect(range).not.toBeNull();
+    });
+
+    it('le range a min=0 et max=10', () => {
+      fixture.detectChanges();
+      const range = fixture.nativeElement.querySelector('input[type="range"]') as HTMLInputElement;
+      expect(range.min).toBe('0');
+      expect(range.max).toBe('10');
+    });
+
+    it('affiche la légende Absent/Modéré/Intense', () => {
+      fixture.detectChanges();
       const text = fixture.nativeElement.textContent as string;
-      expect(text).toContain('Intensité des nausées');
+      expect(text).toContain('Absent');
+      expect(text).toContain('Modéré');
+      expect(text).toContain('Intense');
+    });
+  });
+
+  describe('scoreColor', () => {
+    it('retourne la couleur chip-border pour valeur 0', () => {
+      component.value = 0;
+      expect((component as unknown as { scoreColor: string }).scoreColor).toBe('var(--chip-border)');
     });
 
-    it('rend un mat-slider dans le DOM', () => {
-      fixture.detectChanges();
-      const slider = fixture.debugElement.query(By.css('mat-slider'));
-      expect(slider).not.toBeNull();
+    it('retourne la couleur low pour valeur 1–3', () => {
+      component.value = 2;
+      expect((component as unknown as { scoreColor: string }).scoreColor).toBe('var(--fodmap-low-dot)');
     });
 
-    it('expose aria-valuemin=1 et aria-valuemax=10 sur le slider', () => {
-      fixture.detectChanges();
-      const slider = fixture.debugElement.query(By.css('mat-slider')).nativeElement as HTMLElement;
-      expect(slider.getAttribute('aria-valuemin')).toBe('1');
-      expect(slider.getAttribute('aria-valuemax')).toBe('10');
+    it('retourne la couleur medium pour valeur 4–6', () => {
+      component.value = 5;
+      expect((component as unknown as { scoreColor: string }).scoreColor).toBe('var(--fodmap-medium-dot)');
+    });
+
+    it('retourne la couleur high pour valeur 7–10', () => {
+      component.value = 9;
+      expect((component as unknown as { scoreColor: string }).scoreColor).toBe('var(--fodmap-high-dot)');
     });
   });
 
   describe('émission de valueChange', () => {
-    it('émet la nouvelle valeur lors d\'un changement via onValueChange()', () => {
+    it('émet la nouvelle valeur lors d\'un changement via onInput()', () => {
       fixture.detectChanges();
       const emitted: number[] = [];
       component.valueChange.subscribe((v: number) => emitted.push(v));
 
-      (component as unknown as { onValueChange(v: number): void }).onValueChange(8);
+      const event = { target: { value: '8' } } as unknown as Event;
+      (component as unknown as { onInput(e: Event): void }).onInput(event);
 
       expect(emitted).toEqual([8]);
     });
 
     it('met à jour la propriété value interne après le changement', () => {
       fixture.detectChanges();
-      (component as unknown as { onValueChange(v: number): void }).onValueChange(4);
+      const event = { target: { value: '4' } } as unknown as Event;
+      (component as unknown as { onInput(e: Event): void }).onInput(event);
       expect(component.value).toBe(4);
     });
 

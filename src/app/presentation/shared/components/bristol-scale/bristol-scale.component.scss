@@ -1,39 +1,88 @@
-    .bristol-scale {
-      display: grid;
-      grid-template-columns: repeat(4, 1fr);
-      gap: 8px;
-    }
-    @media (max-width: 360px) {
-      .bristol-scale { grid-template-columns: repeat(3, 1fr); }
-    }
-    .bristol-item {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 4px;
-      min-height: 80px;
-      min-width: 44px;
-      padding: 8px 4px;
-      border: 1.5px solid var(--mat-sys-outline-variant);
-      border-radius: 10px;
-      background: transparent;
-      cursor: pointer;
-      transition: background 0.15s, border-color 0.15s;
-    }
-    .bristol-item--selected {
-      background: var(--mat-sys-primary-container);
-      border-color: var(--mat-sys-primary);
-    }
-    .bristol-icon { width: 32px; height: 32px; }
-    .bristol-type-num {
-      font-weight: 700;
-      font-size: 13px;
-      color: var(--mat-sys-primary);
-    }
-    .bristol-desc {
-      font-size: 9px;
-      text-align: center;
-      color: var(--mat-sys-on-surface-variant);
-      line-height: 1.2;
-    }
-  
+/* Bouton collapsed */
+.bristol-collapsed-btn {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 14px;
+  border-radius: 12px;
+  border: 0.5px solid var(--border);
+  background: var(--card-bg);
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 13px;
+  color: var(--text-2);
+  min-height: 44px;
+}
+
+.bristol-icon-sm { width: 24px; height: 24px; flex-shrink: 0; }
+
+.bristol-collapsed-label { flex: 1; text-align: left; font-weight: 500; color: var(--text-1); }
+.bristol-modify  { font-size: 11px; color: var(--teal); font-weight: 600; }
+.bristol-empty   { flex: 1; text-align: left; color: var(--text-4); font-style: italic; }
+.bristol-select  { font-size: 11px; color: var(--text-3); }
+
+/* Grille expandée */
+.bristol-scale {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 8px;
+}
+
+@media (max-width: 360px) {
+  .bristol-scale { grid-template-columns: repeat(3, 1fr); }
+}
+
+.bristol-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  min-height: 80px;
+  min-width: 44px;
+  padding: 8px 4px;
+  border: 0.5px solid var(--border);
+  border-radius: 10px;
+  background: transparent;
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s;
+  font-family: inherit;
+}
+
+.bristol-item--selected {
+  background: var(--fodmap-low-bg);
+  border-color: var(--teal);
+}
+
+.bristol-icon { width: 32px; height: 32px; }
+
+.bristol-type-num {
+  font-weight: 700;
+  font-size: 13px;
+  color: var(--teal);
+}
+
+.bristol-desc {
+  font-size: 9px;
+  text-align: center;
+  color: var(--text-3);
+  line-height: 1.2;
+}
+
+/* Légende */
+.bristol-legend {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 6px;
+}
+
+.bristol-legend-item {
+  font-size: 10px;
+  font-weight: 600;
+  padding: 2px 6px;
+  border-radius: 4px;
+}
+
+.bristol-legend--hard   { background: var(--fodmap-high-bg);   color: var(--fodmap-high-text); }
+.bristol-legend--normal { background: var(--fodmap-low-bg);    color: var(--fodmap-low-text); }
+.bristol-legend--soft   { background: var(--fodmap-medium-bg); color: var(--fodmap-medium-text); }

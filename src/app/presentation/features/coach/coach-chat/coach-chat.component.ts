@@ -11,11 +11,6 @@ import {
 import { FormsModule } from '@angular/forms';
 
 import { Router } from '@angular/router';
-import { MatFormFieldModule } from '@angular/material/form-field';
-import { MatInputModule } from '@angular/material/input';
-import { MatIconModule } from '@angular/material/icon';
-import { MatButtonModule } from '@angular/material/button';
-import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatBottomSheet } from '@angular/material/bottom-sheet';
 
 import {
@@ -58,13 +53,8 @@ const SUGGESTED_QUESTIONS: readonly string[] = [
   standalone: true,
   imports: [
     FormsModule,
-    MatFormFieldModule,
-    MatInputModule,
-    MatIconModule,
-    MatButtonModule,
-    MatTooltipModule,
-    TokenCounterComponent
-],
+    TokenCounterComponent,
+  ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './coach-chat.component.html',
   styleUrl: './coach-chat.component.scss',
@@ -166,6 +156,14 @@ export class CoachChatComponent implements OnInit, AfterViewChecked {
     }
   }
 
+  protected onEnterKey(event: Event): void {
+    const keyEvent = event as KeyboardEvent;
+    if (!keyEvent.shiftKey) {
+      event.preventDefault();
+      void this.onSendMessage();
+    }
+  }
+
   protected async onCopy(content: string, index: number): Promise<void> {
     try {
       await navigator.clipboard.writeText(content);
@@ -180,7 +178,7 @@ export class CoachChatComponent implements OnInit, AfterViewChecked {
     }
   }
 
-  private openContextPicker(): void {
+  protected openContextPicker(): void {
     const sheetRef = this.bottomSheet.open<
       CoachContextPickerComponent,
       void,

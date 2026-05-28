@@ -1,0 +1,13 @@
+<div class="sheet-content">
+  <div class="sheet-title">Lancer une analyse IA</div>
+  <div class="sheet-sub">Claude analysera vos données pour identifier corrélations et patterns.</div>
+  @for (opt of options; track opt.days) {
+    <button class="sheet-option"
+            [attr.aria-label]="'Analyser sur ' + opt.label"
+            [attr.data-testid]="'analysis-option-' + opt.days"
+            (click)="select(opt.days)">
+      <span>{{ opt.label }}</span>
+      <span class="sheet-option-est">{{ opt.est }}</span>
+    </button>
+  }
+</div>

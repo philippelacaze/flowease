@@ -4,21 +4,15 @@
   <div class="chat-header">
     <span class="chat-title">Coach IA</span>
     <div class="header-actions">
-      <button
-        mat-icon-button
-        aria-label="Voir l'historique des sessions"
-        data-testid="btn-history"
-        (click)="goToHistory()">
-        <mat-icon>history</mat-icon>
-      </button>
-      <button
-        mat-icon-button
-        aria-label="Démarrer une nouvelle conversation"
-        data-testid="btn-new-conversation"
-        [disabled]="isStreaming"
-        (click)="onNewConversation()">
-        <mat-icon>add_comment</mat-icon>
-      </button>
+      <button class="icon-btn"
+              aria-label="Voir l'historique des sessions"
+              data-testid="btn-history"
+              (click)="goToHistory()">🕐</button>
+      <button class="icon-btn"
+              aria-label="Démarrer une nouvelle conversation"
+              data-testid="btn-new-conversation"
+              [disabled]="isStreaming"
+              (click)="onNewConversation()">✏️</button>
     </div>
   </div>
 
@@ -36,7 +30,6 @@
         <p class="suggestions-label">Suggestions</p>
         @for (q of suggestedQuestions; track q; let i = $index) {
           <button
-            mat-stroked-button
             class="suggestion-btn"
             [attr.data-testid]="'suggestion-' + i"
             [attr.aria-label]="q"
@@ -73,13 +66,12 @@
         <!-- Bouton Copier (réponses assistant uniquement, après fin du streaming) -->
         @if (msg.role === 'assistant' && !msg.isStreaming && msg.content) {
           <button
-            mat-icon-button
             class="copy-btn"
             [attr.aria-label]="'Copier la réponse du coach'"
-            [matTooltip]="copiedIndex === i ? 'Copié !' : 'Copier'"
+            [title]="copiedIndex === i ? 'Copié !' : 'Copier'"
             [attr.data-testid]="'copy-btn-' + i"
             (click)="onCopy(msg.content, i)">
-            <mat-icon>{{ copiedIndex === i ? 'check' : 'content_copy' }}</mat-icon>
+            {{ copiedIndex === i ? '✓' : '⎘' }}
           </button>
         }
       </div>
@@ -91,30 +83,23 @@
     <div class="token-row">
       <app-token-counter [sessionTokens]="sessionTokens"></app-token-counter>
     </div>
-    <div class="input-row">
-      <mat-form-field appearance="outline" class="input-field">
-        <textarea
-          matInput
-          [(ngModel)]="currentInput"
-          placeholder="Votre message..."
-          [disabled]="isStreaming || !sessionId"
-          aria-label="Message au coach IA"
-          data-testid="chat-input"
-          rows="2">
-        </textarea>
-      </mat-form-field>
-      <button
-        mat-raised-button
-        color="primary"
-        class="send-btn"
-        [disabled]="!currentInput.trim() || isStreaming || !sessionId"
-        aria-label="Envoyer le message"
-        data-testid="send-button"
-        (click)="onSendMessage()">
-        <mat-icon>send</mat-icon>
-      </button>
+    <div class="chat-input-row">
+      <textarea class="chat-textarea"
+                [(ngModel)]="currentInput"
+                [placeholder]="sessionId ? 'Votre message…' : 'Choisissez un contexte d\'abord'"
+                [disabled]="isStreaming || !sessionId"
+                aria-label="Message au coach IA"
+                data-testid="chat-input"
+                rows="2"
+                (keydown.enter)="onEnterKey($event)">
+      </textarea>
+      <button class="chat-send-btn"
+              [class.chat-send-btn--active]="currentInput.trim() && !isStreaming && !!sessionId"
+              [disabled]="!currentInput.trim() || isStreaming || !sessionId"
+              aria-label="Envoyer le message"
+              data-testid="send-button"
+              (click)="onSendMessage()">➤</button>
     </div>
   </div>
 
 </div>
-

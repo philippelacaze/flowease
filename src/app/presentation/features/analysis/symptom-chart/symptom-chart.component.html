@@ -1,22 +1,4 @@
 <div class="chart-wrapper">
-  <div class="selector-row">
-    <mat-form-field appearance="outline" class="symptom-select" subscriptSizing="dynamic">
-      <mat-label>Superposer</mat-label>
-      <mat-select
-        [(ngModel)]="secondSymptomKey"
-        (ngModelChange)="onSecondSymptomChange()"
-        aria-label="Sélectionner un second symptôme à superposer"
-        >
-        <mat-option [value]="null">Aucun</mat-option>
-        @for (opt of SYMPTOM_OPTIONS; track opt) {
-          <mat-option [value]="opt.key">
-            {{ opt.label }}
-          </mat-option>
-        }
-      </mat-select>
-    </mat-form-field>
-  </div>
-
   @if (loading) {
     <div class="chart-state" role="status">Chargement…</div>
   }
@@ -36,15 +18,15 @@
         >
         <!-- Grid -->
         <line x1="36" y1="16" x2="36" y2="152"
-          stroke="var(--mat-sys-outline-variant)" stroke-width="1" />
+          stroke="var(--border)" stroke-width="1" />
         <line x1="36" y1="152" x2="312" y2="152"
-          stroke="var(--mat-sys-outline-variant)" stroke-width="1" />
+          stroke="var(--border)" stroke-width="1" />
         <line x1="36" y1="84" x2="312" y2="84"
-          stroke="var(--mat-sys-outline-variant)" stroke-width="0.5" stroke-dasharray="2 4" />
+          stroke="var(--border)" stroke-width="0.5" stroke-dasharray="2 4" />
         <!-- Y labels -->
-        <text x="30" y="20" text-anchor="end" font-size="10" fill="var(--mat-sys-on-surface-variant)">10</text>
-        <text x="30" y="88" text-anchor="end" font-size="10" fill="var(--mat-sys-on-surface-variant)">5</text>
-        <text x="30" y="156" text-anchor="end" font-size="10" fill="var(--mat-sys-on-surface-variant)">0</text>
+        <text x="30" y="20" text-anchor="end" font-size="10" fill="var(--text-3)">10</text>
+        <text x="30" y="88" text-anchor="end" font-size="10" fill="var(--text-3)">5</text>
+        <text x="30" y="156" text-anchor="end" font-size="10" fill="var(--text-3)">0</text>
         <!-- X labels -->
         @for (lbl of xAxisLabels; track lbl) {
           <text
@@ -52,7 +34,7 @@
             y="170"
             text-anchor="middle"
             font-size="9"
-            fill="var(--mat-sys-on-surface-variant)"
+            fill="var(--text-3)"
           >{{ lbl.label }}</text>
         }
         <!-- Primary — dashed gaps -->
@@ -60,7 +42,7 @@
           <line
             [attr.x1]="seg.x1" [attr.y1]="seg.y1"
             [attr.x2]="seg.x2" [attr.y2]="seg.y2"
-            stroke="var(--mat-sys-primary)"
+            stroke="var(--teal)"
             stroke-width="1.5"
             stroke-dasharray="4 4"
             opacity="0.5"
@@ -70,7 +52,7 @@
         <path
           [attr.d]="primarySolidPath"
           fill="none"
-          stroke="var(--mat-sys-primary)"
+          stroke="var(--teal)"
           stroke-width="2"
           stroke-linecap="round"
           stroke-linejoin="round"
@@ -80,17 +62,17 @@
           <circle
             [attr.cx]="p.x" [attr.cy]="p.y"
             r="3"
-            fill="var(--mat-sys-primary)"
+            fill="var(--teal)"
             />
         }
-        <!-- Secondary series -->
+        <!-- Secondary series (coral, tirets) -->
         @if (secondaryPoints.length > 0) {
           <ng-container>
             @for (seg of secondaryDashedSegs; track seg) {
               <line
                 [attr.x1]="seg.x1" [attr.y1]="seg.y1"
                 [attr.x2]="seg.x2" [attr.y2]="seg.y2"
-                stroke="var(--mat-sys-secondary)"
+                stroke="var(--coral)"
                 stroke-width="1.5"
                 stroke-dasharray="4 4"
                 opacity="0.5"
@@ -99,16 +81,17 @@
             <path
               [attr.d]="secondarySolidPath"
               fill="none"
-              stroke="var(--mat-sys-secondary)"
+              stroke="var(--coral)"
               stroke-width="2"
               stroke-linecap="round"
               stroke-linejoin="round"
+              stroke-dasharray="6 3"
               />
             @for (p of secondaryPoints; track p) {
               <circle
                 [attr.cx]="p.x" [attr.cy]="p.y"
                 r="3"
-                fill="var(--mat-sys-secondary)"
+                fill="var(--coral)"
                 />
             }
           </ng-container>
@@ -118,18 +101,17 @@
     <!-- Legend -->
     @if (primaryPoints.length > 0) {
       <div class="legend" aria-label="Légende du graphique">
-        <span class="legend-primary">
-          <span class="legend-dot" style="background:var(--mat-sys-primary)"></span>
-          {{ symptomKey }}
+        <span class="legend-item">
+          <span class="legend-dot" style="background:var(--teal)"></span>
+          Principal
         </span>
         @if (secondaryPoints.length > 0) {
-          <span class="legend-secondary">
-            <span class="legend-dot" style="background:var(--mat-sys-secondary)"></span>
-            {{ secondSymptomKey }}
+          <span class="legend-item">
+            <span class="legend-dot" style="background:var(--coral)"></span>
+            Secondaire
           </span>
         }
       </div>
     }
   }
 </div>
-

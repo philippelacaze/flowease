@@ -9,9 +9,6 @@ import {
   SimpleChanges,
 } from '@angular/core';
 
-import { FormsModule } from '@angular/forms';
-import { MatFormFieldModule } from '@angular/material/form-field';
-import { MatSelectModule } from '@angular/material/select';
 import {
   GetSymptomTrendsUseCase,
   type TrendData,
@@ -44,24 +41,24 @@ const H = B - T; // chart height = 136
  * Respecte SRP : visualisation uniquement, sans logique métier.
  * Implémenté en SVG natif (pas de dépendance ng2-charts).
  * Segments continus = trait plein ; segments avec données manquantes = pointillés.
- * Superposition d'un second symptôme via sélecteur interne.
+ * Superposition optionnelle d'un second symptôme (coral, tirets) via input secondaryKey.
  */
 @Component({
   selector: 'app-symptom-chart',
   standalone: true,
-  imports: [FormsModule, MatFormFieldModule, MatSelectModule],
+  imports: [],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './symptom-chart.component.html',
   styleUrl: './symptom-chart.component.scss',
 })
 export class SymptomChartComponent implements OnInit, OnChanges {
-  @Input() symptomKey = 'abdominal_pain';
+  @Input() primaryKey = 'abdominal_pain';
+  @Input() secondaryKey: string | null = null;
   @Input() windowDays = 30;
 
   private readonly trendsUseCase = inject(GetSymptomTrendsUseCase);
   private readonly cdr = inject(ChangeDetectorRef);
 
-  protected secondSymptomKey: string | null = null;
   protected loading = false;
 
   protected primaryPoints: ChartPoint[] = [];
@@ -71,17 +68,6 @@ export class SymptomChartComponent implements OnInit, OnChanges {
   protected secondaryPoints: ChartPoint[] = [];
   protected secondarySolidPath = '';
   protected secondaryDashedSegs: DashedSegment[] = [];
-
-  protected readonly SYMPTOM_OPTIONS = [
-    { key: 'abdominal_pain', label: 'Douleur abdominale' },
-    { key: 'bloating',       label: 'Ballonnement' },
-    { key: 'nausea',         label: 'Nausée' },
-    { key: 'gas',            label: 'Gaz' },
-    { key: 'constipation',   label: 'Constipation' },
-    { key: 'diarrhea',       label: 'Diarrhée' },
-    { key: 'fatigue',        label: 'Fatigue' },
-    { key: 'wellbeing_score', label: 'Bien-être' },
-  ] as const;
 
   protected get xAxisLabels(): { x: number; label: string }[] {
     const now = new Date();
@@ -103,16 +89,13 @@ export class SymptomChartComponent implements OnInit, OnChanges {
   }
 
   ngOnChanges(changes: SimpleChanges): void {
-    if (changes['windowDays'] && !changes['windowDays'].firstChange) {
+    const relevant = changes['windowDays'] || changes['primaryKey'] || changes['secondaryKey'];
+    const notFirst = !changes['windowDays']?.firstChange ||
+                     !changes['primaryKey']?.firstChange ||
+                     !changes['secondaryKey']?.firstChange;
+    if (relevant && notFirst) {
       void this.loadData();
     }
-    if (changes['symptomKey'] && !changes['symptomKey'].firstChange) {
-      void this.loadData();
-    }
-  }
-
-  protected onSecondSymptomChange(): void {
-    void this.loadData();
   }
 
   private async loadData(): Promise<void> {
@@ -120,9 +103,9 @@ export class SymptomChartComponent implements OnInit, OnChanges {
     this.cdr.markForCheck();
 
     const [primary, secondary] = await Promise.all([
-      this.trendsUseCase.execute(this.windowDays, this.symptomKey),
-      this.secondSymptomKey
-        ? this.trendsUseCase.execute(this.windowDays, this.secondSymptomKey)
+      this.trendsUseCase.execute(this.windowDays, this.primaryKey),
+      this.secondaryKey
+        ? this.trendsUseCase.execute(this.windowDays, this.secondaryKey)
         : Promise.resolve<TrendData[]>([]),
     ]);
 

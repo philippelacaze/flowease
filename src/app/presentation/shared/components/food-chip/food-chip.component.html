@@ -1,6 +1,8 @@
-<span class="food-chip" [ngClass]="levelClass" role="listitem">
+<span [attr.class]="'food-chip food-chip--' + item.fodmap.level"
+      role="listitem"
+      [attr.aria-label]="chipAriaLabel">
   <span class="food-chip__dot" aria-hidden="true"></span>
-  <span class="food-chip__name" [attr.aria-label]="chipAriaLabel">
+  <span class="food-chip__name">
     {{ item.name }}
     @if (item.quantity) {
       <span class="food-chip__qty"> {{ item.quantity }}{{ item.unit }}</span>

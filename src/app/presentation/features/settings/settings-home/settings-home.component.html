@@ -1,22 +1,42 @@
-    <div class="settings-home">
-      <header class="page-header">
-        <h1>Paramètres</h1>
-      </header>
+<div class="settings-page">
 
-      <mat-nav-list>
-        @for (item of items; track item.route) {
-          <a
-            mat-list-item
-            [routerLink]="item.route"
-            [attr.aria-label]="item.label"
-            [attr.data-testid]="'settings-' + item.route"
-            class="settings-item">
-            <mat-icon matListItemIcon>{{ item.icon }}</mat-icon>
-            <span matListItemTitle>{{ item.label }}</span>
-            <span matListItemLine>{{ item.description }}</span>
-            <mat-icon matListItemMeta>chevron_right</mat-icon>
-          </a>
-        }
-      </mat-nav-list>
+  <!-- Banner statut API key -->
+  @if (apiKeyConfigured) {
+    <div class="api-banner api-banner--ok" role="status" data-testid="api-banner-ok">
+      <span aria-hidden="true">✅</span>
+      <div>
+        <div class="api-banner-title">Clé API configurée</div>
+        <div class="api-banner-sub">Claude IA disponible pour toutes les fonctions</div>
+      </div>
     </div>
-  
+  } @else {
+    <div class="api-banner api-banner--warn" role="status" data-testid="api-banner-warn">
+      <span aria-hidden="true">⚠️</span>
+      <div>
+        <div class="api-banner-title">Clé API non configurée</div>
+        <div class="api-banner-sub">Certaines fonctions IA sont indisponibles</div>
+      </div>
+    </div>
+  }
+
+  <!-- Liste de navigation -->
+  <div class="card settings-list">
+    @for (item of items; track item.route; let last = $last) {
+      <a [routerLink]="item.route"
+         [attr.aria-label]="item.label"
+         [attr.data-testid]="'settings-' + item.route"
+         class="settings-item"
+         [class.settings-item--last]="last">
+        <div class="settings-item-icon" aria-hidden="true">{{ item.emoji }}</div>
+        <div class="settings-item-text">
+          <div class="settings-item-label">{{ item.label }}</div>
+          <div class="settings-item-desc">{{ item.description }}</div>
+        </div>
+        <span class="settings-item-chevron" aria-hidden="true">›</span>
+      </a>
+    }
+  </div>
+
+  <div class="settings-footer">FlowEase v1.0.0 · Propulsé par Claude (Anthropic)</div>
+
+</div>

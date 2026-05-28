@@ -17,12 +17,12 @@
 | S05 | MealEntry | ✅ Terminé |
 | S06 | SymptomEntry + SymptomConfirm | ✅ Terminé |
 | S07 | IntakeEntry + NoteEntry | ✅ Terminé |
-| S08 | Analysis | ⏳ À faire |
-| S09 | CoachChat | ⏳ À faire |
-| S10 | Report | ⏳ À faire |
-| S11 | Settings | ⏳ À faire |
-| S12 | Accessibilité & micro-interactions | ⏳ À faire |
-| S13 | Tests E2E & polish final | ⏳ À faire |
+| S08 | Analysis | ✅ Terminé |
+| S09 | CoachChat | ✅ Terminé |
+| S10 | Report | ✅ Terminé |
+| S11 | Settings | ✅ Terminé |
+| S12 | Accessibilité & micro-interactions | ✅ Terminé |
+| S13 | Tests E2E & polish final | ✅ Terminé |
 
 ---
 

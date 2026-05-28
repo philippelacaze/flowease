@@ -6,11 +6,8 @@ import {
   OnInit,
 } from '@angular/core';
 
-import { MatButtonModule } from '@angular/material/button';
-import { MatButtonToggleModule } from '@angular/material/button-toggle';
-import { MatIconModule } from '@angular/material/icon';
-import { MatDialog } from '@angular/material/dialog';
-import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { FormsModule } from '@angular/forms';
+import { MatBottomSheet } from '@angular/material/bottom-sheet';
 import { RunAiAnalysisUseCase } from '../../../../application/analysis/run-ai-analysis.usecase';
 import { LOCAL_SETTINGS_PORT } from '../../../../application/tokens';
 import type { LocalSettingsRepository } from '../../../../domain/repositories/local-settings.repository';
@@ -18,10 +15,18 @@ import { SymptomChartComponent } from '../symptom-chart/symptom-chart.component'
 import { AdherenceCalendarComponent } from '../adherence-calendar/adherence-calendar.component';
 import { WellbeingHeatmapComponent } from '../wellbeing-heatmap/wellbeing-heatmap.component';
 import { AiInsightsComponent } from '../ai-insights/ai-insights.component';
-import {
-  RunAnalysisDialogComponent,
-  type RunAnalysisDialogData,
-} from './run-analysis-dialog.component';
+import { RunAnalysisSheetComponent } from './run-analysis-sheet.component';
+
+export const SYMPTOM_OPTIONS = [
+  { key: 'abdominal_pain',  label: 'Douleur abdominale' },
+  { key: 'bloating',        label: 'Ballonnement' },
+  { key: 'nausea',          label: 'Nausée' },
+  { key: 'gas',             label: 'Gaz' },
+  { key: 'constipation',    label: 'Constipation' },
+  { key: 'diarrhea',        label: 'Diarrhée' },
+  { key: 'fatigue',         label: 'Fatigue' },
+  { key: 'wellbeing_score', label: 'Bien-être' },
+] as const;
 
 /**
  * Page principale du module Analyse.
@@ -29,22 +34,20 @@ import {
  * @remarks
  * Respecte SRP : orchestre l'affichage des visualisations hors-ligne et
  * délègue l'exécution de l'analyse IA à RunAiAnalysisUseCase.
- * Les 3 visualisations s'affichent sans connexion ; seul le bouton "Analyser"
+ * Les visualisations s'affichent sans connexion ; seul le bouton "Analyser"
  * déclenche un appel réseau (géré en mode dégradé via NullAIAdapter si pas de clé).
+ * Le sélecteur de symptômes secondaire est géré dans ce composant (pas dans le chart).
  */
 @Component({
   selector: 'app-analysis-home',
   standalone: true,
   imports: [
-    MatButtonModule,
-    MatButtonToggleModule,
-    MatIconModule,
-    MatProgressSpinnerModule,
+    FormsModule,
     SymptomChartComponent,
     AdherenceCalendarComponent,
     WellbeingHeatmapComponent,
-    AiInsightsComponent
-],
+    AiInsightsComponent,
+  ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './analysis-home.component.html',
   styleUrl: './analysis-home.component.scss',
@@ -52,13 +55,16 @@ import {
 export class AnalysisHomeComponent implements OnInit {
   private readonly runAiAnalysis = inject(RunAiAnalysisUseCase);
   private readonly settings = inject<LocalSettingsRepository>(LOCAL_SETTINGS_PORT as never);
-  private readonly dialog = inject(MatDialog);
+  private readonly bottomSheet = inject(MatBottomSheet);
   private readonly cdr = inject(ChangeDetectorRef);
 
   protected windowDays = 30;
   protected analyzing = false;
   protected lastAnalysisDate: Date | null = null;
   protected insightsRefreshKey = 0;
+  protected primarySymptom = 'abdominal_pain';
+  protected secondarySymptom: string | null = null;
+  protected readonly symptomOptions = SYMPTOM_OPTIONS;
 
   protected get lastAnalysisDaysAgo(): string {
     if (!this.lastAnalysisDate) return '';
@@ -77,18 +83,14 @@ export class AnalysisHomeComponent implements OnInit {
     this.cdr.markForCheck();
   }
 
-  protected openRunDialog(): void {
-    const ref = this.dialog.open<RunAnalysisDialogComponent, RunAnalysisDialogData, number | undefined>(
-      RunAnalysisDialogComponent,
-      {
-        data: { defaultWindow: 14 } satisfies RunAnalysisDialogData,
-        width: '320px',
-      },
-    );
+  protected onSymptomChange(): void {
+    this.cdr.markForCheck();
+  }
 
-    ref.afterClosed().subscribe(async (days) => {
-      if (!days) return;
-      await this.runAnalysis(days);
+  protected openRunDialog(): void {
+    const ref = this.bottomSheet.open(RunAnalysisSheetComponent);
+    ref.afterDismissed().subscribe(async (days: number | undefined) => {
+      if (days) await this.runAnalysis(days);
     });
   }
 

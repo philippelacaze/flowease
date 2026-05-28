@@ -1,0 +1,19 @@
+.fod-pill {
+  display: flex;
+  gap: 12px;
+}
+
+.fod-pill-item {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 11px;
+  color: var(--text-3);
+}
+
+.fod-pill-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}

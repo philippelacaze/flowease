@@ -1,0 +1,8 @@
+<div class="fod-pill" aria-label="Légende FODMAP">
+  @for (lvl of levels; track lvl.key) {
+    <div class="fod-pill-item">
+      <div class="fod-pill-dot" [style.background]="lvl.color" aria-hidden="true"></div>
+      <span>{{ lvl.label }}</span>
+    </div>
+  }
+</div>

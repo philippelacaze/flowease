@@ -3,7 +3,7 @@
     .cal-state {
       text-align: center;
       padding: 24px;
-      color: var(--mat-sys-on-surface-variant);
+      color: var(--text-3);
       font-size: 13px;
     }
 
@@ -20,11 +20,11 @@
     }
     .rate-green  { color: #2e7d32; }
     .rate-orange { color: #e65100; }
-    .rate-red    { color: var(--mat-sys-error); }
+    .rate-red    { color: var(--coral); }
 
     .adherence-label {
       font-size: 13px;
-      color: var(--mat-sys-on-surface-variant);
+      color: var(--text-3);
     }
 
     .month-name {
@@ -32,7 +32,7 @@
       font-weight: 600;
       text-align: center;
       margin: 0 0 8px;
-      color: var(--mat-sys-on-surface-variant);
+      color: var(--text-3);
     }
 
     .calendar-grid {
@@ -46,7 +46,7 @@
       text-align: center;
       font-size: 10px;
       font-weight: 600;
-      color: var(--mat-sys-on-surface-variant);
+      color: var(--text-3);
       padding: 2px 0;
     }
 
@@ -62,7 +62,7 @@
     }
 
     .day-empty   { background: transparent; }
-    .day-outside { background: var(--mat-sys-surface-container); color: var(--mat-sys-on-surface-variant); opacity: 0.5; }
+    .day-outside { background: var(--surface-var); color: var(--text-3); opacity: 0.5; }
     .day-green   { background: #c8e6c9; color: #1b5e20; }
     .day-orange  { background: #ffe0b2; color: #bf360c; }
     .day-red     { background: #ffcdd2; color: #b71c1c; }
@@ -90,7 +90,7 @@
     .legend-item.green::before   { background: #c8e6c9; }
     .legend-item.orange::before  { background: #ffe0b2; }
     .legend-item.red::before     { background: #ffcdd2; }
-    .legend-item.outside::before { background: var(--mat-sys-surface-container); }
+    .legend-item.outside::before { background: var(--surface-var); }
 
     .treatment-list {
       list-style: none;
@@ -107,9 +107,9 @@
       align-items: center;
       font-size: 13px;
       padding: 4px 0;
-      border-top: 1px solid var(--mat-sys-outline-variant);
+      border-top: 0.5px solid var(--border-sub);
     }
 
-    .treatment-name { color: var(--mat-sys-on-surface); }
+    .treatment-name { color: var(--text-1); }
     .treatment-rate { font-weight: 600; }
-  
+
