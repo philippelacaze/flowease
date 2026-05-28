@@ -48,6 +48,7 @@
         [class.assistant-row]="msg.role === 'assistant'">
         <div
           class="message-bubble"
+          role="article"
           [class.user-bubble]="msg.role === 'user'"
           [class.assistant-bubble]="msg.role === 'assistant'"
           [attr.data-testid]="'message-' + i"

@@ -37,11 +37,14 @@
           [style.border-color]="cardBorder(state)"
           [attr.data-testid]="'treatment-' + state.treatment.id"
           role="button"
+          tabindex="0"
           [attr.aria-label]="state.treatment.name + ' — ' + treatmentStatus(state)"
           [attr.aria-pressed]="state.confirmed"
           (pointerdown)="onPointerDown($event, state)"
           (pointerup)="onPointerUp($event, state)"
           (pointercancel)="onPointerCancel()"
+          (keydown.enter)="onKeyActivate($event, state)"
+          (keydown.space)="onKeyActivate($event, state)"
           (contextmenu)="$event.preventDefault()"
           >
           <div class="treatment-info">
@@ -71,6 +74,7 @@
       <button
         class="primary-btn"
         [disabled]="confirmedCount === 0"
+        [attr.aria-disabled]="confirmedCount === 0"
         aria-label="Retourner au journal"
         data-testid="done-intake"
         (click)="back()"

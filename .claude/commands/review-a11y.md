@@ -41,6 +41,9 @@ Pour chaque violation : fichier, ligne, critère WCAG ou règle UX, correction e
 - [ ] SVG décoratifs : aria-hidden="true"
 - [ ] Les zones tappables du schéma abdominal ont chacune un aria-label de zone
 
+**Contraste**
+- [ ] Contraste entre couleur d'écriture et de fonds, ratio minimum de 4.5:1
+
 ---
 
 ## Ergonomie mobile — état de douleur / fatigue

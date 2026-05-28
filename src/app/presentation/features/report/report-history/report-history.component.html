@@ -7,8 +7,8 @@
       </header>
 
       @if (loading()) {
-        <div class="loading-state">
-          <mat-spinner diameter="40" />
+        <div class="loading-state" role="status" aria-live="polite">
+          <mat-spinner diameter="40" aria-label="Chargement de l'historique" />
         </div>
       } @else if (reports().length === 0) {
         <div class="empty-state" data-testid="empty-history">

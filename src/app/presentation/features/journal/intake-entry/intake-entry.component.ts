@@ -82,6 +82,11 @@ export class IntakeEntryComponent implements OnInit, OnDestroy {
     this.clearLongPressTimer();
   }
 
+  protected onKeyActivate(event: Event, state: TreatmentState): void {
+    event.preventDefault();
+    void this.quickConfirm(state);
+  }
+
   protected openDetail(state: TreatmentState): void {
     const ref = this.bottomSheet.open(IntakeDetailSheetComponent, { data: state });
     ref.afterDismissed().subscribe((action: 'taken' | 'skipped' | undefined) => {

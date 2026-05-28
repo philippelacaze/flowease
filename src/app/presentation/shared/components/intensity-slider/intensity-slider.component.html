@@ -9,6 +9,9 @@
          [value]="value"
          [style.accent-color]="scoreColor"
          class="intensity-range"
+         aria-valuemin="0"
+         aria-valuemax="10"
+         [attr.aria-valuenow]="value"
          [attr.aria-label]="label + ' — ' + (value > 0 ? value + ' sur 10' : 'absent')"
          data-testid="intensity-range"
          (input)="onInput($event)" />

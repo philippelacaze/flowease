@@ -5,15 +5,18 @@
   </div>
 
   <!-- Mode tabs -->
-  <div class="note-mode-tabs">
+  <div class="note-mode-tabs" role="tablist" aria-label="Mode de saisie">
     @for (m of modes; track m.key) {
       <button
         class="note-mode-tab"
+        role="tab"
         [class.note-mode-tab--active]="mode === m.key"
-        [attr.aria-label]="m.label"
+        [attr.aria-selected]="mode === m.key"
+        [attr.aria-controls]="'note-panel-' + m.key"
+        [attr.id]="'note-tab-' + m.key"
         (click)="setMode(m.key)"
         >
-        <span>{{ m.emoji }}</span>
+        <span aria-hidden="true">{{ m.emoji }}</span>
         <span>{{ m.label }}</span>
       </button>
     }
@@ -23,7 +26,10 @@
 
     <!-- Mode: Text -->
     @if (mode === 'text') {
-      <div class="card note-textarea-card mode-content">
+      <div class="card note-textarea-card mode-content"
+           role="tabpanel"
+           id="note-panel-text"
+           aria-labelledby="note-tab-text">
         <textarea
           class="note-textarea"
           [(ngModel)]="content"
@@ -36,7 +42,10 @@
 
     <!-- Mode: Voice -->
     @if (mode === 'voice') {
-      <div class="mode-content">
+      <div class="mode-content"
+           role="tabpanel"
+           id="note-panel-voice"
+           aria-labelledby="note-tab-voice">
         <app-voice-input (transcript)="onTranscript($event)" />
         @if (content) {
           <div class="voice-preview">
@@ -49,7 +58,10 @@
 
     <!-- Mode: Photo -->
     @if (mode === 'photo') {
-      <div class="mode-content">
+      <div class="mode-content"
+           role="tabpanel"
+           id="note-panel-photo"
+           aria-labelledby="note-tab-photo">
         <app-photo-input (imageSelected)="onPhotoSelected($event)" />
         @if (imageBase64) {
           <div class="photo-preview">
