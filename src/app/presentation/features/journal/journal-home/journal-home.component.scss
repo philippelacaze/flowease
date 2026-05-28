@@ -75,6 +75,18 @@
       gap: 3px;
     }
 
+    .qc-btn--recording {
+      background: var(--coral);
+      color: white;
+      border-color: var(--coral);
+      animation: pulse-record 1s ease-in-out infinite;
+    }
+
+    @keyframes pulse-record {
+      0%, 100% { opacity: 1; }
+      50% { opacity: .65; }
+    }
+
     .qc-text-link {
       padding: 4px 0;
       border-radius: 20px;

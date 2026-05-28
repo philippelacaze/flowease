@@ -94,4 +94,21 @@ describe('JournalHomeComponent', () => {
       expect(event.stopPropagation).toHaveBeenCalledOnce();
     });
   });
+
+  describe('bouton vocal repas QC', () => {
+    it('le bouton qc-meal-voice appelle startVoice sur click', async () => {
+      const fixture = await createComponent();
+      const comp = fixture.componentInstance as unknown as ComponentProtected;
+      const spy = vi.spyOn(comp, 'startVoice');
+      const btn = fixture.nativeElement.querySelector('[data-testid="qc-meal-voice"]');
+      btn.click();
+      expect(spy).toHaveBeenCalledOnce();
+    });
+
+    it('le bouton affiche "Vocal" par défaut (hors enregistrement)', async () => {
+      const fixture = await createComponent();
+      const btn = fixture.nativeElement.querySelector('[data-testid="qc-meal-voice"]');
+      expect(btn.textContent).toContain('Vocal');
+    });
+  });
 });

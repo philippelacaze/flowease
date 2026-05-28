@@ -145,7 +145,11 @@ export class JournalHomeComponent implements OnInit, OnDestroy {
     const w = window as any;
     const SpeechRecognitionCtor = w['SpeechRecognition'] ?? w['webkitSpeechRecognition'];
 
-    if (!SpeechRecognitionCtor) return;
+    if (!SpeechRecognitionCtor) {
+      // Fallback : naviguer directement en mode saisie vocale manuelle
+      void this.router.navigate(['/journal/meal'], { queryParams: { mode: 'voice' } }).catch(() => undefined);
+      return;
+    }
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const rec: any = new SpeechRecognitionCtor();
@@ -158,7 +162,11 @@ export class JournalHomeComponent implements OnInit, OnDestroy {
       const transcript: string = ev.results[0]?.[0]?.transcript ?? '';
       this.isRecording.set(false);
       this.recognition = null;
-      void this.router.navigate(['/journal/meal'], { state: { transcript } });
+      // Passer queryParams + state pour que meal-entry démarre l'analyse immédiatement
+      void this.router.navigate(['/journal/meal'], {
+        queryParams: { mode: 'voice' },
+        state: { transcript },
+      }).catch(() => undefined);
     };
 
     rec.onerror = () => {
@@ -175,6 +183,7 @@ export class JournalHomeComponent implements OnInit, OnDestroy {
 
     this.recognition = rec;
     this.isRecording.set(true);
+    this.cdr.markForCheck();
     rec.start();
   }
 

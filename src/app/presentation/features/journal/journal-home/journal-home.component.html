@@ -24,10 +24,14 @@
         <span class="qc-card-label">Repas</span>
       </div>
       <div class="qc-card-btns">
-        <button class="qc-btn" aria-label="Dicter un repas"
+        <button class="qc-btn"
+                [class.qc-btn--recording]="isRecording()"
+                aria-label="Dicter un repas"
+                [attr.aria-pressed]="isRecording()"
                 data-testid="qc-meal-voice"
-                (click)="navigate('/journal/meal', 'voice')">
-          <span>🎤</span><span>Vocal</span>
+                (click)="startVoice($event)">
+          <span>{{ isRecording() ? '⏹' : '🎤' }}</span>
+          <span>{{ isRecording() ? 'Écoute…' : 'Vocal' }}</span>
         </button>
         <button class="qc-btn" aria-label="Photographier un repas"
                 data-testid="qc-meal-photo"
