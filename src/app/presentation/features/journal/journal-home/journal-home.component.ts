@@ -11,9 +11,10 @@ import { DatePipe } from '@angular/common';
 import { Router } from '@angular/router';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
-import { MatRippleModule } from '@angular/material/core';
 import { GetJournalDayUseCase, JournalEntry } from '../../../../application/journal/get-journal-day.usecase';
 import { OfflineBannerComponent } from '../../../shared/components/offline-banner/offline-banner.component';
+import { FoodChipComponent } from '../../../shared/components/food-chip/food-chip.component';
+import type { FoodItemVO } from '../../../../domain/entities/meal.entity';
 
 const MEAL_LABELS: Record<string, string> = {
   breakfast: 'Petit-déjeuner',
@@ -35,7 +36,7 @@ const MEAL_LABELS: Record<string, string> = {
 @Component({
   selector: 'app-journal-home',
   standalone: true,
-  imports: [DatePipe, MatButtonModule, MatIconModule, MatRippleModule, OfflineBannerComponent],
+  imports: [DatePipe, MatButtonModule, MatIconModule, OfflineBannerComponent, FoodChipComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './journal-home.component.html',
   styleUrl: './journal-home.component.scss',
@@ -49,6 +50,11 @@ export class JournalHomeComponent implements OnInit, OnDestroy {
   protected entries: JournalEntry[] = [];
   protected loading = true;
   protected readonly isRecording = signal(false);
+
+  protected showWellbeing = false;
+  protected wellbeingScore: number | null = null;
+  protected wellbeingTime = '';
+  protected readonly wellbeingOptions = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   private recognition: any = null;
@@ -93,8 +99,34 @@ export class JournalHomeComponent implements OnInit, OnDestroy {
     void this.loadEntries();
   }
 
-  protected navigate(route: string): void {
-    void this.router.navigate([route]);
+  protected navigate(route: string, mode?: string): void {
+    void this.router.navigate([route], mode ? { queryParams: { mode } } : {});
+  }
+
+  protected setWellbeing(n: number): void {
+    this.wellbeingScore = n;
+    this.wellbeingTime = new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
+    this.showWellbeing = false;
+    this.cdr.markForCheck();
+  }
+
+  protected hasFodmapHigh(items: ReadonlyArray<FoodItemVO>): boolean {
+    return items.some(item => item.fodmap?.level === 'high');
+  }
+
+  protected startSymptomVoice(event: Event): void {
+    event.stopPropagation();
+    void this.router.navigate(['/journal/symptom'], { queryParams: { mode: 'voice' } }).catch(() => undefined);
+  }
+
+  protected startIntakeVoice(event: Event): void {
+    event.stopPropagation();
+    void this.router.navigate(['/journal/intake'], { queryParams: { mode: 'voice' } }).catch(() => undefined);
+  }
+
+  protected startNoteVoice(event: Event): void {
+    event.stopPropagation();
+    void this.router.navigate(['/journal/note'], { queryParams: { mode: 'voice' } }).catch(() => undefined);
   }
 
   protected mealLabel(type: string): string {

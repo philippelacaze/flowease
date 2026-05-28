@@ -4,16 +4,11 @@ import {
   ChangeDetectorRef,
   inject,
   OnInit,
+  OnDestroy,
 } from '@angular/core';
 
 import { FormsModule } from '@angular/forms';
-import { Router } from '@angular/router';
-import { MatButtonModule } from '@angular/material/button';
-import { MatButtonToggleModule } from '@angular/material/button-toggle';
-import { MatIconModule } from '@angular/material/icon';
-import { MatFormFieldModule } from '@angular/material/form-field';
-import { MatInputModule } from '@angular/material/input';
-import { MatSelectModule } from '@angular/material/select';
+import { Router, ActivatedRoute } from '@angular/router';
 import { AddMealUseCase } from '../../../../application/journal/add-meal.usecase';
 import { AnalyzeMealPhotoUseCase } from '../../../../application/journal/analyze-meal-photo.usecase';
 import { ExtractMealFromTextUseCase } from '../../../../application/journal/extract-meal-from-text.usecase';
@@ -27,115 +22,140 @@ import {
 import { FoodChipComponent } from '../../../shared/components/food-chip/food-chip.component';
 import type { FoodItemVO, MealInputMode, MealType } from '../../../../domain/entities/meal.entity';
 
+type MealPhase = 'processing' | 'validation' | 'form' | 'empty' | 'network' | 'confirm';
+
+const MEAL_TYPE_LABELS: Record<string, string> = {
+  breakfast: 'Petit-déjeuner',
+  lunch: 'Déjeuner',
+  dinner: 'Dîner',
+  snack: 'Collation',
+};
+
 /**
- * Page de saisie d'un repas — 4 modes : texte, vocal, photo, récurrents.
+ * Page de saisie d'un repas — machine d'état à 6 phases.
  *
  * @remarks
- * Importe uniquement des use cases de la couche application.
- * data-testid="ai-unavailable" visible si l'analyse IA retourne 0 aliment.
- * data-testid="submit-meal" sur le bouton de validation pour les tests E2E.
+ * La phase initiale est déterminée par queryParams.mode : voice/photo → processing, text → form.
+ * history.state.transcript / photo déclenchent l'analyse IA réelle.
+ * data-testid="ai-unavailable" visible dans les phases empty et network.
+ * data-testid="submit-meal" sur le bouton de validation.
  */
 @Component({
   selector: 'app-meal-entry',
   standalone: true,
-  imports: [
-    FormsModule,
-    MatButtonModule,
-    MatButtonToggleModule,
-    MatIconModule,
-    MatFormFieldModule,
-    MatInputModule,
-    MatSelectModule,
-    VoiceInputComponent,
-    PhotoInputComponent,
-    FoodChipComponent
-],
+  imports: [FormsModule, VoiceInputComponent, PhotoInputComponent, FoodChipComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './meal-entry.component.html',
   styleUrl: './meal-entry.component.scss',
 })
-export class MealEntryComponent implements OnInit {
+export class MealEntryComponent implements OnInit, OnDestroy {
   private readonly addMeal = inject(AddMealUseCase);
   private readonly analyzeMealPhoto = inject(AnalyzeMealPhotoUseCase);
   private readonly extractMealFromText = inject(ExtractMealFromTextUseCase);
   private readonly getFrequentFoods = inject(GetFrequentFoodsUseCase);
   private readonly router = inject(Router);
+  private readonly route = inject(ActivatedRoute);
   private readonly cdr = inject(ChangeDetectorRef);
   private readonly errorNotification = inject(ErrorNotificationService);
 
-  protected mode: MealInputMode = 'text';
+  protected phase: MealPhase = 'form';
+  protected srcMode: 'voice' | 'photo' | 'text' = 'text';
+  protected processingStep = 0;
+  private processingTimers: ReturnType<typeof setTimeout>[] = [];
+
   protected mealType: MealType = 'lunch';
   protected mealTime = this.nowTime();
   protected textInput = '';
   protected newItemName = '';
   protected proposedItems: FoodItemVO[] = [];
   protected frequentFoods: FoodItemVO[] = [];
-  protected analyzing = false;
-  /** Message affiché inline sous le bouton — même texte que la bannière globale, null si succès. */
   protected aiUnavailableReason: string | null = null;
   protected saving = false;
 
-  protected readonly modeLabels: Record<MealInputMode, string> = {
-    text: 'Texte — décrivez librement le repas',
-    voice: 'Vocal — dictez le contenu du repas',
-    photo: 'Photo — l\'IA identifie les aliments',
-    recurring: 'Récurrents — aliments fréquents de l\'historique',
-  };
+  protected get mealTypeLabel(): string {
+    return MEAL_TYPE_LABELS[this.mealType] ?? this.mealType;
+  }
 
   protected get canSubmit(): boolean {
-    if (this.mode === 'text') {
-      return this.textInput.trim().length > 0 || this.proposedItems.length > 0;
-    }
-    return this.proposedItems.length > 0;
+    return this.proposedItems.length > 0
+      || (this.srcMode === 'text' && this.textInput.trim().length > 0);
+  }
+
+  protected get isOnline(): boolean {
+    return navigator.onLine;
   }
 
   ngOnInit(): void {
     void this.loadFrequentFoods();
+    const mode = this.route.snapshot.queryParams['mode'] as string | undefined;
     const state = history.state as { transcript?: string; photo?: { base64: string; mediaType: string } };
-    if (state?.transcript) {
-      this.mode = 'voice';
-      void this.onTranscript(state.transcript);
-    } else if (state?.photo) {
-      this.mode = 'photo';
-      void this.onPhotoSelected({ base64: state.photo.base64, mediaType: state.photo.mediaType });
+
+    if (mode === 'voice') {
+      this.srcMode = 'voice';
+      if (state?.transcript) {
+        this.phase = 'processing';
+        this.startProcessing();
+        void this.onTranscript(state.transcript);
+      } else {
+        this.phase = 'form';
+      }
+    } else if (mode === 'photo') {
+      this.srcMode = 'photo';
+      if (state?.photo) {
+        this.phase = 'processing';
+        this.startProcessing();
+        void this.onPhotoSelected({ base64: state.photo.base64, mediaType: state.photo.mediaType });
+      } else {
+        this.phase = 'form';
+      }
+    } else {
+      this.srcMode = 'text';
+      this.phase = 'form';
     }
   }
 
-  protected setMode(m: MealInputMode): void {
-    this.mode = m;
+  ngOnDestroy(): void {
+    this.clearProcessingTimers();
+  }
+
+  protected setMode(m: 'voice' | 'photo' | 'text' | 'recurring'): void {
+    this.srcMode = (m === 'recurring' ? 'text' : m) as 'voice' | 'photo' | 'text';
     this.aiUnavailableReason = null;
+    this.phase = 'form';
     this.cdr.markForCheck();
   }
 
   protected async onTranscript(text: string): Promise<void> {
-    if (!text.trim() || this.analyzing) return;
-    this.analyzing = true;
+    if (!text.trim()) return;
     this.aiUnavailableReason = null;
-    this.cdr.markForCheck();
     const items = await this.extractMealFromText.execute(text);
+    this.clearProcessingTimers();
     if (items.length === 0) {
       this.aiUnavailableReason = this.errorNotification.current()?.message
         ?? 'Analyse IA indisponible — ajoutez les aliments manuellement';
+      this.phase = !navigator.onLine ? 'network' : 'empty';
+    } else {
+      this.proposedItems = [...this.proposedItems, ...items];
+      this.phase = 'validation';
     }
-    this.proposedItems = [...this.proposedItems, ...items];
-    this.analyzing = false;
     this.cdr.markForCheck();
   }
 
   protected async onPhotoSelected(event: PhotoSelectedEvent): Promise<void> {
-    this.analyzing = true;
     this.aiUnavailableReason = null;
-    this.cdr.markForCheck();
     const items = await this.analyzeMealPhoto.execute({
       base64Image: event.base64,
       mediaType: event.mediaType,
     });
+    this.clearProcessingTimers();
     if (items.length === 0) {
       this.aiUnavailableReason = this.errorNotification.current()?.message
         ?? 'Analyse IA indisponible — ajoutez les aliments manuellement';
+      this.phase = !navigator.onLine ? 'network' : 'empty';
+    } else {
+      this.proposedItems = [...this.proposedItems, ...items];
+      this.phase = 'validation';
     }
-    this.proposedItems = [...this.proposedItems, ...items];
-    this.analyzing = false;
     this.cdr.markForCheck();
   }
 
@@ -167,12 +187,10 @@ export class MealEntryComponent implements OnInit {
   protected addManualItem(): void {
     const name = this.newItemName.trim();
     if (!name) return;
-    const item: FoodItemVO = {
-      name,
-      fodmap: { level: 'unknown' },
-      confirmed: true,
-    };
-    this.proposedItems = [...this.proposedItems, item];
+    this.proposedItems = [
+      ...this.proposedItems,
+      { name, fodmap: { level: 'unknown' }, confirmed: true },
+    ];
     this.newItemName = '';
     this.cdr.markForCheck();
   }
@@ -185,9 +203,9 @@ export class MealEntryComponent implements OnInit {
     occurredAt.setHours(hours, minutes, 0, 0);
 
     let items = this.proposedItems;
-    const notes = this.mode === 'text' ? this.textInput.trim() || undefined : undefined;
+    const notes = this.srcMode === 'text' ? this.textInput.trim() || undefined : undefined;
 
-    if (items.length === 0 && this.mode === 'text' && this.textInput.trim()) {
+    if (items.length === 0 && this.srcMode === 'text' && this.textInput.trim()) {
       items = [{ name: this.textInput.trim(), fodmap: { level: 'unknown' }, confirmed: true }];
     }
 
@@ -197,16 +215,31 @@ export class MealEntryComponent implements OnInit {
     await this.addMeal.execute({
       occurredAt,
       type: this.mealType,
-      inputMode: this.mode,
+      inputMode: this.srcMode as MealInputMode,
       items,
       notes,
     });
 
-    void this.router.navigate(['/journal']);
+    this.saving = false;
+    this.phase = 'confirm';
+    this.cdr.markForCheck();
   }
 
   protected back(): void {
-    void this.router.navigate(['/journal']);
+    void this.router.navigate(['/journal']).catch(() => undefined);
+  }
+
+  private startProcessing(): void {
+    this.processingStep = 0;
+    this.processingTimers = [
+      setTimeout(() => { this.processingStep = 1; this.cdr.markForCheck(); }, 1800),
+      setTimeout(() => { this.processingStep = 2; this.cdr.markForCheck(); }, 3200),
+    ];
+  }
+
+  private clearProcessingTimers(): void {
+    this.processingTimers.forEach(t => clearTimeout(t));
+    this.processingTimers = [];
   }
 
   private async loadFrequentFoods(): Promise<void> {

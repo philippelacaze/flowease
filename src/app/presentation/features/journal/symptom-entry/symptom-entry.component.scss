@@ -1,90 +1,171 @@
-    :host { display: block; }
+:host { display: block; }
 
-    .page-header {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      padding: 4px 8px;
-      background: var(--mat-sys-surface);
-      border-bottom: 1px solid var(--mat-sys-outline-variant);
-    }
-    .page-title { margin: 0; font-size: 18px; font-weight: 500; }
+/* ── Header contextuel ─────────────────────────── */
+.sym-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 8px 8px 4px;
+  background: var(--card-bg);
+  border-bottom: 0.5px solid var(--border);
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
 
-    .symptom-form { padding: 8px 16px 0; }
+.sym-header-titles { flex: 1; min-width: 0; }
+.sym-header-title {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--text-1);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.sym-header-sub { font-size: 11px; color: var(--text-3); margin-top: 1px; }
 
-    .symptom-section { margin-bottom: 20px; }
+.sym-score-badge {
+  flex-shrink: 0;
+  padding: 4px 10px;
+  border-radius: 20px;
+  font-size: 13px;
+  font-weight: 700;
+  min-height: 32px;
+  display: flex;
+  align-items: center;
 
-    .section-title {
-      display: flex;
-      align-items: center;
-      gap: 6px;
-      font-size: 12px;
-      font-weight: 700;
-      text-transform: uppercase;
-      letter-spacing: 0.8px;
-      color: var(--mat-sys-primary);
-      margin: 0 0 12px;
-    }
-    .section-title mat-icon { font-size: 16px; width: 16px; height: 16px; }
+  &.score-low    { background: var(--fodmap-low-bg);    color: var(--fodmap-low-text);    border: 0.5px solid var(--fodmap-low-border); }
+  &.score-medium { background: var(--fodmap-medium-bg); color: var(--fodmap-medium-text); border: 0.5px solid var(--fodmap-medium-border); }
+  &.score-high   { background: var(--fodmap-high-bg);   color: var(--fodmap-high-text);   border: 0.5px solid var(--fodmap-high-border); }
+}
 
-    .symptom-row {
-      padding: 12px 0;
-      border-bottom: 1px solid var(--mat-sys-outline-variant);
-    }
-    .symptom-row:last-child { border-bottom: none; }
+/* ── Bannière vocal ────────────────────────────── */
+.sym-voice-banner {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 16px;
+  background: var(--fodmap-low-bg);
+  border-bottom: 0.5px solid var(--fodmap-low-border);
+  font-size: 13px;
+  color: var(--fodmap-low-text);
+}
 
-    .symptom-row-title {
-      margin: 0 0 8px;
-      font-size: 14px;
-      font-weight: 500;
-    }
+/* ── Formulaire ────────────────────────────────── */
+.symptom-form { padding: 8px 16px 0; }
 
-    .bristol-section { margin-top: 12px; }
-    .bristol-hint {
-      margin: 0 0 8px;
-      font-size: 13px;
-      color: var(--mat-sys-on-surface-variant);
-    }
+.symptom-section { margin-bottom: 20px; }
 
-    .pain-detail { margin-top: 12px; }
-    .pain-detail-label {
-      margin: 0 0 8px;
-      font-size: 13px;
-      color: var(--mat-sys-on-surface-variant);
-    }
+.section-title {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  color: var(--teal);
+  margin: 0 0 12px;
+}
 
-    .pain-types { margin-top: 12px; }
-    .pain-type-grid {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 6px;
-    }
-    .pain-type-btn {
-      min-height: 44px;
-      padding: 8px 14px;
-      border: 1.5px solid var(--mat-sys-outline-variant);
-      border-radius: 22px;
-      background: transparent;
-      cursor: pointer;
-      font-size: 13px;
-      transition: background 0.15s, border-color 0.15s;
-    }
-    .pain-type-btn--selected {
-      background: var(--mat-sys-primary-container);
-      border-color: var(--mat-sys-primary);
-      color: var(--mat-sys-on-primary-container);
-    }
+.symptom-row {
+  padding: 12px 0;
+  border-bottom: 0.5px solid var(--border);
+}
+.symptom-row:last-child { border-bottom: none; }
 
-    .submit-row {
-      padding: 12px 16px 24px;
-      background: var(--mat-sys-surface);
-      border-top: 1px solid var(--mat-sys-outline-variant);
-    }
-    .no-rating-hint {
-      font-size: 13px;
-      color: var(--mat-sys-on-surface-variant);
-      margin: 0 0 8px;
-      text-align: center;
-    }
-    .submit-btn { width: 100%; }
-  
+.symptom-row-title { margin: 0 0 8px; font-size: 14px; font-weight: 500; color: var(--text-1); }
+
+.bristol-section { margin-top: 12px; }
+.bristol-hint { margin: 0 0 8px; font-size: 13px; color: var(--text-3); }
+
+.pain-detail { margin-top: 12px; }
+.pain-detail-label { margin: 0 0 8px; font-size: 13px; color: var(--text-3); }
+
+.pain-types { margin-top: 12px; }
+.pain-type-grid { display: flex; flex-wrap: wrap; gap: 6px; }
+.pain-type-btn {
+  min-height: 44px;
+  padding: 8px 14px;
+  border: 0.5px solid var(--border);
+  border-radius: 22px;
+  background: var(--chip);
+  cursor: pointer;
+  font-size: 13px;
+  font-family: inherit;
+  color: var(--text-2);
+  transition: background 0.15s, border-color 0.15s;
+}
+.pain-type-btn--selected {
+  background: var(--fodmap-low-bg);
+  border-color: var(--fodmap-low-border);
+  color: var(--fodmap-low-text);
+}
+
+/* ── Ajout personnalisé ─────────────────────────── */
+.sym-add-section {
+  padding: 12px 16px;
+  border-top: 0.5px solid var(--border-sub);
+}
+.sym-add-btn {
+  width: 100%;
+  min-height: 44px;
+  padding: 10px;
+  border: 0.5px dashed var(--chip-border);
+  border-radius: 10px;
+  background: transparent;
+  color: var(--text-3);
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  font-family: inherit;
+}
+.sym-add-row {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+.sym-add-input {
+  flex: 1;
+  padding: 10px 12px;
+  border: 0.5px solid var(--border);
+  border-radius: 10px;
+  background: var(--input-bg);
+  color: var(--text-1);
+  font-size: 14px;
+  font-family: inherit;
+  min-height: 44px;
+
+  &::placeholder { color: var(--text-3); }
+}
+.sym-add-confirm,
+.sym-add-cancel {
+  width: 44px;
+  height: 44px;
+  border-radius: 22px;
+  border: none;
+  font-size: 18px;
+  cursor: pointer;
+  font-family: inherit;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+.sym-add-confirm { background: var(--teal); color: white; }
+.sym-add-cancel  { background: var(--chip); color: var(--text-2); }
+
+/* ── Submit ─────────────────────────────────────── */
+.submit-row {
+  padding: 12px 16px 24px;
+  background: var(--card-bg);
+  border-top: 0.5px solid var(--border);
+  position: sticky;
+  bottom: 0;
+}
+.no-rating-hint {
+  font-size: 13px;
+  color: var(--text-3);
+  margin: 0 0 8px;
+  text-align: center;
+}

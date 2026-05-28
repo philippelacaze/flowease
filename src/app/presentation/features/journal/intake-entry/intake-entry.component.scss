@@ -1,19 +1,22 @@
     :host { display: block; }
 
-    .page-header {
+    .intake-header {
       display: flex;
       align-items: center;
       gap: 8px;
       padding: 4px 8px;
-      background: var(--mat-sys-surface);
-      border-bottom: 1px solid var(--mat-sys-outline-variant);
+      background: var(--card-bg);
+      border-bottom: 0.5px solid var(--border);
+      position: sticky;
+      top: 0;
+      z-index: 10;
     }
-    .page-title { margin: 0; font-size: 18px; font-weight: 500; }
+    .intake-title { margin: 0; font-size: 16px; font-weight: 500; flex: 1; color: var(--text-1); }
 
     .loading {
       text-align: center;
       padding: 32px;
-      color: var(--mat-sys-on-surface-variant);
+      color: var(--text-3);
     }
 
     .empty-state {
@@ -23,16 +26,27 @@
       padding: 48px 16px;
       gap: 12px;
       text-align: center;
-      color: var(--mat-sys-on-surface-variant);
+      color: var(--text-3);
     }
-    .empty-icon { font-size: 48px; width: 48px; height: 48px; opacity: 0.4; }
-    .empty-hint { font-size: 13px; opacity: 0.7; margin: 0; }
+    .empty-icon { font-size: 40px; }
+    .empty-hint { font-size: 13px; margin: 0; }
+    .settings-btn {
+      padding: 10px 20px;
+      border-radius: 12px;
+      background: none;
+      border: 0.5px solid var(--border);
+      color: var(--text-2);
+      font-size: 14px;
+      cursor: pointer;
+      font-family: inherit;
+      min-height: 44px;
+    }
 
     .treatment-list { padding: 8px 16px; }
 
     .list-hint {
       font-size: 12px;
-      color: var(--mat-sys-on-surface-variant);
+      color: var(--text-3);
       margin: 0 0 12px;
       text-align: center;
     }
@@ -41,68 +55,37 @@
       display: flex;
       align-items: center;
       justify-content: space-between;
-      padding: 14px 16px;
+      padding: 13px 14px;
       margin-bottom: 8px;
-      background: var(--mat-sys-surface-container);
-      border-radius: 12px;
+      background: var(--card-bg);
+      border-radius: 14px;
+      border: 0.5px solid var(--border);
       min-height: 64px;
       cursor: pointer;
-      border: 2px solid transparent;
-      transition: border-color 0.15s, background 0.15s;
+      transition: opacity 0.15s;
       user-select: none;
       -webkit-user-select: none;
       touch-action: manipulation;
     }
-    .treatment-card:active { background: var(--mat-sys-surface-container-high); }
-    .treatment-card--taken  { border-color: #81c784; background: #f1f8e9; }
-    .treatment-card--skipped { border-color: var(--mat-sys-error); background: var(--mat-sys-error-container); }
+    .treatment-card:active { opacity: 0.7; }
 
     .treatment-info { display: flex; flex-direction: column; gap: 2px; }
-    .treatment-name { font-size: 16px; font-weight: 500; }
-    .treatment-dose { font-size: 13px; color: var(--mat-sys-on-surface-variant); }
+    .treatment-name { font-size: 16px; font-weight: 500; color: var(--text-1); }
+    .treatment-dose { font-size: 13px; color: var(--text-3); }
 
-    .status-icon          { font-size: 28px; width: 28px; height: 28px; color: var(--mat-sys-outline-variant); }
-    .status-icon--taken   { color: #2e7d32; }
-    .status-icon--skipped { color: var(--mat-sys-error); }
-
-    /* Detail panel */
-    .detail-panel {
-      margin-top: 16px;
-      padding: 16px;
-      background: var(--mat-sys-surface-container-highest);
-      border-radius: 16px;
-      border: 1px solid var(--mat-sys-outline-variant);
-    }
-
-    .detail-header {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      margin-bottom: 12px;
-    }
-    .detail-title { margin: 0; font-size: 16px; font-weight: 600; }
-
-    .detail-form { display: flex; flex-direction: column; gap: 4px; }
-    .detail-field { width: 100%; }
-
-    .detail-actions {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 8px;
-      margin-top: 8px;
-    }
-    .detail-btn { width: 100%; }
+    .treatment-status { display: flex; align-items: center; }
+    .status-icon { font-size: 22px; color: var(--text-4); }
+    .status-icon--taken   { color: var(--fodmap-low-dot); }
+    .status-icon--skipped { color: var(--fodmap-high-dot); }
 
     .submit-row {
-      padding: 12px 16px 24px;
-      background: var(--mat-sys-surface);
-      border-top: 1px solid var(--mat-sys-outline-variant);
+      padding: 12px 16px 32px;
+      background: var(--card-bg);
+      border-top: 0.5px solid var(--border);
     }
     .confirmed-count {
       font-size: 13px;
-      color: var(--mat-sys-on-surface-variant);
+      color: var(--text-3);
       text-align: center;
       margin: 0 0 8px;
     }
-    .submit-btn { width: 100%; }
-  

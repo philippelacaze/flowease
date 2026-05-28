@@ -1,52 +1,64 @@
 <div class="symptom-entry">
-  <header class="page-header">
-    <button mat-icon-button aria-label="Retour au journal" (click)="back()">
-      <mat-icon>arrow_back</mat-icon>
-    </button>
-    <h1 class="page-title">Saisir des symptômes</h1>
-  </header>
+
+  <!-- Header contextuel -->
+  <div class="sym-header">
+    <button class="icon-btn" aria-label="Retour" (click)="back()">←</button>
+    <div class="sym-header-titles">
+      <div class="sym-header-title">
+        {{ srcMode === 'voice' ? 'Vérifier les symptômes' : 'Saisir les symptômes' }}
+      </div>
+      <div class="sym-header-sub">
+        {{ srcMode === 'voice' ? 'Dictée analysée · ajustez si besoin' : 'Faites glisser les curseurs' }}
+      </div>
+    </div>
+    @if (avgScore > 0) {
+      <div class="sym-score-badge" [class]="avgSeverityClass"
+           [attr.aria-label]="'Score moyen ' + avgScore + ' sur 10'">
+        {{ avgScore }}/10
+      </div>
+    }
+  </div>
+
+  @if (srcMode === 'voice') {
+    <div class="sym-voice-banner" aria-live="polite">
+      <span aria-hidden="true">✨</span>
+      <span>Symptômes détectés — vérifiez et ajustez si besoin</span>
+    </div>
+  }
 
   <div class="symptom-form">
     <!-- Bloc Digestifs -->
     <section class="symptom-section" aria-label="Symptômes digestifs">
       <h2 class="section-title">
-        <mat-icon aria-hidden="true">health_and_safety</mat-icon>
-        Digestifs
+        <span aria-hidden="true">🏥</span>Digestifs
       </h2>
       @for (row of digestiveRows; track row) {
         <div class="symptom-row" [attr.data-testid]="'symptom-' + row.key">
-          <!-- Bristol (transit) -->
           @if (row.hasBristol) {
             <h3 class="symptom-row-title">{{ row.labelFr }}</h3>
             <app-intensity-slider
               [label]="'Intensité de la gêne'"
               [value]="row.intensity"
-              (valueChange)="row.intensity = $event; markDirty()"
-              />
+              (valueChange)="row.intensity = $event; markDirty()" />
             <div class="bristol-section">
               <p class="bristol-hint">Type de selle :</p>
               <app-bristol-scale
                 [value]="row.bristolType"
-                (valueChange)="row.bristolType = $event; markDirty()"
-                />
+                (valueChange)="row.bristolType = $event; markDirty()" />
             </div>
           } @else {
             <app-intensity-slider
               [label]="row.labelFr"
               [value]="row.intensity"
-              (valueChange)="row.intensity = $event; markDirty()"
-              />
-            <!-- Abdominal map -->
+              (valueChange)="row.intensity = $event; markDirty()" />
             @if (row.hasMap && row.intensity > 0) {
               <div class="pain-detail">
                 <p class="pain-detail-label">Localisation :</p>
                 <app-abdominal-map
                   [selectedZones]="row.painZones"
-                  (zonesChange)="row.painZones = $event; markDirty()"
-                  />
+                  (zonesChange)="row.painZones = $event; markDirty()" />
               </div>
             }
-            <!-- Pain types -->
             @if (row.hasPainTypes && row.intensity > 0) {
               <div class="pain-types">
                 <p class="pain-detail-label">Type de douleur :</p>
@@ -57,77 +69,92 @@
                       [class.pain-type-btn--selected]="row.painTypes.includes(pt.id)"
                       [attr.aria-label]="pt.labelFr + (row.painTypes.includes(pt.id) ? ' — sélectionné' : '')"
                       [attr.aria-pressed]="row.painTypes.includes(pt.id)"
-                      (click)="togglePainType(row, pt.id)"
-                    >{{ pt.labelFr }}</button>
+                      (click)="togglePainType(row, pt.id)">{{ pt.labelFr }}</button>
                   }
                 </div>
               </div>
             }
           }
-          <!-- Row standard -->
         </div>
       }
     </section>
 
     <!-- Bloc Systémiques -->
     <section class="symptom-section" aria-label="Symptômes systémiques">
-      <h2 class="section-title">
-        <mat-icon aria-hidden="true">person</mat-icon>
-        Systémiques
-      </h2>
+      <h2 class="section-title"><span aria-hidden="true">👤</span>Systémiques</h2>
       @for (row of systemicRows; track row) {
-        <div
-          class="symptom-row"
-          [attr.data-testid]="'symptom-' + row.key"
-          >
+        <div class="symptom-row" [attr.data-testid]="'symptom-' + row.key">
           <app-intensity-slider
             [label]="row.labelFr"
             [value]="row.intensity"
-            (valueChange)="row.intensity = $event; markDirty()"
-            />
+            (valueChange)="row.intensity = $event; markDirty()" />
         </div>
       }
     </section>
 
     <!-- Bloc Bien-être -->
     <section class="symptom-section" aria-label="Indicateurs de bien-être">
-      <h2 class="section-title">
-        <mat-icon aria-hidden="true">sentiment_satisfied</mat-icon>
-        Bien-être
-      </h2>
+      <h2 class="section-title"><span aria-hidden="true">😊</span>Bien-être</h2>
       @for (row of wellbeingRows; track row) {
-        <div
-          class="symptom-row"
-          [attr.data-testid]="'symptom-' + row.key"
-          >
+        <div class="symptom-row" [attr.data-testid]="'symptom-' + row.key">
           <app-intensity-slider
             [label]="row.labelFr"
             [value]="row.intensity"
-            (valueChange)="row.intensity = $event; markDirty()"
-            />
+            (valueChange)="row.intensity = $event; markDirty()" />
         </div>
       }
     </section>
+
+    <!-- Symptômes personnalisés -->
+    @if (customSymptoms.length > 0) {
+      <section class="symptom-section" aria-label="Symptômes personnalisés">
+        <h2 class="section-title"><span aria-hidden="true">＋</span>Autres</h2>
+        @for (row of customSymptoms; track row) {
+          <div class="symptom-row" [attr.data-testid]="'symptom-' + row.key">
+            <app-intensity-slider
+              [label]="row.labelFr"
+              [value]="row.intensity"
+              (valueChange)="row.intensity = $event; markDirty()" />
+          </div>
+        }
+      </section>
+    }
   </div>
 
+  <!-- Ajout de symptôme personnalisé -->
+  <div class="sym-add-section">
+    @if (!showAddCustom) {
+      <button class="sym-add-btn" aria-label="Ajouter un symptôme personnalisé"
+              data-testid="add-custom-symptom" (click)="showAddCustom = true">
+        ＋ Ajouter un symptôme
+      </button>
+    }
+    @if (showAddCustom) {
+      <div class="sym-add-row">
+        <input class="sym-add-input" [(ngModel)]="newCustomLabel"
+               placeholder="Ex : maux de tête…"
+               aria-label="Nom du symptôme personnalisé"
+               data-testid="custom-symptom-input"
+               (keydown.enter)="addCustomSymptom()" />
+        <button class="sym-add-confirm" aria-label="Confirmer" (click)="addCustomSymptom()">+</button>
+        <button class="sym-add-cancel" aria-label="Annuler" (click)="cancelCustom()">×</button>
+      </div>
+    }
+  </div>
+
+  <!-- Footer CTA -->
   <div class="submit-row">
     @if (!hasAnyRating) {
       <p class="no-rating-hint" role="status">
         Déplacez au moins un curseur pour activer la validation
       </p>
     }
-    <button
-      mat-raised-button
-      color="primary"
-      class="submit-btn"
-      [disabled]="!hasAnyRating || saving"
-      aria-label="Valider et enregistrer les symptômes"
-      data-testid="submit-symptoms"
-      (click)="submit()"
-      >
-      <mat-icon aria-hidden="true">check</mat-icon>
-      {{ saving ? 'Enregistrement…' : 'Valider les symptômes' }}
+    <button class="primary-btn primary-btn--coral"
+            [disabled]="!hasAnyRating || saving"
+            aria-label="Valider et enregistrer les symptômes"
+            data-testid="submit-symptoms"
+            (click)="submit()">
+      {{ saving ? 'Enregistrement…' : '✓ Enregistrer' + (hasAnyRating ? ' — ' + activeCount + ' élément' + (activeCount > 1 ? 's' : '') : '') }}
     </button>
   </div>
 </div>
-

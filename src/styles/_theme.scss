@@ -22,22 +22,22 @@ $flowease-dark-theme: mat.m2-define-dark-theme((
 // Thème clair par défaut
 @include mat.all-component-themes($flowease-light-theme);
 
-// Mode auto : suit la préférence OS si aucune classe explicite n'est posée
+// Mode auto : suit la préférence OS si aucun attribut data-theme n'est posé
 @media (prefers-color-scheme: dark) {
-  :root:not(.theme-light) {
+  html:not([data-theme="light"]) {
     @include mat.all-component-colors($flowease-dark-theme);
     color-scheme: dark;
   }
 }
 
-// Thème sombre forcé (classe posée par ThemeService)
-:root.theme-dark {
+// Thème sombre forcé (attribut posé par ThemeService)
+html[data-theme="dark"] {
   @include mat.all-component-colors($flowease-dark-theme);
   color-scheme: dark;
 }
 
 // Thème clair forcé — écrase prefers-color-scheme: dark si l'utilisateur a choisi 'light'
-:root.theme-light {
+html[data-theme="light"] {
   @include mat.all-component-colors($flowease-light-theme);
   color-scheme: light;
 }

@@ -1,38 +1,18 @@
-<div
-  class="food-chip"
-  [ngClass]="item.fodmap.level | fodmapColor"
-  role="listitem"
-  >
+<span class="food-chip" [ngClass]="levelClass" role="listitem">
+  <span class="food-chip__dot" aria-hidden="true"></span>
   <span class="food-chip__name" [attr.aria-label]="chipAriaLabel">
     {{ item.name }}
     @if (item.quantity) {
       <span class="food-chip__qty"> {{ item.quantity }}{{ item.unit }}</span>
     }
   </span>
-
   @if (!item.confirmed) {
-    <span
-      class="food-chip__ai-badge"
-      aria-label="Suggestion IA non validée"
-      title="Suggestion IA — appuyez pour valider"
-    >IA</span>
+    <span class="food-chip__ai-badge" aria-label="Suggestion IA non validée">IA</span>
   }
-
   @if (editable) {
-    <button
-      class="food-chip__btn"
-      [attr.aria-label]="'Modifier ' + item.name"
-      (click)="edit.emit(item)"
-      >
-      <mat-icon aria-hidden="true">edit</mat-icon>
-    </button>
-    <button
-      class="food-chip__btn food-chip__btn--remove"
-      [attr.aria-label]="'Supprimer ' + item.name"
-      (click)="remove.emit()"
-      >
-      <mat-icon aria-hidden="true">close</mat-icon>
-    </button>
+    <button class="food-chip__btn" [attr.aria-label]="'Confirmer ' + item.name" (click)="edit.emit(item)">✓</button>
+    <button class="food-chip__btn food-chip__btn--remove" [attr.aria-label]="'Retirer ' + item.name" (click)="remove.emit()">×</button>
+  } @else if (removable) {
+    <button class="food-chip__btn food-chip__btn--remove" [attr.aria-label]="'Retirer ' + item.name" (click)="remove.emit()">×</button>
   }
-</div>
-
+</span>

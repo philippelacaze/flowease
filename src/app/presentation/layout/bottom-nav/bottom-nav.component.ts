@@ -1,11 +1,9 @@
 import { Component } from '@angular/core';
 import { RouterLink, RouterLinkActive } from '@angular/router';
-import { MatIconModule } from '@angular/material/icon';
-import { MatRippleModule } from '@angular/material/core';
 
 interface NavItem {
   readonly path: string;
-  readonly icon: string;
+  readonly emoji: string;
   readonly label: string;
 }
 
@@ -20,16 +18,16 @@ interface NavItem {
 @Component({
   selector: 'app-bottom-nav',
   standalone: true,
-  imports: [RouterLink, RouterLinkActive, MatIconModule, MatRippleModule],
+  imports: [RouterLink, RouterLinkActive],
   templateUrl: './bottom-nav.component.html',
   styleUrl: './bottom-nav.component.scss',
 })
 export class BottomNavComponent {
   protected readonly navItems: readonly NavItem[] = [
-    { path: '/journal',  icon: 'menu_book',   label: 'Journal'    },
-    { path: '/analysis', icon: 'bar_chart',   label: 'Analyse'    },
-    { path: '/report',   icon: 'description', label: 'Rapport'    },
-    { path: '/coach',    icon: 'chat',        label: 'Coach'      },
-    { path: '/settings', icon: 'settings',    label: 'Paramètres' },
+    { path: '/journal',  emoji: '📓', label: 'Journal'    },
+    { path: '/analysis', emoji: '📊', label: 'Analyse'    },
+    { path: '/report',   emoji: '📄', label: 'Rapport'    },
+    { path: '/coach',    emoji: '💬', label: 'Coach'      },
+    { path: '/settings', emoji: '⚙️', label: 'Paramètres' },
   ];
 }

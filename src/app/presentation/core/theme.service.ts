@@ -23,9 +23,9 @@ export class ThemeService {
   apply(theme?: string): void {
     const value = theme ?? this.settings.getTheme();
     const root = document.documentElement;
-    root.classList.remove('theme-dark', 'theme-light');
-    if (value === 'dark') root.classList.add('theme-dark');
-    else if (value === 'light') root.classList.add('theme-light');
-    // 'auto' → aucune classe, prefers-color-scheme prend le relais
+    root.removeAttribute('data-theme');
+    if (value === 'dark') root.setAttribute('data-theme', 'dark');
+    else if (value === 'light') root.setAttribute('data-theme', 'light');
+    // 'auto' → pas d'attribut, prefers-color-scheme prend le relais
   }
 }

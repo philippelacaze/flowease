@@ -1,0 +1,44 @@
+<div class="sheet-name">{{ data.treatment.name }}</div>
+<div class="sheet-meta">{{ data.treatment.dosage }} {{ data.treatment.unit }} · {{ data.treatment.frequency }}×/j</div>
+
+<div class="sheet-tiles">
+  <div class="sheet-tile">
+    <span class="sheet-tile-label">Heure</span>
+    <input
+      type="time"
+      class="sheet-tile-input"
+      [(ngModel)]="detailTime"
+      aria-label="Heure effective de la prise"
+      data-testid="detail-time"
+      />
+  </div>
+  <div class="sheet-tile">
+    <span class="sheet-tile-label">Dose</span>
+    <input
+      class="sheet-tile-input"
+      [(ngModel)]="detailDose"
+      [attr.placeholder]="data.treatment.dosage + ' ' + data.treatment.unit"
+      aria-label="Dose réelle prise"
+      data-testid="detail-dose"
+      />
+  </div>
+</div>
+
+<div class="sheet-actions">
+  <button
+    class="sheet-btn sheet-btn--taken"
+    aria-label="Confirmer la prise"
+    data-testid="confirm-taken"
+    (click)="confirm('taken')"
+    >
+    ✓ Pris
+  </button>
+  <button
+    class="sheet-btn sheet-btn--skipped"
+    aria-label="Marquer comme sauté"
+    data-testid="confirm-skipped"
+    (click)="confirm('skipped')"
+    >
+    Sauté
+  </button>
+</div>

@@ -7,13 +7,7 @@ import {
 
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
-import { MatButtonModule } from '@angular/material/button';
-import { MatButtonToggleModule } from '@angular/material/button-toggle';
-import { MatIconModule } from '@angular/material/icon';
-import { MatFormFieldModule } from '@angular/material/form-field';
-import { MatInputModule } from '@angular/material/input';
 import { MatBottomSheet } from '@angular/material/bottom-sheet';
-import { MatChipsModule } from '@angular/material/chips';
 import { AddNoteUseCase } from '../../../../application/journal/add-note.usecase';
 import { TagNoteUseCase } from '../../../../application/journal/tag-note.usecase';
 import { GetJournalDayUseCase } from '../../../../application/journal/get-journal-day.usecase';
@@ -38,15 +32,9 @@ import type { NoteInputMode, LinkedEntry } from '../../../../domain/entities/not
   standalone: true,
   imports: [
     FormsModule,
-    MatButtonModule,
-    MatButtonToggleModule,
-    MatIconModule,
-    MatFormFieldModule,
-    MatInputModule,
-    MatChipsModule,
     VoiceInputComponent,
-    PhotoInputComponent
-],
+    PhotoInputComponent,
+  ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './note-entry.component.html',
   styleUrl: './note-entry.component.scss',
@@ -67,11 +55,11 @@ export class NoteEntryComponent {
   protected savedTags: string[] = [];
   protected saving = false;
 
-  protected readonly modeLabels: Record<NoteInputMode, string> = {
-    text: 'Texte — écrivez votre observation',
-    voice: 'Vocal — dictez votre note',
-    photo: 'Photo — attachez une image',
-  };
+  protected readonly modes: { key: NoteInputMode; emoji: string; label: string }[] = [
+    { key: 'text',  emoji: '✏️', label: 'Texte' },
+    { key: 'voice', emoji: '🎤', label: 'Vocal' },
+    { key: 'photo', emoji: '📷', label: 'Photo' },
+  ];
 
   protected get canSubmit(): boolean {
     return this.content.trim().length > 0 || this.imageBase64 !== null;
@@ -131,19 +119,19 @@ export class NoteEntryComponent {
       // mode dégradé : tags restent vides
     });
 
-    void this.router.navigate(['/journal']);
+    void this.router.navigate(['/journal']).catch(() => undefined);
   }
 
   protected back(): void {
-    void this.router.navigate(['/journal']);
+    void this.router.navigate(['/journal']).catch(() => undefined);
   }
 
-  protected linkIcon(link: LinkedEntry): string {
-    const icons: Record<string, string> = {
-      meal: 'restaurant',
-      symptom: 'health_and_safety',
-      intake: 'medication',
+  protected linkEmoji(link: LinkedEntry): string {
+    const emojis: Record<string, string> = {
+      meal: '🍽️',
+      symptom: '🩺',
+      intake: '💊',
     };
-    return icons[link.entryType] ?? 'link';
+    return emojis[link.entryType] ?? '🔗';
   }
 }

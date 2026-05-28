@@ -3,11 +3,11 @@ import {
   ChangeDetectionStrategy,
   ChangeDetectorRef,
   inject,
+  OnInit,
 } from '@angular/core';
 
-import { Router } from '@angular/router';
-import { MatButtonModule } from '@angular/material/button';
-import { MatIconModule } from '@angular/material/icon';
+import { FormsModule } from '@angular/forms';
+import { Router, ActivatedRoute } from '@angular/router';
 import { AddSymptomUseCase } from '../../../../application/journal/add-symptom.usecase';
 import { IntensitySliderComponent } from '../../../shared/components/intensity-slider/intensity-slider.component';
 import { AbdominalMapComponent } from '../../../shared/components/abdominal-map/abdominal-map.component';
@@ -51,34 +51,39 @@ const SYMPTOM_DEFINITIONS: ReadonlyArray<
 ];
 
 /**
- * Page de saisie des symptômes — 3 blocs : Digestifs, Systémiques, Bien-être.
+ * Page de saisie des symptômes — header contextuel (voice/form), ajout personnalisé, confirmation.
  *
  * @remarks
- * Importe uniquement AddSymptomUseCase depuis la couche application.
- * Chaque symptôme avec intensity > 0 génère un appel execute() distinct.
- * Les entrées transit sans intensity > 0 mais avec bristolType défini sont aussi sauvegardées.
+ * srcMode lu depuis queryParams.mode : 'voice' → dictée préanalysée, 'form' → saisie manuelle.
+ * Les symptômes personnalisés s'ajoutent à customSymptoms et sont sauvegardés comme les autres.
+ * submit() navigue vers /journal/symptom/confirm avec les données enregistrées dans history.state.
  */
 @Component({
   selector: 'app-symptom-entry',
   standalone: true,
   imports: [
-    MatButtonModule,
-    MatIconModule,
+    FormsModule,
     IntensitySliderComponent,
     AbdominalMapComponent,
-    BristolScaleComponent
-],
+    BristolScaleComponent,
+  ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './symptom-entry.component.html',
   styleUrl: './symptom-entry.component.scss',
 })
-export class SymptomEntryComponent {
+export class SymptomEntryComponent implements OnInit {
   private readonly addSymptom = inject(AddSymptomUseCase);
   private readonly router = inject(Router);
+  private readonly route = inject(ActivatedRoute);
   private readonly cdr = inject(ChangeDetectorRef);
 
   protected readonly painTypes = PAIN_TYPES;
   protected saving = false;
+
+  protected srcMode: 'voice' | 'form' = 'form';
+  protected showAddCustom = false;
+  protected newCustomLabel = '';
+  protected customSymptoms: SymptomRow[] = [];
 
   protected readonly rows: SymptomRow[] = SYMPTOM_DEFINITIONS.map(def => ({
     ...def,
@@ -87,6 +92,10 @@ export class SymptomEntryComponent {
     painTypes: [],
     bristolType: null,
   }));
+
+  protected get allRows(): SymptomRow[] {
+    return [...this.rows, ...this.customSymptoms];
+  }
 
   protected get digestiveRows(): SymptomRow[] {
     return this.rows.filter(r => r.category === 'digestive');
@@ -99,7 +108,29 @@ export class SymptomEntryComponent {
   }
 
   protected get hasAnyRating(): boolean {
-    return this.rows.some(r => r.intensity > 0 || (r.hasBristol && r.bristolType !== null));
+    return this.allRows.some(r => r.intensity > 0 || (r.hasBristol && r.bristolType !== null));
+  }
+
+  protected get avgScore(): number {
+    const active = this.allRows.filter(r => r.intensity > 0);
+    if (active.length === 0) return 0;
+    return Math.round(active.reduce((acc, r) => acc + r.intensity, 0) / active.length);
+  }
+
+  protected get avgSeverityClass(): string {
+    const s = this.avgScore;
+    if (s <= 3) return 'score-low';
+    if (s <= 6) return 'score-medium';
+    return 'score-high';
+  }
+
+  protected get activeCount(): number {
+    return this.allRows.filter(r => r.intensity > 0 || (r.hasBristol && r.bristolType !== null)).length;
+  }
+
+  ngOnInit(): void {
+    const mode = this.route.snapshot.queryParams['mode'] as string | undefined;
+    this.srcMode = mode === 'voice' ? 'voice' : 'form';
   }
 
   protected markDirty(): void {
@@ -116,13 +147,40 @@ export class SymptomEntryComponent {
     this.cdr.markForCheck();
   }
 
+  protected addCustomSymptom(): void {
+    const label = this.newCustomLabel.trim();
+    if (!label) return;
+    this.customSymptoms = [
+      ...this.customSymptoms,
+      {
+        category: 'systemic',
+        key: `custom_${Date.now()}`,
+        labelFr: label,
+        hasMap: false,
+        hasPainTypes: false,
+        hasBristol: false,
+        intensity: 0,
+        painZones: [],
+        painTypes: [],
+        bristolType: null,
+      },
+    ];
+    this.cancelCustom();
+    this.cdr.markForCheck();
+  }
+
+  protected cancelCustom(): void {
+    this.showAddCustom = false;
+    this.newCustomLabel = '';
+  }
+
   protected async submit(): Promise<void> {
     if (!this.hasAnyRating || this.saving) return;
     this.saving = true;
     this.cdr.markForCheck();
 
     const now = new Date();
-    const rowsToSave = this.rows.filter(
+    const rowsToSave = this.allRows.filter(
       r => r.intensity > 0 || (r.hasBristol && r.bristolType !== null),
     );
 
@@ -143,10 +201,18 @@ export class SymptomEntryComponent {
       }),
     );
 
-    void this.router.navigate(['/journal']);
+    const savedItems = rowsToSave.map(r => ({
+      key: r.key,
+      labelFr: r.labelFr,
+      intensity: r.intensity,
+      category: r.category as string,
+    }));
+
+    void this.router.navigate(['/journal/symptom/confirm'], { state: { savedItems } })
+      .catch(() => undefined);
   }
 
   protected back(): void {
-    void this.router.navigate(['/journal']);
+    void this.router.navigate(['/journal']).catch(() => undefined);
   }
 }

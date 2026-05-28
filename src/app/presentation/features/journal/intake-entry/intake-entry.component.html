@@ -1,10 +1,8 @@
 <div class="intake-entry">
-  <header class="page-header">
-    <button mat-icon-button aria-label="Retour au journal" (click)="back()">
-      <mat-icon>arrow_back</mat-icon>
-    </button>
-    <h1 class="page-title">Saisir des prises</h1>
-  </header>
+  <div class="intake-header">
+    <button class="icon-btn" aria-label="Retour au journal" (click)="back()">←</button>
+    <h1 class="intake-title">Saisir des prises</h1>
+  </div>
 
   @if (loading) {
     <div class="loading" role="status" aria-live="polite">
@@ -14,11 +12,11 @@
 
   @if (!loading && treatmentStates.length === 0) {
     <div class="empty-state" role="status">
-      <mat-icon aria-hidden="true" class="empty-icon">medication</mat-icon>
+      <span class="empty-icon">💊</span>
       <p>Aucun traitement actif.</p>
       <p class="empty-hint">Configurez vos traitements dans les Paramètres.</p>
       <button
-        mat-stroked-button
+        class="settings-btn"
         aria-label="Aller aux paramètres des traitements"
         (click)="goToSettings()"
         >
@@ -35,8 +33,8 @@
       @for (state of treatmentStates; track state) {
         <div
           class="treatment-card"
-          [class.treatment-card--taken]="state.confirmed"
-          [class.treatment-card--skipped]="state.skipped"
+          [style.background]="cardBg(state)"
+          [style.border-color]="cardBorder(state)"
           [attr.data-testid]="'treatment-' + state.treatment.id"
           role="button"
           [attr.aria-label]="state.treatment.name + ' — ' + treatmentStatus(state)"
@@ -51,94 +49,14 @@
             <span class="treatment-dose">{{ state.treatment.dosage }} {{ state.treatment.unit }}</span>
           </div>
           <div class="treatment-status">
-            <mat-icon
-              aria-hidden="true"
+            <span
               class="status-icon"
               [class.status-icon--taken]="state.confirmed"
               [class.status-icon--skipped]="state.skipped"
+              aria-hidden="true"
               >
-              {{ state.confirmed ? 'check_circle' : state.skipped ? 'cancel' : 'radio_button_unchecked' }}
-            </mat-icon>
-          </div>
-        </div>
-      }
-      <!-- Panneau détail (long press) -->
-      @if (detailState) {
-        <div
-          class="detail-panel"
-          role="dialog"
-          [attr.aria-label]="'Détail de la prise — ' + detailState.treatment.name"
-          >
-          <div class="detail-header">
-            <h2 class="detail-title">{{ detailState.treatment.name }}</h2>
-            <button mat-icon-button aria-label="Fermer le panneau détail" (click)="closeDetail()">
-              <mat-icon>close</mat-icon>
-            </button>
-          </div>
-          <div class="detail-form">
-            <mat-form-field appearance="outline" class="detail-field">
-              <mat-label>Heure de prise</mat-label>
-              <input
-                matInput
-                type="time"
-                [(ngModel)]="detailTime"
-                aria-label="Heure effective de la prise"
-                data-testid="detail-time"
-                />
-            </mat-form-field>
-            <mat-form-field appearance="outline" class="detail-field">
-              <mat-label>Dose réelle (optionnel)</mat-label>
-              <input
-                matInput
-                [(ngModel)]="detailDose"
-                [placeholder]="detailState.treatment.dosage + ' ' + detailState.treatment.unit"
-                aria-label="Dose réelle prise"
-                data-testid="detail-dose"
-                />
-            </mat-form-field>
-            <mat-form-field appearance="outline" class="detail-field">
-              <mat-label>Note (optionnel)</mat-label>
-              <textarea
-                matInput
-                [(ngModel)]="detailNotes"
-                rows="2"
-                aria-label="Note sur la prise"
-                data-testid="detail-notes"
-              ></textarea>
-            </mat-form-field>
-            <mat-form-field appearance="outline" class="detail-field">
-              <mat-label>Raison de saut (si non pris)</mat-label>
-              <mat-select [(ngModel)]="detailSkipReason" aria-label="Raison de saut">
-                <mat-option value="">— Aucune —</mat-option>
-                <mat-option value="forgot">Oublié</mat-option>
-                <mat-option value="side_effects">Effets secondaires</mat-option>
-                <mat-option value="unavailable">Non disponible</mat-option>
-                <mat-option value="other">Autre</mat-option>
-              </mat-select>
-            </mat-form-field>
-          </div>
-          <div class="detail-actions">
-            <button
-              mat-raised-button
-              color="primary"
-              class="detail-btn"
-              aria-label="Confirmer la prise"
-              data-testid="confirm-taken"
-              (click)="confirmFromDetail('taken')"
-              >
-              <mat-icon aria-hidden="true">check_circle</mat-icon>
-              Pris
-            </button>
-            <button
-              mat-stroked-button
-              class="detail-btn"
-              aria-label="Marquer comme sauté"
-              data-testid="confirm-skipped"
-              (click)="confirmFromDetail('skipped')"
-              >
-              <mat-icon aria-hidden="true">cancel</mat-icon>
-              Sauté
-            </button>
+              {{ state.confirmed ? '✓' : state.skipped ? '✗' : '○' }}
+            </span>
           </div>
         </div>
       }
@@ -151,18 +69,14 @@
         {{ confirmedCount }} traitement(s) confirmé(s) sur {{ treatmentStates.length }}
       </p>
       <button
-        mat-raised-button
-        color="primary"
-        class="submit-btn"
+        class="primary-btn"
         [disabled]="confirmedCount === 0"
         aria-label="Retourner au journal"
         data-testid="done-intake"
         (click)="back()"
         >
-        <mat-icon aria-hidden="true">check</mat-icon>
         Terminer
       </button>
     </div>
   }
 </div>
-

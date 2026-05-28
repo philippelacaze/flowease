@@ -6,9 +6,9 @@
       class="bottom-nav__item"
       [attr.aria-label]="item.label"
       [attr.data-testid]="'nav-' + item.path.slice(1)"
-      matRipple
     >
-      <mat-icon aria-hidden="true">{{ item.icon }}</mat-icon>
+      <span class="bottom-nav__dot"></span>
+      <span class="bottom-nav__emoji" aria-hidden="true">{{ item.emoji }}</span>
       <span class="bottom-nav__label">{{ item.label }}</span>
     </a>
   }

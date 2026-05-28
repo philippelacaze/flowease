@@ -1,0 +1,66 @@
+<header class="confirm-header">
+  <button class="icon-btn" aria-label="Retour" (click)="back()">←</button>
+  <h1 class="confirm-title">Symptômes enregistrés</h1>
+</header>
+
+<div class="confirm-body">
+
+  <!-- Bandeau succès -->
+  <div class="success-banner">
+    <span class="success-icon" aria-hidden="true">✅</span>
+    <div>
+      <div class="success-title">{{ savedItems.length }} symptôme{{ savedItems.length > 1 ? 's' : '' }} enregistré{{ savedItems.length > 1 ? 's' : '' }}</div>
+      <div class="success-sub">Données ajoutées à votre journal</div>
+    </div>
+  </div>
+
+  <!-- Récapitulatif des symptômes -->
+  @if (savedItems.length > 0) {
+    <div class="card">
+      <div class="card-header">Récapitulatif</div>
+      <div class="card-body">
+        <div class="symptom-list">
+          @for (item of savedItems; track item.key) {
+            <div class="symptom-item">
+              <div class="symptom-item-head">
+                <span class="symptom-item-label">{{ item.labelFr }}</span>
+                <span class="symptom-item-value">{{ item.intensity }}/10</span>
+              </div>
+              @if (item.intensity > 0) {
+                <div class="intensity-bar" [attr.aria-label]="item.labelFr + ' — ' + item.intensity + ' sur 10'">
+                  <div class="intensity-fill" [class]="intensityClass(item.intensity)"
+                       [style.width.%]="item.intensity * 10"></div>
+                </div>
+              }
+            </div>
+          }
+        </div>
+      </div>
+    </div>
+  }
+
+  <!-- Corrélation avec le dernier repas -->
+  <div class="card">
+    <div class="card-header">Dernier repas du jour</div>
+    <div class="card-body">
+      @if (lastMealItems.length > 0) {
+        <div class="meal-chips" aria-label="Aliments du dernier repas">
+          @for (name of lastMealItems; track name) {
+            <span class="meal-chip">{{ name }}</span>
+          }
+        </div>
+      } @else {
+        <p class="no-meal">Aucun repas enregistré aujourd'hui.</p>
+      }
+    </div>
+  </div>
+
+</div>
+
+<!-- Retour au journal -->
+<div class="back-footer">
+  <button class="primary-btn" aria-label="Retour au journal" data-testid="back-to-journal"
+          (click)="back()">
+    ← Retour au journal
+  </button>
+</div>

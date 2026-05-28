@@ -1,46 +1,36 @@
 <div class="note-entry">
-  <header class="page-header">
-    <button mat-icon-button aria-label="Retour au journal" (click)="back()">
-      <mat-icon>arrow_back</mat-icon>
-    </button>
-    <h1 class="page-title">Saisir une note</h1>
-  </header>
+  <div class="note-header">
+    <button class="icon-btn" aria-label="Retour au journal" (click)="back()">←</button>
+    <h1 class="note-title">Saisir une note</h1>
+  </div>
 
-  <!-- Mode selector -->
-  <div class="mode-selector">
-    <mat-button-toggle-group
-      [value]="mode"
-      aria-label="Mode de saisie de la note"
-      (change)="setMode($event.value)"
-      >
-      <mat-button-toggle value="text" aria-label="Mode texte">
-        <mat-icon aria-hidden="true">edit</mat-icon>
-      </mat-button-toggle>
-      <mat-button-toggle value="voice" aria-label="Mode vocal">
-        <mat-icon aria-hidden="true">mic</mat-icon>
-      </mat-button-toggle>
-      <mat-button-toggle value="photo" aria-label="Mode photo">
-        <mat-icon aria-hidden="true">camera_alt</mat-icon>
-      </mat-button-toggle>
-    </mat-button-toggle-group>
-    <div class="mode-label">{{ modeLabels[mode] }}</div>
+  <!-- Mode tabs -->
+  <div class="note-mode-tabs">
+    @for (m of modes; track m.key) {
+      <button
+        class="note-mode-tab"
+        [class.note-mode-tab--active]="mode === m.key"
+        [attr.aria-label]="m.label"
+        (click)="setMode(m.key)"
+        >
+        <span>{{ m.emoji }}</span>
+        <span>{{ m.label }}</span>
+      </button>
+    }
   </div>
 
   <div class="note-form">
+
     <!-- Mode: Text -->
     @if (mode === 'text') {
-      <div class="mode-content">
-        <mat-form-field appearance="outline" class="full-width">
-          <mat-label>Contenu de la note</mat-label>
-          <textarea
-            matInput
-            [(ngModel)]="content"
-            rows="6"
-            placeholder="Écrivez votre observation…"
-            aria-label="Contenu textuel de la note"
-            data-testid="note-text-input"
-          ></textarea>
-        </mat-form-field>
+      <div class="card note-textarea-card mode-content">
+        <textarea
+          class="note-textarea"
+          [(ngModel)]="content"
+          placeholder="Écrivez votre observation…&#10;Ex : ballonnements 2h après le déjeuner"
+          aria-label="Contenu textuel de la note"
+          data-testid="note-text-input"
+        ></textarea>
       </div>
     }
 
@@ -71,16 +61,14 @@
           </div>
         }
         @if (imageBase64) {
-          <mat-form-field appearance="outline" class="full-width photo-caption">
-            <mat-label>Description (optionnel)</mat-label>
+          <div class="card note-textarea-card photo-caption">
             <textarea
-              matInput
+              class="note-textarea note-textarea--short"
               [(ngModel)]="content"
-              rows="3"
               placeholder="Décrivez la photo…"
               aria-label="Description de la photo"
             ></textarea>
-          </mat-form-field>
+          </div>
         }
       </div>
     }
@@ -88,12 +76,12 @@
     <!-- Tags IA (après sauvegarde) -->
     @if (savedTags.length > 0) {
       <div class="tags-section">
-        <p class="tags-label">Tags générés par l'IA :</p>
-        <mat-chip-set aria-label="Tags générés par l'IA">
+        <p class="tags-label">Tags générés par l'IA</p>
+        <div class="note-tags-row">
           @for (tag of savedTags; track tag) {
-            <mat-chip [attr.aria-label]="tag">{{ tag }}</mat-chip>
+            <span class="note-tag-chip">#{{ tag }}</span>
           }
-        </mat-chip-set>
+        </div>
       </div>
     }
 
@@ -103,11 +91,8 @@
         <p class="linked-label">Entrées liées :</p>
         <div class="linked-list" role="list" aria-label="Entrées liées">
           @for (link of linkedEntries; track link) {
-            <div
-              class="linked-item"
-              role="listitem"
-              >
-              <mat-icon aria-hidden="true" class="linked-icon">{{ linkIcon(link) }}</mat-icon>
+            <div class="linked-item" role="listitem">
+              <span aria-hidden="true" class="linked-emoji">{{ linkEmoji(link) }}</span>
               <span>{{ link.entryType }} #{{ link.entryId.slice(0, 8) }}…</span>
             </div>
           }
@@ -117,33 +102,27 @@
 
     <!-- Bouton Lier à... -->
     <button
-      mat-stroked-button
-      class="link-btn"
+      class="note-link-btn"
       aria-label="Lier cette note à d'autres entrées du journal"
       data-testid="link-entries-btn"
       (click)="openLinkSheet()"
       >
-      <mat-icon aria-hidden="true">link</mat-icon>
-      Lier à…
+      🔗 Lier à…
       @if (linkedEntries.length > 0) {
-        <span>({{ linkedEntries.length }})</span>
+        <span class="note-link-count">{{ linkedEntries.length }} lié{{ linkedEntries.length > 1 ? 's' : '' }}</span>
       }
     </button>
   </div>
 
   <div class="submit-row">
     <button
-      mat-raised-button
-      color="primary"
-      class="submit-btn"
+      class="primary-btn"
       [disabled]="!canSubmit || saving"
       aria-label="Valider et enregistrer la note"
       data-testid="submit-note"
       (click)="submit()"
       >
-      <mat-icon aria-hidden="true">check</mat-icon>
       {{ saving ? 'Enregistrement…' : 'Valider la note' }}
     </button>
   </div>
 </div>
-

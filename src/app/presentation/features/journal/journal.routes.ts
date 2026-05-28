@@ -12,6 +12,11 @@ export const JOURNAL_ROUTES: Routes = [
       import('./meal-entry/meal-entry.component').then(m => m.MealEntryComponent),
   },
   {
+    path: 'symptom/confirm',
+    loadComponent: () =>
+      import('./symptom-entry/symptom-confirm.component').then(m => m.SymptomConfirmComponent),
+  },
+  {
     path: 'symptom',
     loadComponent: () =>
       import('./symptom-entry/symptom-entry.component').then(m => m.SymptomEntryComponent),

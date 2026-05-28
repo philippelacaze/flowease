@@ -3,6 +3,7 @@ import { By } from '@angular/platform-browser';
 import { vi } from 'vitest';
 import { provideRouter } from '@angular/router';
 import { NoopAnimationsModule } from '@angular/platform-browser/animations';
+import { MatBottomSheet } from '@angular/material/bottom-sheet';
 import { IntakeEntryComponent } from './intake-entry.component';
 import { GetActiveTreatmentsUseCase } from '../../../../application/journal/get-active-treatments.usecase';
 import { ConfirmIntakeUseCase } from '../../../../application/journal/confirm-intake.usecase';
@@ -25,7 +26,6 @@ const mockTreatment: TreatmentEntity = {
 
 type ComponentPrivate = {
   treatmentStates: { treatment: TreatmentEntity; confirmed: boolean; skipped: boolean }[];
-  detailState: { treatment: TreatmentEntity; confirmed: boolean; skipped: boolean } | null;
   onPointerDown(event: PointerEvent, state: unknown): void;
   onPointerUp(event: PointerEvent, state: unknown): void;
   onPointerCancel(): void;
@@ -40,11 +40,15 @@ describe('IntakeEntryComponent', () => {
   let fixture: ComponentFixture<IntakeEntryComponent>;
   let mockConfirmIntake: { execute: ReturnType<typeof vi.fn> };
   let mockGetActiveTreatments: { execute: ReturnType<typeof vi.fn> };
+  let mockAfterDismissed: { subscribe: ReturnType<typeof vi.fn> };
+  let mockBottomSheet: { open: ReturnType<typeof vi.fn> };
 
   beforeEach(async () => {
     vi.useRealTimers();
     mockConfirmIntake = { execute: vi.fn().mockResolvedValue('intake-id') };
     mockGetActiveTreatments = { execute: vi.fn().mockResolvedValue([mockTreatment]) };
+    mockAfterDismissed = { subscribe: vi.fn() };
+    mockBottomSheet = { open: vi.fn().mockReturnValue({ afterDismissed: () => mockAfterDismissed }) };
 
     await TestBed.configureTestingModule({
       imports: [IntakeEntryComponent, NoopAnimationsModule],
@@ -52,6 +56,7 @@ describe('IntakeEntryComponent', () => {
         provideRouter([]),
         { provide: ConfirmIntakeUseCase, useValue: mockConfirmIntake },
         { provide: GetActiveTreatmentsUseCase, useValue: mockGetActiveTreatments },
+        { provide: MatBottomSheet, useValue: mockBottomSheet },
       ],
     }).compileComponents();
 
@@ -74,7 +79,7 @@ describe('IntakeEntryComponent', () => {
       const event = makeFakePointerEvent();
 
       comp.onPointerDown(event, state);
-      comp.onPointerUp(event, state); // avant 500ms → tap court
+      comp.onPointerUp(event, state);
 
       await fixture.whenStable();
 
@@ -112,8 +117,8 @@ describe('IntakeEntryComponent', () => {
     });
   });
 
-  describe('tap long — panneau détail', () => {
-    it('ouvre le panneau détail après 500ms de pression', async () => {
+  describe('tap long — bottom sheet détail', () => {
+    it('ouvre la bottom sheet après 500ms de pression', () => {
       vi.useFakeTimers({ shouldAdvanceTime: false });
       const comp = fixture.componentInstance as unknown as ComponentPrivate;
       const state = comp.treatmentStates[0];
@@ -121,24 +126,39 @@ describe('IntakeEntryComponent', () => {
 
       comp.onPointerDown(event, state);
       vi.advanceTimersByTime(500);
-      fixture.detectChanges();
+      vi.useRealTimers();
 
-      expect(comp.detailState).not.toBeNull();
-      expect(comp.detailState!.treatment.id).toBe('treat-1');
+      expect(mockBottomSheet.open).toHaveBeenCalledOnce();
     });
 
-    it('le panneau détail est visible dans le DOM après le long press', async () => {
-      vi.useFakeTimers({ shouldAdvanceTime: false });
+    it('appelle ConfirmIntakeUseCase avec "taken" quand la sheet dismiss avec "taken"', async () => {
       const comp = fixture.componentInstance as unknown as ComponentPrivate;
-      const state = comp.treatmentStates[0];
-      const event = makeFakePointerEvent();
+      comp.openDetail(comp.treatmentStates[0]);
 
-      comp.onPointerDown(event, state);
-      vi.advanceTimersByTime(500);
-      fixture.detectChanges();
+      const callback = mockAfterDismissed.subscribe.mock.calls[0][0] as (
+        action: 'taken' | 'skipped' | undefined,
+      ) => void;
+      callback('taken');
+      await fixture.whenStable();
 
-      const panel = fixture.debugElement.query(By.css('.detail-panel'));
-      expect(panel).not.toBeNull();
+      expect(mockConfirmIntake.execute).toHaveBeenCalledWith(
+        expect.objectContaining({ treatmentId: 'treat-1', status: 'taken' }),
+      );
+    });
+
+    it('appelle ConfirmIntakeUseCase avec "skipped" quand la sheet dismiss avec "skipped"', async () => {
+      const comp = fixture.componentInstance as unknown as ComponentPrivate;
+      comp.openDetail(comp.treatmentStates[0]);
+
+      const callback = mockAfterDismissed.subscribe.mock.calls[0][0] as (
+        action: 'taken' | 'skipped' | undefined,
+      ) => void;
+      callback('skipped');
+      await fixture.whenStable();
+
+      expect(mockConfirmIntake.execute).toHaveBeenCalledWith(
+        expect.objectContaining({ treatmentId: 'treat-1', status: 'skipped' }),
+      );
     });
 
     it('n\'appelle pas ConfirmIntakeUseCase si le pointerup survient après le long press', () => {
@@ -148,25 +168,36 @@ describe('IntakeEntryComponent', () => {
       const event = makeFakePointerEvent();
 
       comp.onPointerDown(event, state);
-      vi.advanceTimersByTime(500); // long press déclenché → didLongPress = true
-      comp.onPointerUp(event, state); // ignoré car didLongPress = true
+      vi.advanceTimersByTime(500);
+      comp.onPointerUp(event, state);
       vi.useRealTimers();
 
-      // didLongPress = true → quickConfirm n'est pas appelé → execute jamais déclenché
       expect(mockConfirmIntake.execute).not.toHaveBeenCalled();
     });
 
-    it('le panneau détail contient les boutons Pris et Sauté', () => {
+    it('n\'ouvre pas la bottom sheet avant 500ms', () => {
+      vi.useFakeTimers({ shouldAdvanceTime: false });
       const comp = fixture.componentInstance as unknown as ComponentPrivate;
       const state = comp.treatmentStates[0];
+      const event = makeFakePointerEvent();
 
-      comp.openDetail(state);
-      fixture.detectChanges();
+      comp.onPointerDown(event, state);
+      vi.advanceTimersByTime(499);
+      vi.useRealTimers();
 
-      const taken = fixture.debugElement.query(By.css('[data-testid="confirm-taken"]'));
-      const skipped = fixture.debugElement.query(By.css('[data-testid="confirm-skipped"]'));
-      expect(taken).not.toBeNull();
-      expect(skipped).not.toBeNull();
+      expect(mockBottomSheet.open).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('affichage des cartes', () => {
+    it('affiche une carte par traitement', async () => {
+      const cards = fixture.debugElement.queryAll(By.css('.treatment-card'));
+      expect(cards).toHaveLength(1);
+    });
+
+    it('affiche le bouton data-testid="done-intake"', () => {
+      const btn = fixture.debugElement.query(By.css('[data-testid="done-intake"]'));
+      expect(btn).not.toBeNull();
     });
   });
 });

@@ -1,43 +1,56 @@
-    :host { display: inline-block; }
-    .food-chip {
-      display: inline-flex;
-      align-items: center;
-      gap: 4px;
-      padding: 6px 10px;
-      border-radius: 20px;
-      font-size: 13px;
-      line-height: 1;
-      border: 1px solid transparent;
-    }
-    .chip-low     { background: #e8f5e9; border-color: #81c784; color: #2e7d32; }
-    .chip-medium  { background: #fff8e1; border-color: #ffd54f; color: #f57f17; }
-    .chip-high    { background: #ffebee; border-color: #e57373; color: #c62828; }
-    .chip-unknown { background: var(--mat-sys-surface-variant); color: var(--mat-sys-on-surface-variant); }
+:host { display: inline-block; }
 
-    .food-chip__name { font-weight: 500; }
-    .food-chip__qty  { font-weight: 400; font-size: 11px; }
+.food-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 5px 11px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 500;
+  border: 0.5px solid transparent;
 
-    .food-chip__ai-badge {
-      font-size: 9px;
-      font-weight: 700;
-      background: var(--mat-sys-tertiary);
-      color: var(--mat-sys-on-tertiary);
-      border-radius: 4px;
-      padding: 1px 4px;
-    }
+  &.food-chip--low     { background: var(--fodmap-low-bg);     border-color: var(--fodmap-low-border);     color: var(--fodmap-low-text);     }
+  &.food-chip--medium  { background: var(--fodmap-medium-bg);  border-color: var(--fodmap-medium-border);  color: var(--fodmap-medium-text);  }
+  &.food-chip--high    { background: var(--fodmap-high-bg);    border-color: var(--fodmap-high-border);    color: var(--fodmap-high-text);    }
+  &.food-chip--unknown { background: var(--fodmap-unknown-bg); border-color: var(--fodmap-unknown-border); color: var(--fodmap-unknown-text); }
+}
 
-    .food-chip__btn {
-      display: flex;
-      align-items: center;
-      min-width: 24px;
-      min-height: 24px;
-      padding: 0;
-      border: none;
-      background: transparent;
-      cursor: pointer;
-      color: inherit;
-      opacity: 0.7;
-    }
-    .food-chip__btn mat-icon { font-size: 16px; width: 16px; height: 16px; }
-    .food-chip__btn--remove:hover { opacity: 1; color: var(--mat-sys-error); }
-  
+.food-chip__dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: currentColor;
+  flex-shrink: 0;
+}
+
+.food-chip__name { font-weight: 500; }
+.food-chip__qty  { font-weight: 400; font-size: 11px; }
+
+.food-chip__ai-badge {
+  font-size: 9px;
+  font-weight: 700;
+  background: var(--chip);
+  color: var(--text-3);
+  border-radius: 4px;
+  padding: 1px 4px;
+}
+
+.food-chip__btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 20px;
+  min-height: 20px;
+  padding: 0;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  color: inherit;
+  font-size: 14px;
+  line-height: 1;
+  opacity: 0.7;
+  font-family: inherit;
+
+  &--remove:hover { opacity: 1; color: var(--coral); }
+}
