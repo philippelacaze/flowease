@@ -43,6 +43,10 @@ Pour chaque violation : fichier, ligne, critère WCAG ou règle UX, correction e
 
 **Contraste**
 - [ ] Contraste entre couleur d'écriture et de fonds, ratio minimum de 4.5:1
+- [ ] ⚠ LIMITE STATIQUE : les valeurs des `var(--*)` ne peuvent pas être résolues sans navigateur.
+  Signaler systématiquement tout usage de `var(--mat-sys-*)` dans un projet M2 (tokens M3 non définis → couleur arbitraire).
+  Signaler tout `color: var(--text-3)` ou `color: var(--text-4)` sur fond blanc comme suspect (ratio < 4.5:1 possible).
+  Recommander une vérification via DevTools (Color Contrast) ou axe-core en E2E pour valider les cas ambigus.
 
 ---
 

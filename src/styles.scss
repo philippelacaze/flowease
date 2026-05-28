@@ -16,6 +16,36 @@ html, body {
   color: var(--text-1);
 }
 
+/* ── Aliases M3 → tokens FlowEase (thème M2 sans variables M3) ── */
+/*    Angular Material M2 n'émet pas de --mat-sys-* CSS custom     */
+/*    properties. Ces alias garantissent contraste 4.5:1 partout.  */
+:root {
+  --mat-sys-on-surface-variant:    #5F5E5A; /* = --text-2 light  */
+  --mat-sys-outline:               #888780; /* = --text-3 light  */
+  --mat-sys-outline-variant:       #E8E6DE; /* = --border light  */
+  --mat-sys-surface-container:     #F1EFE8; /* = --surface-var   */
+  --mat-sys-surface-rgb:           255 255 255;
+  --mat-sys-primary:               #0F6E56; /* = --teal          */
+  --mat-sys-error:                 #D85A30; /* = --coral         */
+  --mat-sys-tertiary:              #0F6E56; /* = --teal (no tertiary in palette) */
+  --mat-sys-error-container:       #FAECE7; /* = --fodmap-high-bg  */
+  --mat-sys-on-error-container:    #993C1D; /* = --fodmap-high-text */
+  --mat-sys-primary-container:     #E1F5EE; /* = --fodmap-low-bg   */
+  --mat-sys-on-primary-container:  #085041; /* = --fodmap-low-text */
+}
+
+[data-theme="dark"] {
+  --mat-sys-on-surface-variant:    #B8B6AE; /* = --text-2 dark  */
+  --mat-sys-outline:               #7A7872; /* = --text-3 dark  */
+  --mat-sys-outline-variant:       #2E2D28; /* = --border dark  */
+  --mat-sys-surface-container:     #252420; /* = --surface-var dark */
+  --mat-sys-surface-rgb:           30 29 26;
+  --mat-sys-error-container:       #2B1108; /* = --fodmap-high-bg dark  */
+  --mat-sys-on-error-container:    #F0997B; /* = --fodmap-high-text dark */
+  --mat-sys-primary-container:     #0D2B1E; /* = --fodmap-low-bg dark   */
+  --mat-sys-on-primary-container:  #5DCAA5; /* = --fodmap-low-text dark */
+}
+
 /* ── Tokens light (défaut) ─────────────────────────────────────── */
 :root {
   --app-bg:      #F8F7F4;
