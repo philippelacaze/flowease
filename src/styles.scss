@@ -124,6 +124,52 @@ html, body {
   --fodmap-unknown-text:   #7A7872;
 }
 
+/* ── Tokens dark — mode auto (prefers-color-scheme) ───────────── */
+/*    Angular Material applique son thème sombre via                */
+/*    html:not([data-theme="light"]) dans cette même media query.   */
+/*    Nos tokens FlowEase doivent suivre avec le même sélecteur      */
+/*    pour éviter fond clair + texte M3-dark = contraste nul.       */
+@media (prefers-color-scheme: dark) {
+  html:not([data-theme="light"]) {
+    --app-bg:      #141412;
+    --card-bg:     #1E1D1A;
+    --nav-bg:      #1A1917;
+    --border:      #2E2D28;
+    --border-sub:  #252420;
+    --text-1:      #F0EFE8;
+    --text-2:      #B8B6AE;
+    --text-3:      #7A7872;
+    --text-4:      #4E4D48;
+    --chip:        #252420;
+    --chip-border: #36352E;
+    --surface-var: #252420;
+    --input-bg:    #1E1D1A;
+
+    --fodmap-low-bg:        #0D2B1E;
+    --fodmap-low-border:    #1D6B48;
+    --fodmap-low-text:      #5DCAA5;
+    --fodmap-medium-bg:     #271A04;
+    --fodmap-medium-border: #7A5010;
+    --fodmap-medium-text:   #FAC775;
+    --fodmap-high-bg:       #2B1108;
+    --fodmap-high-border:   #7A2E14;
+    --fodmap-high-text:     #F0997B;
+    --fodmap-unknown-bg:     #252420;
+    --fodmap-unknown-border: #36352E;
+    --fodmap-unknown-text:   #7A7872;
+
+    --mat-sys-on-surface-variant:    #B8B6AE;
+    --mat-sys-outline:               #7A7872;
+    --mat-sys-outline-variant:       #2E2D28;
+    --mat-sys-surface-container:     #252420;
+    --mat-sys-surface-rgb:           30 29 26;
+    --mat-sys-error-container:       #2B1108;
+    --mat-sys-on-error-container:    #F0997B;
+    --mat-sys-primary-container:     #0D2B1E;
+    --mat-sys-on-primary-container:  #5DCAA5;
+  }
+}
+
 /* ── Classes utilitaires globales ──────────────────────────────── */
 
 .card {

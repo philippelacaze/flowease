@@ -17,7 +17,9 @@
       "Bash(python -c \"import sys,json; d=json.load\\(sys.stdin\\); print\\(json.dumps\\(d.get\\('projects',{}\\).get\\('flow-ease',{}\\).get\\('architect',{}\\).get\\('test',{}\\), indent=2\\)\\)\")",
       "Bash(python -c \"import json,sys; d=json.load\\(sys.stdin\\); print\\(json.dumps\\(d.get\\('projects',{}\\).get\\('flow-ease',{}\\).get\\('architect',{}\\).get\\('test',{}\\), indent=2\\)\\)\")",
       "Bash(Get-ChildItem *)",
-      "Bash(findstr -i \"vitest\")"
+      "Bash(findstr -i \"vitest\")",
+      "Bash(Select-String \"@angular/material\")",
+      "Bash(Get-Content package.json)"
     ]
   }
 }
