@@ -202,7 +202,10 @@ export class JournalHomeComponent implements OnInit, OnDestroy {
       const dataUrl = reader.result as string;
       const [header, base64] = dataUrl.split(',');
       const mediaType = header.match(/:(.*?);/)?.[1] ?? 'image/jpeg';
-      void this.router.navigate(['/journal/meal'], { state: { photo: { base64, mediaType } } });
+      void this.router.navigate(['/journal/meal'], {
+        queryParams: { mode: 'photo' },
+        state: { photo: { base64, mediaType } },
+      });
     };
     reader.readAsDataURL(file);
 
