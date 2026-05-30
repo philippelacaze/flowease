@@ -2,6 +2,7 @@ import { test, expect } from '@playwright/test';
 import { seedIndexedDB } from '../helpers/seed-indexeddb';
 
 test.describe('Saisie d\'une note', () => {
+  test.describe.configure({ mode: 'serial' });
 
   test('note texte → sauvegardée (sans tags si IA indisponible)', async ({ page }) => {
     await page.goto('/journal/note');

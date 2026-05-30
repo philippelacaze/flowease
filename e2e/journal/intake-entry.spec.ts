@@ -2,6 +2,7 @@ import { test, expect } from '@playwright/test';
 import { seedIndexedDB, SEED_TREATMENT_ID } from '../helpers/seed-indexeddb';
 
 test.describe('Saisie des prises de traitement', () => {
+  test.describe.configure({ mode: 'serial' });
 
   test.beforeEach(async ({ page }) => {
     await page.goto('/journal');
@@ -17,10 +18,11 @@ test.describe('Saisie des prises de traitement', () => {
     // Tap court via l'API mobile de Playwright (déclenche pointer events < 500ms)
     await card.tap();
 
-    await expect(card).toHaveClass(/treatment-card--taken/);
+    // L'état "pris" est signalé via aria-pressed (pas via classe CSS sur le card)
+    await expect(card).toHaveAttribute('aria-pressed', 'true');
   });
 
-  test('tap long → panneau détail → note ajoutée → prise confirmée', async ({ page }) => {
+  test('tap long → panneau détail → prise confirmée', async ({ page }) => {
     const card = page.locator(`[data-testid="treatment-${SEED_TREATMENT_ID}"]`);
     await expect(card).toBeVisible();
 
@@ -36,15 +38,12 @@ test.describe('Saisie des prises de traitement', () => {
     // Le panneau détail doit apparaître
     await expect(page.locator('[role="dialog"]')).toBeVisible();
 
-    // Ajouter une note dans le panneau
-    await page.locator('[data-testid="detail-notes"]').fill('Prise après le repas');
-
-    // Confirmer la prise
-    await page.locator('[data-testid="confirm-taken"]').click();
+    // Confirmer la prise (le champ "notes" a été retiré du dialog)
+    await page.getByRole('button', { name: /Confirmer la prise/ }).click();
 
     // Le panneau est fermé et la carte montre "pris"
     await expect(page.locator('[role="dialog"]')).not.toBeVisible();
-    await expect(card).toHaveClass(/treatment-card--taken/);
+    await expect(card).toHaveAttribute('aria-pressed', 'true');
   });
 
 });
