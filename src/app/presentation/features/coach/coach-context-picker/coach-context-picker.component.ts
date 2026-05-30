@@ -15,6 +15,8 @@ import {
   type StartCoachSessionResult,
 } from '../../../../application/coach/start-coach-session.usecase';
 import type { CoachContextWindow } from '../../../../domain/entities/coach-session.entity';
+import type { LocalSettingsRepository } from '../../../../domain/repositories/local-settings.repository';
+import { LOCAL_SETTINGS_PORT } from '../../../../application/tokens';
 
 interface ContextOption {
   readonly key: CoachContextWindow;
@@ -43,6 +45,9 @@ interface ContextOption {
 })
 export class CoachContextPickerComponent {
   protected readonly loading = signal(false);
+
+  private readonly settings = inject<LocalSettingsRepository>(LOCAL_SETTINGS_PORT as never);
+  protected readonly defaultKey = signal<CoachContextWindow>(this.settings.getDefaultContextWindow());
 
   protected readonly contextOptions: readonly ContextOption[] = [
     {

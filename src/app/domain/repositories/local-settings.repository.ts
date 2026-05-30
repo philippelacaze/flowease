@@ -1,3 +1,5 @@
+import type { CoachContextWindow } from '../entities/coach-session.entity';
+
 /**
  * Port de lecture/écriture des préférences UI stockées localement.
  *
@@ -43,6 +45,13 @@ export interface LocalSettingsRepository {
    * @returns Code langue ('fr' | 'en') — 'fr' par défaut
    */
   getLanguage(): string;
+
+  /**
+   * Retourne la fenêtre de contexte par défaut pour les sessions Coach.
+   *
+   * @returns Clé CoachContextWindow — '14d' par défaut
+   */
+  getDefaultContextWindow(): CoachContextWindow;
 
   /**
    * Indique si le compteur de tokens doit être affiché dans l'interface Coach.

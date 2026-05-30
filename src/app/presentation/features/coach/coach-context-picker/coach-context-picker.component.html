@@ -8,10 +8,15 @@
     <mat-list-item
       (click)="onSelect(option)"
       [attr.data-testid]="'context-option-' + option.key"
-      [attr.aria-label]="option.label + ' — ' + option.description + ', estimation ' + option.estimatedTokens"
+      [attr.aria-label]="option.label + ' — ' + option.description + ', estimation ' + option.estimatedTokens + (option.key === defaultKey() ? ', préférence par défaut' : '')"
       class="context-option">
       <mat-icon matListItemIcon aria-hidden="true">{{ option.icon }}</mat-icon>
-      <span matListItemTitle>{{ option.label }}</span>
+      <span matListItemTitle>
+        {{ option.label }}
+        @if (option.key === defaultKey()) {
+          <span class="default-badge" aria-hidden="true">Défaut</span>
+        }
+      </span>
       <span matListItemLine>{{ option.description }}</span>
       <span matListItemMeta class="token-estimate">{{ option.estimatedTokens }}</span>
     </mat-list-item>

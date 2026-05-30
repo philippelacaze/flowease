@@ -5,6 +5,7 @@ import { vi } from 'vitest';
 import { CoachChatComponent } from './coach-chat.component';
 import { SendCoachMessageUseCase } from '../../../../application/coach/send-coach-message.usecase';
 import { SummarizeCoachSessionUseCase } from '../../../../application/coach/summarize-coach-session.usecase';
+import { BuildCoachContextUseCase } from '../../../../application/coach/build-coach-context.usecase';
 import { MatBottomSheet } from '@angular/material/bottom-sheet';
 import { LOCAL_SETTINGS_PORT } from '../../../../application/tokens';
 
@@ -12,6 +13,14 @@ const mockSend = {
   execute: vi.fn().mockReturnValue((async function* () {})()),
 };
 const mockSummarize = { execute: vi.fn().mockResolvedValue(undefined) };
+const mockBuildContext = {
+  execute: vi.fn().mockResolvedValue({
+    contextWindow: 'today',
+    userConditions: [],
+    protocol: 'none',
+    activeTreatments: [],
+  }),
+};
 const mockBottomSheet = {
   open: vi.fn().mockReturnValue({
     afterDismissed: () => ({
@@ -31,6 +40,7 @@ async function createComponent() {
       provideRouter([]),
       { provide: SendCoachMessageUseCase, useValue: mockSend },
       { provide: SummarizeCoachSessionUseCase, useValue: mockSummarize },
+      { provide: BuildCoachContextUseCase, useValue: mockBuildContext },
       { provide: MatBottomSheet, useValue: mockBottomSheet },
       { provide: LOCAL_SETTINGS_PORT, useValue: mockSettings },
     ],

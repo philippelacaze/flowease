@@ -18,8 +18,8 @@ import {
   type SendCoachMessageInput,
 } from '../../../../application/coach/send-coach-message.usecase';
 import { SummarizeCoachSessionUseCase } from '../../../../application/coach/summarize-coach-session.usecase';
+import { BuildCoachContextUseCase } from '../../../../application/coach/build-coach-context.usecase';
 import type { StartCoachSessionResult } from '../../../../application/coach/start-coach-session.usecase';
-import type { CoachContextWindow } from '../../../../domain/entities/coach-session.entity';
 import type { CoachMessage, CoachContext } from '../../../../domain/repositories/ai/coach.port';
 import { CoachContextPickerComponent } from '../coach-context-picker/coach-context-picker.component';
 import { TokenCounterComponent } from '../../../shared/components/token-counter/token-counter.component';
@@ -71,12 +71,13 @@ export class CoachChatComponent implements OnInit, AfterViewChecked {
   protected copiedIndex: number | null = null;
   protected readonly suggestedQuestions = SUGGESTED_QUESTIONS;
 
-  private contextWindow: CoachContextWindow = 'today';
+  private coachContext: CoachContext | null = null;
   private previousSummary: string | undefined;
   private shouldScrollToBottom = false;
 
   private readonly sendMessageUseCase = inject(SendCoachMessageUseCase);
   private readonly summarizeUseCase = inject(SummarizeCoachSessionUseCase);
+  private readonly buildContextUseCase = inject(BuildCoachContextUseCase);
   private readonly bottomSheet = inject(MatBottomSheet);
   private readonly router = inject(Router);
   private readonly cdr = inject(ChangeDetectorRef);
@@ -186,21 +187,22 @@ export class CoachChatComponent implements OnInit, AfterViewChecked {
     >(CoachContextPickerComponent, { disableClose: true });
 
     sheetRef.afterDismissed().subscribe(result => {
-      if (result) {
-        this.sessionId = result.sessionId;
-        this.contextWindow = result.contextWindow;
-        this.previousSummary = result.previousSummary;
+      if (!result) {
+        this.cdr.markForCheck();
+        return;
       }
-      this.cdr.markForCheck();
+      void this.buildContextUseCase.execute(result.contextWindow).then(context => {
+        this.sessionId = result.sessionId;
+        this.previousSummary = result.previousSummary;
+        this.coachContext = context;
+        this.cdr.markForCheck();
+      });
     });
   }
 
   private buildCoachContext(): CoachContext {
     return {
-      contextWindow: this.contextWindow,
-      userConditions: [],
-      protocol: '',
-      activeTreatments: [],
+      ...(this.coachContext ?? { contextWindow: '14d', userConditions: [], protocol: 'none', activeTreatments: [] }),
       previousSessionSummary: this.previousSummary,
     };
   }

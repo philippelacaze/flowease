@@ -71,16 +71,51 @@ describe('LocalSettingsAdapter', () => {
     });
   });
 
-  // --- Fenêtre temporelle par défaut ---
+  // --- Fenêtre de contexte par défaut ---
 
-  describe('getDefaultWindow', () => {
-    it('retourne 14 par défaut', () => {
-      expect(adapter.getDefaultWindow()).toBe(14);
+  describe('getDefaultContextWindow', () => {
+    it('retourne "14d" par défaut si aucune valeur n\'est configurée', () => {
+      expect(adapter.getDefaultContextWindow()).toBe('14d');
     });
 
-    it('retourne la valeur configurée', () => {
-      adapter.setDefaultWindow(30);
-      expect(adapter.getDefaultWindow()).toBe(30);
+    it('retourne la valeur CoachContextWindow configurée', () => {
+      adapter.setDefaultContextWindow('30d');
+      expect(adapter.getDefaultContextWindow()).toBe('30d');
+    });
+
+    it('retourne "today" correctement', () => {
+      adapter.setDefaultContextWindow('today');
+      expect(adapter.getDefaultContextWindow()).toBe('today');
+    });
+
+    it('retourne "profile_only" correctement', () => {
+      adapter.setDefaultContextWindow('profile_only');
+      expect(adapter.getDefaultContextWindow()).toBe('profile_only');
+    });
+
+    it('migre l\'ancienne valeur "14" vers "14d"', () => {
+      localStorage.setItem('flowease_default_window', '14');
+      expect(adapter.getDefaultContextWindow()).toBe('14d');
+    });
+
+    it('migre l\'ancienne valeur "7" vers "7d"', () => {
+      localStorage.setItem('flowease_default_window', '7');
+      expect(adapter.getDefaultContextWindow()).toBe('7d');
+    });
+
+    it('migre l\'ancienne valeur "30" vers "30d"', () => {
+      localStorage.setItem('flowease_default_window', '30');
+      expect(adapter.getDefaultContextWindow()).toBe('30d');
+    });
+
+    it('migre l\'ancienne valeur "profile" vers "profile_only"', () => {
+      localStorage.setItem('flowease_default_window', 'profile');
+      expect(adapter.getDefaultContextWindow()).toBe('profile_only');
+    });
+
+    it('retourne "14d" comme fallback pour une valeur inconnue', () => {
+      localStorage.setItem('flowease_default_window', 'unknown_value');
+      expect(adapter.getDefaultContextWindow()).toBe('14d');
     });
   });
 

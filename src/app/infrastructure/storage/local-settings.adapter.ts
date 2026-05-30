@@ -1,3 +1,5 @@
+import type { CoachContextWindow } from '../../domain/entities/coach-session.entity';
+
 /**
  * Adapter de persistance des préférences utilisateur via localStorage.
  *
@@ -108,20 +110,30 @@ export class LocalSettingsAdapter {
   }
 
   /**
-   * Retourne la fenêtre temporelle par défaut pour les analyses.
+   * Retourne la fenêtre de contexte par défaut pour les sessions Coach.
    *
-   * @returns Nombre de jours (7, 14, 30, 90) ou 14 par défaut
+   * @remarks
+   * Gère la migration des anciennes valeurs numériques ('7', '14', '30')
+   * vers les clés CoachContextWindow ('7d', '14d', '30d'). Fallback : '14d'.
+   *
+   * @returns Clé CoachContextWindow valide
    */
-  getDefaultWindow(): number {
+  getDefaultContextWindow(): CoachContextWindow {
     const raw = localStorage.getItem(KEYS.DEFAULT_WINDOW);
-    return raw ? parseInt(raw, 10) : 14;
+    const VALID: readonly CoachContextWindow[] = ['today', '7d', '14d', '30d', 'profile_only'];
+    const LEGACY: Record<string, CoachContextWindow> = {
+      '7': '7d', '14': '14d', '30': '30d', 'profile': 'profile_only',
+    };
+    if (!raw) return '14d';
+    if (VALID.includes(raw as CoachContextWindow)) return raw as CoachContextWindow;
+    return LEGACY[raw] ?? '14d';
   }
 
   /**
-   * @param days - Fenêtre en jours à persister
+   * @param window - Fenêtre de contexte à persister
    */
-  setDefaultWindow(days: number): void {
-    localStorage.setItem(KEYS.DEFAULT_WINDOW, String(days));
+  setDefaultContextWindow(window: CoachContextWindow): void {
+    localStorage.setItem(KEYS.DEFAULT_WINDOW, window);
   }
 
   /**

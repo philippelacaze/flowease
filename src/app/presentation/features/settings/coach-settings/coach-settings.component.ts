@@ -1,4 +1,4 @@
-import { Component, inject, OnInit, signal } from '@angular/core';
+import { Component, inject, OnInit } from '@angular/core';
 
 import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
@@ -11,10 +11,11 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { MatDividerModule } from '@angular/material/divider';
 import { LocalSettingsAdapter } from '../../../../infrastructure/storage/local-settings.adapter';
+import type { CoachContextWindow } from '../../../../domain/entities/coach-session.entity';
 
 interface CoachPreferences {
   mode: string;
-  defaultContext: string;
+  defaultContext: CoachContextWindow;
   showTokenCounter: boolean;
   language: string;
 }
@@ -49,7 +50,7 @@ export class CoachSettingsComponent implements OnInit {
 
   protected prefs: CoachPreferences = {
     mode: 'standard',
-    defaultContext: '14',
+    defaultContext: '14d',
     showTokenCounter: false,
     language: 'fr',
   };
@@ -57,7 +58,7 @@ export class CoachSettingsComponent implements OnInit {
   ngOnInit(): void {
     this.prefs = {
       mode: this.settings.getCoachMode(),
-      defaultContext: String(this.settings.getDefaultWindow()),
+      defaultContext: this.settings.getDefaultContextWindow(),
       showTokenCounter: this.settings.getShowTokenCounter(),
       language: this.settings.getLanguage(),
     };
@@ -65,7 +66,7 @@ export class CoachSettingsComponent implements OnInit {
 
   protected onSave(): void {
     this.settings.setCoachMode(this.prefs.mode);
-    this.settings.setDefaultWindow(Number(this.prefs.defaultContext) || 14);
+    this.settings.setDefaultContextWindow(this.prefs.defaultContext);
     this.settings.setShowTokenCounter(this.prefs.showTokenCounter);
     this.settings.setLanguage(this.prefs.language);
     this.snackBar.open('Préférences enregistrées', 'OK', { duration: 2000 });
