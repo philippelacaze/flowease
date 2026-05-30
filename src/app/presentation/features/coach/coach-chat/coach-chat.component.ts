@@ -7,11 +7,15 @@ import {
   ElementRef,
   ViewChild,
   inject,
+  signal,
+  computed,
 } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 
 import { Router } from '@angular/router';
 import { MatBottomSheet } from '@angular/material/bottom-sheet';
+import { MatIconModule } from '@angular/material/icon';
+import { MatButtonModule } from '@angular/material/button';
 
 import {
   SendCoachMessageUseCase,
@@ -19,10 +23,19 @@ import {
 } from '../../../../application/coach/send-coach-message.usecase';
 import { SummarizeCoachSessionUseCase } from '../../../../application/coach/summarize-coach-session.usecase';
 import { BuildCoachContextUseCase } from '../../../../application/coach/build-coach-context.usecase';
-import type { StartCoachSessionResult } from '../../../../application/coach/start-coach-session.usecase';
+import {
+  StartCoachSessionUseCase,
+  type StartCoachSessionResult,
+} from '../../../../application/coach/start-coach-session.usecase';
 import type { CoachMessage, CoachContext } from '../../../../domain/repositories/ai/coach.port';
-import { CoachContextPickerComponent } from '../coach-context-picker/coach-context-picker.component';
+import type { CoachContextWindow } from '../../../../domain/entities/coach-session.entity';
+import type { LocalSettingsRepository } from '../../../../domain/repositories/local-settings.repository';
+import {
+  CoachContextPickerComponent,
+  type CoachContextPickerData,
+} from '../coach-context-picker/coach-context-picker.component';
 import { TokenCounterComponent } from '../../../shared/components/token-counter/token-counter.component';
+import { LOCAL_SETTINGS_PORT } from '../../../../application/tokens';
 
 interface DisplayMessage {
   role: 'user' | 'assistant';
@@ -37,6 +50,14 @@ const SUGGESTED_QUESTIONS: readonly string[] = [
   'Quelles sont mes tendances de bien-être ce mois-ci ?',
 ];
 
+const CONTEXT_LABELS: Record<CoachContextWindow, string> = {
+  today: "Aujourd'hui",
+  '7d': '7 derniers jours',
+  '14d': '14 derniers jours',
+  '30d': '30 derniers jours',
+  profile_only: 'Profil uniquement',
+};
+
 /**
  * Interface principale de conversation avec le Coach IA.
  *
@@ -44,7 +65,8 @@ const SUGGESTED_QUESTIONS: readonly string[] = [
  * Respecte SRP : orchestration de la conversation uniquement.
  * Le streaming des tokens est délégué à SendCoachMessageUseCase (AsyncGenerator).
  * La clôture de session est déléguée à SummarizeCoachSessionUseCase.
- * Le choix du contexte est délégué à CoachContextPickerComponent (bottom sheet).
+ * Le changement de contexte (volontaire) est délégué à CoachContextPickerComponent (bottom sheet).
+ * Au démarrage, la session s'initialise automatiquement avec le contexte par défaut des paramètres.
  * Mode dégradé : si l'IA retourne un itérable vide, la bulle assistant reste vide
  * sans bloquer l'interface.
  */
@@ -54,6 +76,8 @@ const SUGGESTED_QUESTIONS: readonly string[] = [
   imports: [
     FormsModule,
     TokenCounterComponent,
+    MatIconModule,
+    MatButtonModule,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './coach-chat.component.html',
@@ -71,6 +95,14 @@ export class CoachChatComponent implements OnInit, AfterViewChecked {
   protected copiedIndex: number | null = null;
   protected readonly suggestedQuestions = SUGGESTED_QUESTIONS;
 
+  private readonly settings = inject<LocalSettingsRepository>(LOCAL_SETTINGS_PORT as never);
+  protected readonly activeContextWindow = signal<CoachContextWindow>(
+    this.settings.getDefaultContextWindow(),
+  );
+  protected readonly activeContextLabel = computed(
+    () => CONTEXT_LABELS[this.activeContextWindow()],
+  );
+
   private coachContext: CoachContext | null = null;
   private previousSummary: string | undefined;
   private shouldScrollToBottom = false;
@@ -78,12 +110,13 @@ export class CoachChatComponent implements OnInit, AfterViewChecked {
   private readonly sendMessageUseCase = inject(SendCoachMessageUseCase);
   private readonly summarizeUseCase = inject(SummarizeCoachSessionUseCase);
   private readonly buildContextUseCase = inject(BuildCoachContextUseCase);
+  private readonly startSessionUseCase = inject(StartCoachSessionUseCase);
   private readonly bottomSheet = inject(MatBottomSheet);
   private readonly router = inject(Router);
   private readonly cdr = inject(ChangeDetectorRef);
 
   ngOnInit(): void {
-    this.openContextPicker();
+    void this.initSession(this.settings.getDefaultContextWindow());
   }
 
   ngAfterViewChecked(): void {
@@ -106,7 +139,7 @@ export class CoachChatComponent implements OnInit, AfterViewChecked {
     this.sessionTokens = 0;
     this.showSuggestions = true;
     this.cdr.markForCheck();
-    this.openContextPicker();
+    await this.initSession(this.settings.getDefaultContextWindow());
   }
 
   protected async onSendMessage(text?: string): Promise<void> {
@@ -179,25 +212,45 @@ export class CoachChatComponent implements OnInit, AfterViewChecked {
     }
   }
 
+  /** Ouvre le picker de contexte de façon volontaire (bouton "Modifier"). */
   protected openContextPicker(): void {
     const sheetRef = this.bottomSheet.open<
       CoachContextPickerComponent,
-      void,
+      CoachContextPickerData,
       StartCoachSessionResult
-    >(CoachContextPickerComponent, { disableClose: true });
+    >(CoachContextPickerComponent, {
+      disableClose: false,
+      data: { currentWindow: this.activeContextWindow() },
+    });
 
     sheetRef.afterDismissed().subscribe(result => {
-      if (!result) {
-        this.cdr.markForCheck();
-        return;
-      }
-      void this.buildContextUseCase.execute(result.contextWindow).then(context => {
-        this.sessionId = result.sessionId;
-        this.previousSummary = result.previousSummary;
-        this.coachContext = context;
-        this.cdr.markForCheck();
-      });
+      if (!result) return; // fermé sans choisir — session inchangée
+      void this.applyPickerResult(result);
     });
+  }
+
+  private async initSession(contextWindow: CoachContextWindow): Promise<void> {
+    const [result, context] = await Promise.all([
+      this.startSessionUseCase.execute(contextWindow),
+      this.buildContextUseCase.execute(contextWindow),
+    ]);
+    this.sessionId = result.sessionId;
+    this.previousSummary = result.previousSummary;
+    this.coachContext = context;
+    this.activeContextWindow.set(contextWindow);
+    this.cdr.markForCheck();
+  }
+
+  private async applyPickerResult(result: StartCoachSessionResult): Promise<void> {
+    const context = await this.buildContextUseCase.execute(result.contextWindow);
+    this.sessionId = result.sessionId;
+    this.previousSummary = result.previousSummary;
+    this.coachContext = context;
+    this.activeContextWindow.set(result.contextWindow);
+    this.messages = [];
+    this.sessionTokens = 0;
+    this.showSuggestions = true;
+    this.cdr.markForCheck();
   }
 
   private buildCoachContext(): CoachContext {

@@ -20,7 +20,8 @@
       "Bash(findstr -i \"vitest\")",
       "Bash(Select-String \"@angular/material\")",
       "Bash(Get-Content package.json)",
-      "Bash(Select-Object FullName)"
+      "Bash(Select-Object FullName)",
+      "Bash(xargs head -5)"
     ]
   }
 }

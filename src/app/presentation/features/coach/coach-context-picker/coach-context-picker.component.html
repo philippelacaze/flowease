@@ -1,5 +1,5 @@
 <div class="picker-header">
-  <h3>Choisir le contexte de données</h3>
+  <h3>Modifier le contexte</h3>
   <p class="picker-subtitle">Plus de contexte = réponses plus précises = plus de tokens</p>
 </div>
 
@@ -8,11 +8,17 @@
     <mat-list-item
       (click)="onSelect(option)"
       [attr.data-testid]="'context-option-' + option.key"
-      [attr.aria-label]="option.label + ' — ' + option.description + ', estimation ' + option.estimatedTokens + (option.key === defaultKey() ? ', préférence par défaut' : '')"
+      [class.context-option--active]="option.key === selectedKey()"
+      [attr.aria-label]="option.label + ' — ' + option.description + ', estimation ' + option.estimatedTokens
+        + (option.key === selectedKey() ? ', contexte actif' : '')
+        + (option.key === defaultKey() ? ', préférence par défaut' : '')"
       class="context-option">
       <mat-icon matListItemIcon aria-hidden="true">{{ option.icon }}</mat-icon>
       <span matListItemTitle>
         {{ option.label }}
+        @if (option.key === selectedKey()) {
+          <span class="active-badge" aria-hidden="true">Actif</span>
+        }
         @if (option.key === defaultKey()) {
           <span class="default-badge" aria-hidden="true">Défaut</span>
         }

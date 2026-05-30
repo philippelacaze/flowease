@@ -2,7 +2,17 @@
 
   <!-- Header -->
   <div class="chat-header">
-    <span class="chat-title">Coach IA</span>
+    <div class="chat-title-group">
+      <span class="chat-title">Coach IA</span>
+      <button class="context-chip"
+              [attr.aria-label]="'Modifier le contexte — ' + activeContextLabel()"
+              data-testid="btn-change-context"
+              [disabled]="isStreaming || !sessionId"
+              (click)="openContextPicker()">
+        <span class="context-chip-label">{{ activeContextLabel() }}</span>
+        <mat-icon class="context-chip-icon" aria-hidden="true">edit</mat-icon>
+      </button>
+    </div>
     <div class="header-actions">
       <button class="icon-btn"
               aria-label="Voir l'historique des sessions"
@@ -87,7 +97,7 @@
     <div class="chat-input-row">
       <textarea class="chat-textarea"
                 [(ngModel)]="currentInput"
-                [placeholder]="sessionId ? 'Votre message…' : 'Choisissez un contexte d\'abord'"
+                placeholder="Votre message…"
                 [disabled]="isStreaming || !sessionId"
                 aria-label="Message au coach IA"
                 data-testid="chat-input"

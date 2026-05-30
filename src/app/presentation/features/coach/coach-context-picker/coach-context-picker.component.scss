@@ -18,6 +18,20 @@
       font-size: 11px;
       color: var(--mat-sys-outline);
     }
+    .context-option--active {
+      background: color-mix(in srgb, var(--mat-sys-primary) 8%, transparent);
+    }
+    .active-badge {
+      display: inline-block;
+      margin-left: 8px;
+      padding: 1px 6px;
+      border-radius: 4px;
+      font-size: 11px;
+      font-weight: 600;
+      background: var(--mat-sys-primary);
+      color: var(--mat-sys-on-primary);
+      vertical-align: middle;
+    }
     .default-badge {
       display: inline-block;
       margin-left: 8px;
