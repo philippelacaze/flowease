@@ -10,7 +10,9 @@
       <app-side-nav />
     </mat-sidenav>
     <mat-sidenav-content class="shell-content" role="main">
-      <router-outlet />
+      <div class="shell-page-wrap">
+        <router-outlet />
+      </div>
     </mat-sidenav-content>
   </mat-sidenav-container>
 } @else {

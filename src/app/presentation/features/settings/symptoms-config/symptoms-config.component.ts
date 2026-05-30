@@ -23,16 +23,20 @@ interface SymptomConfig {
 }
 
 const DEFAULT_SYMPTOMS: Omit<SymptomConfig, 'order'>[] = [
-  { id: 'bloating', key: 'bloating', label: 'Ballonnements', active: true, custom: false },
-  { id: 'pain', key: 'pain', label: 'Douleur abdominale', active: true, custom: false },
-  { id: 'nausea', key: 'nausea', label: 'Nausées', active: true, custom: false },
-  { id: 'fatigue', key: 'fatigue', label: 'Fatigue', active: true, custom: false },
-  { id: 'brain_fog', key: 'brain_fog', label: 'Brouillard cérébral', active: true, custom: false },
-  { id: 'transit', key: 'transit', label: 'Transit (Bristol)', active: true, custom: false },
-  { id: 'gas', key: 'gas', label: 'Gaz / flatulences', active: true, custom: false },
-  { id: 'reflux', key: 'reflux', label: 'Reflux', active: true, custom: false },
-  { id: 'appetite', key: 'appetite', label: 'Appétit', active: true, custom: false },
-  { id: 'wellbeing', key: 'wellbeing', label: 'Bien-être général', active: true, custom: false },
+  { id: 'abdominal_pain', key: 'abdominal_pain', label: 'Douleur abdominale',    active: true, custom: false },
+  { id: 'bloating',       key: 'bloating',       label: 'Ballonnements',         active: true, custom: false },
+  { id: 'nausea',         key: 'nausea',         label: 'Nausées',               active: true, custom: false },
+  { id: 'heartburn',      key: 'heartburn',      label: 'Brûlures d\'estomac',   active: true, custom: false },
+  { id: 'transit',        key: 'transit',        label: 'Transit (Bristol)',      active: true, custom: false },
+  { id: 'gas',            key: 'gas',            label: 'Gaz / Flatulences',     active: true, custom: false },
+  { id: 'fatigue',        key: 'fatigue',        label: 'Fatigue',               active: true, custom: false },
+  { id: 'headache',       key: 'headache',       label: 'Maux de tête',          active: true, custom: false },
+  { id: 'brain_fog',      key: 'brain_fog',      label: 'Brouillard mental',     active: true, custom: false },
+  { id: 'joint_pain',     key: 'joint_pain',     label: 'Douleurs articulaires', active: true, custom: false },
+  { id: 'energy',         key: 'energy',         label: 'Énergie globale',       active: true, custom: false },
+  { id: 'sleep_quality',  key: 'sleep_quality',  label: 'Qualité du sommeil',    active: true, custom: false },
+  { id: 'mood',           key: 'mood',           label: 'Humeur',                active: true, custom: false },
+  { id: 'stress',         key: 'stress',         label: 'Stress',               active: true, custom: false },
 ];
 
 /**

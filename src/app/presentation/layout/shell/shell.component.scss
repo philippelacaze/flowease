@@ -26,3 +26,9 @@
 .shell-content {
   overflow-y: auto;
 }
+
+.shell-page-wrap {
+  max-width: 860px;
+  margin-inline: auto;
+  min-height: 100%;
+}

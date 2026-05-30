@@ -9,6 +9,7 @@ import {
 import { FormsModule } from '@angular/forms';
 import { Router, ActivatedRoute } from '@angular/router';
 import { AddSymptomUseCase } from '../../../../application/journal/add-symptom.usecase';
+import { GetActiveSymptomsUseCase } from '../../../../application/journal/get-active-symptoms.usecase';
 import { IntensitySliderComponent } from '../../../shared/components/intensity-slider/intensity-slider.component';
 import { AbdominalMapComponent } from '../../../shared/components/abdominal-map/abdominal-map.component';
 import { BristolScaleComponent } from '../../../shared/components/bristol-scale/bristol-scale.component';
@@ -31,24 +32,26 @@ interface SymptomRow {
   bristolType: BristolType | null;
 }
 
-const SYMPTOM_DEFINITIONS: ReadonlyArray<
-  Pick<SymptomRow, 'category' | 'key' | 'labelFr' | 'hasMap' | 'hasPainTypes' | 'hasBristol'>
-> = [
-  { category: 'digestive', key: 'abdominal_pain',  labelFr: 'Douleur abdominale', hasMap: true,  hasPainTypes: true,  hasBristol: false },
-  { category: 'digestive', key: 'bloating',         labelFr: 'Ballonnements',      hasMap: false, hasPainTypes: false, hasBristol: false },
-  { category: 'digestive', key: 'nausea',           labelFr: 'Nausées',            hasMap: false, hasPainTypes: false, hasBristol: false },
-  { category: 'digestive', key: 'heartburn',        labelFr: 'Brûlures d\'estomac',hasMap: false, hasPainTypes: false, hasBristol: false },
-  { category: 'digestive', key: 'transit',          labelFr: 'Transit',            hasMap: false, hasPainTypes: false, hasBristol: true  },
-  { category: 'digestive', key: 'gas',              labelFr: 'Gaz / Flatulences',  hasMap: false, hasPainTypes: false, hasBristol: false },
-  { category: 'systemic',  key: 'fatigue',          labelFr: 'Fatigue',            hasMap: false, hasPainTypes: false, hasBristol: false },
-  { category: 'systemic',  key: 'headache',         labelFr: 'Maux de tête',       hasMap: false, hasPainTypes: false, hasBristol: false },
-  { category: 'systemic',  key: 'brain_fog',        labelFr: 'Brouillard mental',  hasMap: false, hasPainTypes: false, hasBristol: false },
-  { category: 'systemic',  key: 'joint_pain',       labelFr: 'Douleurs articulaires', hasMap: false, hasPainTypes: false, hasBristol: false },
-  { category: 'wellbeing', key: 'energy',           labelFr: 'Énergie globale',    hasMap: false, hasPainTypes: false, hasBristol: false },
-  { category: 'wellbeing', key: 'sleep_quality',    labelFr: 'Qualité du sommeil', hasMap: false, hasPainTypes: false, hasBristol: false },
-  { category: 'wellbeing', key: 'mood',             labelFr: 'Humeur',             hasMap: false, hasPainTypes: false, hasBristol: false },
-  { category: 'wellbeing', key: 'stress',           labelFr: 'Stress',             hasMap: false, hasPainTypes: false, hasBristol: false },
-];
+type SymptomMeta = Pick<SymptomRow, 'category' | 'hasMap' | 'hasPainTypes' | 'hasBristol'>;
+
+const SYMPTOM_METADATA: Readonly<Record<string, SymptomMeta>> = {
+  abdominal_pain: { category: 'digestive', hasMap: true,  hasPainTypes: true,  hasBristol: false },
+  bloating:       { category: 'digestive', hasMap: false, hasPainTypes: false, hasBristol: false },
+  nausea:         { category: 'digestive', hasMap: false, hasPainTypes: false, hasBristol: false },
+  heartburn:      { category: 'digestive', hasMap: false, hasPainTypes: false, hasBristol: false },
+  transit:        { category: 'digestive', hasMap: false, hasPainTypes: false, hasBristol: true  },
+  gas:            { category: 'digestive', hasMap: false, hasPainTypes: false, hasBristol: false },
+  fatigue:        { category: 'systemic',  hasMap: false, hasPainTypes: false, hasBristol: false },
+  headache:       { category: 'systemic',  hasMap: false, hasPainTypes: false, hasBristol: false },
+  brain_fog:      { category: 'systemic',  hasMap: false, hasPainTypes: false, hasBristol: false },
+  joint_pain:     { category: 'systemic',  hasMap: false, hasPainTypes: false, hasBristol: false },
+  energy:         { category: 'wellbeing', hasMap: false, hasPainTypes: false, hasBristol: false },
+  sleep_quality:  { category: 'wellbeing', hasMap: false, hasPainTypes: false, hasBristol: false },
+  mood:           { category: 'wellbeing', hasMap: false, hasPainTypes: false, hasBristol: false },
+  stress:         { category: 'wellbeing', hasMap: false, hasPainTypes: false, hasBristol: false },
+};
+
+const FALLBACK_META: SymptomMeta = { category: 'systemic', hasMap: false, hasPainTypes: false, hasBristol: false };
 
 /**
  * Page de saisie des symptômes — header contextuel (voice/form), ajout personnalisé, confirmation.
@@ -73,6 +76,7 @@ const SYMPTOM_DEFINITIONS: ReadonlyArray<
 })
 export class SymptomEntryComponent implements OnInit {
   private readonly addSymptom = inject(AddSymptomUseCase);
+  private readonly getActiveSymptoms = inject(GetActiveSymptomsUseCase);
   private readonly router = inject(Router);
   private readonly route = inject(ActivatedRoute);
   private readonly cdr = inject(ChangeDetectorRef);
@@ -85,13 +89,7 @@ export class SymptomEntryComponent implements OnInit {
   protected newCustomLabel = '';
   protected customSymptoms: SymptomRow[] = [];
 
-  protected readonly rows: SymptomRow[] = SYMPTOM_DEFINITIONS.map(def => ({
-    ...def,
-    intensity: 0,
-    painZones: [],
-    painTypes: [],
-    bristolType: null,
-  }));
+  protected rows: SymptomRow[] = [];
 
   protected get allRows(): SymptomRow[] {
     return [...this.rows, ...this.customSymptoms];
@@ -128,9 +126,35 @@ export class SymptomEntryComponent implements OnInit {
     return this.allRows.filter(r => r.intensity > 0 || (r.hasBristol && r.bristolType !== null)).length;
   }
 
-  ngOnInit(): void {
+  async ngOnInit(): Promise<void> {
     const mode = this.route.snapshot.queryParams['mode'] as string | undefined;
     this.srcMode = mode === 'voice' ? 'voice' : 'form';
+
+    const active = await this.getActiveSymptoms.execute();
+    const standard: SymptomRow[] = [];
+    const fromConfig: SymptomRow[] = [];
+
+    for (const cfg of active) {
+      const meta = SYMPTOM_METADATA[cfg.key] ?? FALLBACK_META;
+      const row: SymptomRow = {
+        ...meta,
+        key: cfg.key,
+        labelFr: cfg.label,
+        intensity: 0,
+        painZones: [],
+        painTypes: [],
+        bristolType: null,
+      };
+      if (cfg.custom) {
+        fromConfig.push(row);
+      } else {
+        standard.push(row);
+      }
+    }
+
+    this.rows = standard;
+    this.customSymptoms = fromConfig;
+    this.cdr.markForCheck();
   }
 
   protected markDirty(): void {

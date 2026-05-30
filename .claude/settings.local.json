@@ -19,7 +19,8 @@
       "Bash(Get-ChildItem *)",
       "Bash(findstr -i \"vitest\")",
       "Bash(Select-String \"@angular/material\")",
-      "Bash(Get-Content package.json)"
+      "Bash(Get-Content package.json)",
+      "Bash(Select-Object FullName)"
     ]
   }
 }

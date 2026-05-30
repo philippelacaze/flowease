@@ -19,7 +19,8 @@
 }
 
 .intensity-range {
-  width: 100%;
+  width: calc(100% - 64px);
+  margin-inline: 32px;
   cursor: pointer;
   height: 4px;
   appearance: auto;

@@ -5,6 +5,7 @@ import { provideRouter } from '@angular/router';
 import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 import { SymptomEntryComponent } from './symptom-entry.component';
 import { AddSymptomUseCase } from '../../../../application/journal/add-symptom.usecase';
+import { GetActiveSymptomsUseCase, type ActiveSymptomConfig } from '../../../../application/journal/get-active-symptoms.usecase';
 
 type ComponentPrivate = {
   srcMode: string;
@@ -21,26 +22,34 @@ type ComponentPrivate = {
   submit(): Promise<void>;
 };
 
-function makeUseCaseMock() {
+const MOCK_ACTIVE_SYMPTOMS: ActiveSymptomConfig[] = [
+  { id: 'abdominal_pain', key: 'abdominal_pain', label: 'Douleur abdominale', order: 0,  custom: false },
+  { id: 'bloating',       key: 'bloating',       label: 'Ballonnements',      order: 1,  custom: false },
+  { id: 'nausea',         key: 'nausea',         label: 'Nausées',            order: 2,  custom: false },
+  { id: 'fatigue',        key: 'fatigue',        label: 'Fatigue',            order: 3,  custom: false },
+];
+
+function makeAddSymptomMock() {
   return { execute: vi.fn().mockResolvedValue('symptom-id') };
 }
 
+function makeGetActiveMock() {
+  return { execute: vi.fn().mockResolvedValue(MOCK_ACTIVE_SYMPTOMS) };
+}
+
 async function createComponent(mode?: string) {
-  const mock = makeUseCaseMock();
-  const routerSpy = { navigate: vi.fn().mockResolvedValue(true) };
+  const mock = makeAddSymptomMock();
 
   await TestBed.configureTestingModule({
     imports: [SymptomEntryComponent, NoopAnimationsModule],
     providers: [
       provideRouter([]),
       { provide: AddSymptomUseCase, useValue: mock },
+      { provide: GetActiveSymptomsUseCase, useValue: makeGetActiveMock() },
     ],
   }).compileComponents();
 
   const fixture = TestBed.createComponent(SymptomEntryComponent);
-  if (mode) {
-    TestBed.inject(provideRouter as never);
-  }
   fixture.detectChanges();
   await fixture.whenStable();
   return { fixture, mock };
