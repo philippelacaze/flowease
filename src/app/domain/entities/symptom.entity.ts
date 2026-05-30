@@ -15,11 +15,15 @@ export type SymptomCategory = 'digestive' | 'systemic' | 'wellbeing';
  *
  * @remarks
  * Value object imbriqué dans SymptomEntity. bristolType null = transit non renseigné.
+ * blood et mucus déclenchent une alerte médicale en UI si positifs (§1.4.4).
  */
 export interface StoolEntry {
   readonly bristolType: BristolType | null;
   readonly count?: number;
   readonly notes?: string;
+  readonly blood?: boolean;
+  readonly mucus?: boolean;
+  readonly frequency?: number;
 }
 
 /**

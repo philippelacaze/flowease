@@ -7,16 +7,23 @@ import { SymptomEntryComponent } from './symptom-entry.component';
 import { AddSymptomUseCase } from '../../../../application/journal/add-symptom.usecase';
 import { GetActiveSymptomsUseCase, type ActiveSymptomConfig } from '../../../../application/journal/get-active-symptoms.usecase';
 
+type StoolRow = {
+  key: string; intensity: number; bristolType: unknown; hasBristol: boolean;
+  category: string; labelFr: string; painZones: unknown[]; painTypes: unknown[];
+  stoolBlood: boolean; stoolMucus: boolean; stoolFrequency: number;
+};
+
 type ComponentPrivate = {
   srcMode: string;
   showAddCustom: boolean;
   newCustomLabel: string;
   customSymptoms: unknown[];
-  rows: Array<{ key: string; intensity: number; bristolType: unknown; hasBristol: boolean; category: string; labelFr: string; painZones: unknown[]; painTypes: unknown[] }>;
+  rows: StoolRow[];
   avgScore: number;
   avgSeverityClass: string;
   activeCount: number;
   hasAnyRating: boolean;
+  showBloodAlert: boolean;
   addCustomSymptom(): void;
   cancelCustom(): void;
   submit(): Promise<void>;
@@ -27,6 +34,11 @@ const MOCK_ACTIVE_SYMPTOMS: ActiveSymptomConfig[] = [
   { id: 'bloating',       key: 'bloating',       label: 'Ballonnements',      order: 1,  custom: false },
   { id: 'nausea',         key: 'nausea',         label: 'Nausées',            order: 2,  custom: false },
   { id: 'fatigue',        key: 'fatigue',        label: 'Fatigue',            order: 3,  custom: false },
+];
+
+const MOCK_WITH_TRANSIT: ActiveSymptomConfig[] = [
+  ...MOCK_ACTIVE_SYMPTOMS,
+  { id: 'transit', key: 'transit', label: 'Transit', order: 4, custom: false },
 ];
 
 function makeAddSymptomMock() {
@@ -46,6 +58,24 @@ async function createComponent(mode?: string) {
       provideRouter([]),
       { provide: AddSymptomUseCase, useValue: mock },
       { provide: GetActiveSymptomsUseCase, useValue: makeGetActiveMock() },
+    ],
+  }).compileComponents();
+
+  const fixture = TestBed.createComponent(SymptomEntryComponent);
+  fixture.detectChanges();
+  await fixture.whenStable();
+  return { fixture, mock };
+}
+
+async function createComponentWithTransit() {
+  const mock = makeAddSymptomMock();
+
+  await TestBed.configureTestingModule({
+    imports: [SymptomEntryComponent, NoopAnimationsModule],
+    providers: [
+      provideRouter([]),
+      { provide: AddSymptomUseCase, useValue: mock },
+      { provide: GetActiveSymptomsUseCase, useValue: { execute: vi.fn().mockResolvedValue(MOCK_WITH_TRANSIT) } },
     ],
   }).compileComponents();
 
@@ -183,6 +213,60 @@ describe('SymptomEntryComponent', () => {
       const { fixture } = await createComponent();
       const btn = fixture.debugElement.query(By.css('[data-testid="submit-symptoms"]'));
       expect(btn).not.toBeNull();
+    });
+  });
+
+  describe('transit — blood / mucus / frequency', () => {
+    it('initialise stoolBlood, stoolMucus, stoolFrequency à false/0 sur la ligne transit', async () => {
+      const { fixture } = await createComponentWithTransit();
+      const comp = fixture.componentInstance as unknown as ComponentPrivate;
+      const transit = comp.rows.find(r => r.key === 'transit')!;
+      expect(transit.stoolBlood).toBe(false);
+      expect(transit.stoolMucus).toBe(false);
+      expect(transit.stoolFrequency).toBe(0);
+    });
+
+    it('showBloodAlert est faux par défaut', async () => {
+      const { fixture } = await createComponentWithTransit();
+      const comp = fixture.componentInstance as unknown as ComponentPrivate;
+      expect(comp.showBloodAlert).toBe(false);
+    });
+
+    it('showBloodAlert passe à vrai quand stoolBlood = true', async () => {
+      const { fixture } = await createComponentWithTransit();
+      const comp = fixture.componentInstance as unknown as ComponentPrivate;
+      comp.rows.find(r => r.key === 'transit')!.stoolBlood = true;
+      expect(comp.showBloodAlert).toBe(true);
+    });
+
+    it('affiche la bannière d\'alerte sang quand showBloodAlert est vrai', async () => {
+      const { fixture } = await createComponentWithTransit();
+      const comp = fixture.componentInstance as unknown as ComponentPrivate;
+      comp.rows.find(r => r.key === 'transit')!.stoolBlood = true;
+      fixture.detectChanges();
+      const alert = fixture.debugElement.query(By.css('[data-testid="blood-alert"]'));
+      expect(alert).not.toBeNull();
+    });
+
+    it('hasAnyRating est vrai quand seul stoolBlood est coché', async () => {
+      const { fixture } = await createComponentWithTransit();
+      const comp = fixture.componentInstance as unknown as ComponentPrivate;
+      comp.rows.find(r => r.key === 'transit')!.stoolBlood = true;
+      expect(comp.hasAnyRating).toBe(true);
+    });
+
+    it('soumet avec blood et frequency dans stool quand renseignés', async () => {
+      const { fixture, mock } = await createComponentWithTransit();
+      const comp = fixture.componentInstance as unknown as ComponentPrivate;
+      const transit = comp.rows.find(r => r.key === 'transit')!;
+      transit.stoolBlood = true;
+      transit.stoolMucus = true;
+      transit.stoolFrequency = 3;
+      await comp.submit();
+      const callArg = mock.execute.mock.calls[0][0] as { stool: { blood: boolean; mucus: boolean; frequency: number } };
+      expect(callArg.stool.blood).toBe(true);
+      expect(callArg.stool.mucus).toBe(true);
+      expect(callArg.stool.frequency).toBe(3);
     });
   });
 });

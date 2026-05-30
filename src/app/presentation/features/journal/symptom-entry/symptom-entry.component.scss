@@ -79,6 +79,66 @@
 .bristol-section { margin-top: 12px; }
 .bristol-hint { margin: 0 0 8px; font-size: 13px; color: var(--text-3); }
 
+.stool-field {
+  margin-top: 12px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.stool-label {
+  font-size: 13px;
+  color: var(--text-3);
+  flex-shrink: 0;
+}
+.stool-freq-input {
+  width: 64px;
+  min-height: 36px;
+  padding: 4px 8px;
+  border: 0.5px solid var(--border);
+  border-radius: 8px;
+  background: var(--input-bg);
+  color: var(--text-1);
+  font-size: 14px;
+  font-family: inherit;
+  text-align: center;
+}
+
+.stool-checks {
+  margin-top: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.stool-check-label {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 14px;
+  color: var(--text-2);
+  min-height: 44px;
+  cursor: pointer;
+
+  input[type="checkbox"] {
+    width: 20px;
+    height: 20px;
+    accent-color: var(--teal);
+    cursor: pointer;
+    flex-shrink: 0;
+  }
+}
+
+.sym-blood-alert {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 16px;
+  background: var(--fodmap-medium-bg, #fff3cd);
+  border-bottom: 0.5px solid var(--fodmap-medium-border, #f0ad4e);
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--fodmap-medium-text, #856404);
+}
+
 .pain-detail { margin-top: 12px; }
 .pain-detail-label { margin: 0 0 8px; font-size: 13px; color: var(--text-3); }
 

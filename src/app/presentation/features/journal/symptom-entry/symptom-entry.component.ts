@@ -30,6 +30,9 @@ interface SymptomRow {
   painZones: AbdominalZone[];
   painTypes: PainType[];
   bristolType: BristolType | null;
+  stoolBlood: boolean;
+  stoolMucus: boolean;
+  stoolFrequency: number;
 }
 
 type SymptomMeta = Pick<SymptomRow, 'category' | 'hasMap' | 'hasPainTypes' | 'hasBristol'>;
@@ -106,7 +109,15 @@ export class SymptomEntryComponent implements OnInit {
   }
 
   protected get hasAnyRating(): boolean {
-    return this.allRows.some(r => r.intensity > 0 || (r.hasBristol && r.bristolType !== null));
+    return this.allRows.some(r => r.intensity > 0 || this.hasStoolData(r));
+  }
+
+  protected get showBloodAlert(): boolean {
+    return this.rows.some(r => r.hasBristol && r.stoolBlood);
+  }
+
+  private hasStoolData(row: SymptomRow): boolean {
+    return row.hasBristol && (row.bristolType !== null || row.stoolBlood || row.stoolMucus || row.stoolFrequency > 0);
   }
 
   protected get avgScore(): number {
@@ -123,7 +134,7 @@ export class SymptomEntryComponent implements OnInit {
   }
 
   protected get activeCount(): number {
-    return this.allRows.filter(r => r.intensity > 0 || (r.hasBristol && r.bristolType !== null)).length;
+    return this.allRows.filter(r => r.intensity > 0 || this.hasStoolData(r)).length;
   }
 
   async ngOnInit(): Promise<void> {
@@ -144,6 +155,9 @@ export class SymptomEntryComponent implements OnInit {
         painZones: [],
         painTypes: [],
         bristolType: null,
+        stoolBlood: false,
+        stoolMucus: false,
+        stoolFrequency: 0,
       };
       if (cfg.custom) {
         fromConfig.push(row);
@@ -187,6 +201,9 @@ export class SymptomEntryComponent implements OnInit {
         painZones: [],
         painTypes: [],
         bristolType: null,
+        stoolBlood: false,
+        stoolMucus: false,
+        stoolFrequency: 0,
       },
     ];
     this.cancelCustom();
@@ -205,7 +222,7 @@ export class SymptomEntryComponent implements OnInit {
 
     const now = new Date();
     const rowsToSave = this.allRows.filter(
-      r => r.intensity > 0 || (r.hasBristol && r.bristolType !== null),
+      r => r.intensity > 0 || this.hasStoolData(r),
     );
 
     await Promise.all(
@@ -217,8 +234,13 @@ export class SymptomEntryComponent implements OnInit {
           intensity: row.intensity || 5,
           ...(row.painZones.length > 0 && { painZones: row.painZones }),
           ...(row.painTypes.length > 0 && { painTypes: row.painTypes }),
-          ...(row.hasBristol && row.bristolType !== null && {
-            stool: { bristolType: row.bristolType },
+          ...(this.hasStoolData(row) && {
+            stool: {
+              bristolType: row.bristolType,
+              ...(row.stoolFrequency > 0 && { frequency: row.stoolFrequency }),
+              ...(row.stoolBlood && { blood: true }),
+              ...(row.stoolMucus && { mucus: true }),
+            },
           }),
         };
         return this.addSymptom.execute(input);

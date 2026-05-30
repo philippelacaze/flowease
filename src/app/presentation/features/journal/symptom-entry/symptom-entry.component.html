@@ -26,6 +26,13 @@
     </div>
   }
 
+  @if (showBloodAlert) {
+    <div class="sym-blood-alert" role="alert" data-testid="blood-alert">
+      <span aria-hidden="true">⚠️</span>
+      <span>Présence de sang détectée — pensez à en informer votre médecin</span>
+    </div>
+  }
+
   <div class="symptom-form">
     <!-- Bloc Digestifs -->
     <section class="symptom-section" aria-label="Symptômes digestifs">
@@ -45,6 +52,40 @@
               <app-bristol-scale
                 [value]="row.bristolType"
                 (valueChange)="row.bristolType = $event; markDirty()" />
+              <div class="stool-field">
+                <label class="stool-label" [for]="'freq-' + row.key">
+                  Fréquence (nb de selles) :
+                </label>
+                <input
+                  type="number"
+                  [id]="'freq-' + row.key"
+                  class="stool-freq-input"
+                  min="0" max="20"
+                  [value]="row.stoolFrequency || ''"
+                  aria-label="Nombre de selles depuis la dernière saisie"
+                  [attr.data-testid]="'stool-freq-' + row.key"
+                  (input)="row.stoolFrequency = +($any($event.target).value || 0); markDirty()" />
+              </div>
+              <div class="stool-checks" role="group" aria-label="Caractéristiques des selles">
+                <label class="stool-check-label" [attr.data-testid]="'blood-label-' + row.key">
+                  <input
+                    type="checkbox"
+                    [checked]="row.stoolBlood"
+                    [attr.data-testid]="'stool-blood-' + row.key"
+                    aria-label="Présence de sang dans les selles"
+                    (change)="row.stoolBlood = $any($event.target).checked; markDirty()" />
+                  Présence de sang
+                </label>
+                <label class="stool-check-label" [attr.data-testid]="'mucus-label-' + row.key">
+                  <input
+                    type="checkbox"
+                    [checked]="row.stoolMucus"
+                    [attr.data-testid]="'stool-mucus-' + row.key"
+                    aria-label="Présence de mucus dans les selles"
+                    (change)="row.stoolMucus = $any($event.target).checked; markDirty()" />
+                  Présence de mucus
+                </label>
+              </div>
             </div>
           } @else {
             <app-intensity-slider
