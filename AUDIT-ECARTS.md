@@ -185,8 +185,8 @@ Le widget "Bien-être du jour" dans `journal-home` affiche un slider 1-10 et sto
 | | |
 |---|---|
 | **Réf. spec** | §1.3.2 — Structure MealEntry |
-| **Décision** | ☐ VALIDER &nbsp;&nbsp; ☐ INVALIDER |
-| **Statut** | ⬜ À traiter |
+| **Décision** | ☑ VALIDER &nbsp;&nbsp; ☐ INVALIDER |
+| **Statut** | ✅ Traité |
 
 **Ce que dit la spec :**  
 ```typescript
@@ -515,7 +515,7 @@ Les traductions sont chargées à l'exécution depuis des fichiers JSON statique
 | 1.5 | Édition des entrées existantes | L | |
 | 1.6 | Tags IA : confirmation interactive | M | |
 | 1.7 | Bien-être non persisté | S | |
-| 1.8 | aiFodmapFlags absents | M | |
+| 1.8 | aiFodmapFlags absents | M | ✅ |
 | 2.1 | Comparaison avant/après cure | S | |
 | 3.1 | Rapport PDF (jsPDF) | M | |
 | 3.2 | Rapport : plage de dates personnalisée | S | |

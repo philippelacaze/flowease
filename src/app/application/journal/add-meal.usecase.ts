@@ -1,5 +1,5 @@
-import { inject, Injectable, Inject } from '@angular/core';
-import type { MealEntity, MealType, MealInputMode, FoodItemVO } from '../../domain/entities/meal.entity';
+import { inject, Injectable } from '@angular/core';
+import type { MealEntity, MealType, MealInputMode, FoodItemVO, AiFodmapAlert } from '../../domain/entities/meal.entity';
 import type { StorageRepository } from '../../domain/repositories/storage.repository';
 import { STORAGE_PORT } from '../tokens';
 
@@ -8,6 +8,7 @@ import { STORAGE_PORT } from '../tokens';
  *
  * @remarks
  * id et createdAt sont exclus car assignés par le use case.
+ * aiFodmapFlags est optionnel : absent si saisie manuelle ou IA sans alertes.
  */
 export interface AddMealInput {
   readonly occurredAt: Date;
@@ -15,6 +16,7 @@ export interface AddMealInput {
   readonly inputMode: MealInputMode;
   readonly items: ReadonlyArray<FoodItemVO>;
   readonly notes?: string;
+  readonly aiFodmapFlags?: ReadonlyArray<AiFodmapAlert>;
 }
 
 /**
@@ -50,6 +52,7 @@ export class AddMealUseCase {
       inputMode: input.inputMode,
       items: input.items,
       notes: input.notes,
+      aiFodmapFlags: input.aiFodmapFlags,
     };
     return this.storage.save('meals', meal);
   }

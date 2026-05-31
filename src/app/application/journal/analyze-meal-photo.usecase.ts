@@ -1,7 +1,8 @@
 import { Injectable, Inject } from '@angular/core';
-import type { FoodItemVO } from '../../domain/entities/meal.entity';
-import type { MealAnalysisPort } from '../../domain/repositories/ai/meal-analysis.port';
+import type { MealAnalysisPort, MealAnalysisResult } from '../../domain/repositories/ai/meal-analysis.port';
 import { MEAL_ANALYSIS_PORT } from '../tokens';
+
+const EMPTY_RESULT: MealAnalysisResult = { items: [], aiFodmapFlags: [] };
 
 /**
  * Paramètres requis pour analyser une photo de repas.
@@ -15,11 +16,11 @@ export interface AnalyzeMealPhotoInput {
 }
 
 /**
- * Analyse une photo de repas via l'IA pour en extraire les aliments identifiés.
+ * Analyse une photo de repas via l'IA pour en extraire aliments et alertes FODMAP.
  *
  * @remarks
  * Respecte SRP : responsabilité unique d'orchestrer l'analyse photo via MealAnalysisPort.
- * Mode dégradé : retourne [] si le port retourne null (NullAIAdapter ou clé absente).
+ * Mode dégradé : retourne un résultat vide si le port retourne null (NullAIAdapter ou clé absente).
  * Les FoodItemVO retournés ont confirmed = false — l'utilisateur valide les suggestions.
  *
  * Exemple d'injection TestBed :
@@ -34,13 +35,13 @@ export class AnalyzeMealPhotoUseCase {
   ) {}
 
   /**
-   * Appelle le port d'analyse photo et retourne les aliments identifiés.
+   * Appelle le port d'analyse photo et retourne aliments et alertes FODMAP.
    *
    * @param input - Image en base64 et type MIME
-   * @returns FoodItemVO[] — liste vide si IA indisponible ou aucun aliment détecté.
+   * @returns MealAnalysisResult — résultat vide si IA indisponible ou aucun aliment détecté.
    *          L'adapter a déjà notifié l'utilisateur via ErrorNotificationService.
    */
-  async execute(input: AnalyzeMealPhotoInput): Promise<FoodItemVO[]> {
-    return (await this.mealAnalysisPort.analyzeMealPhoto(input.base64Image, input.mediaType)) ?? [];
+  async execute(input: AnalyzeMealPhotoInput): Promise<MealAnalysisResult> {
+    return (await this.mealAnalysisPort.analyzeMealPhoto(input.base64Image, input.mediaType)) ?? EMPTY_RESULT;
   }
 }

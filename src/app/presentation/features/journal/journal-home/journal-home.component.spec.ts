@@ -7,9 +7,10 @@ import { GetJournalDayUseCase } from '../../../../application/journal/get-journa
 import { GetActiveCuresUseCase } from '../../../../application/journal/get-active-cures.usecase';
 import { SaveWellbeingScoreUseCase } from '../../../../application/journal/save-wellbeing-score.usecase';
 import { LOCAL_SETTINGS_PORT } from '../../../../application/tokens';
-import type { FoodItemVO } from '../../../../domain/entities/meal.entity';
+import type { FoodItemVO, AiFodmapAlert } from '../../../../domain/entities/meal.entity';
 import type { JournalEntry } from '../../../../application/journal/get-journal-day.usecase';
 import type { SymptomEntity } from '../../../../domain/entities/symptom.entity';
+import type { MealEntity } from '../../../../domain/entities/meal.entity';
 
 const LOW_ITEMS: FoodItemVO[] = [
   { name: 'Riz', fodmap: { level: 'low' }, confirmed: true },
@@ -78,6 +79,21 @@ async function createComponent(journalEntries: JournalEntry[] = []) {
   fixture.detectChanges();
   await fixture.whenStable();
   return fixture;
+}
+
+function makeMealEntry(items: FoodItemVO[], aiFodmapFlags?: AiFodmapAlert[]): JournalEntry {
+  return {
+    kind: 'meal',
+    data: {
+      id: 'meal-1',
+      occurredAt: new Date(),
+      createdAt: new Date(),
+      type: 'lunch',
+      inputMode: 'photo',
+      items,
+      aiFodmapFlags,
+    } as MealEntity,
+  };
 }
 
 describe('JournalHomeComponent', () => {
@@ -163,6 +179,55 @@ describe('JournalHomeComponent', () => {
       const fixture = await createComponent([]);
       const comp = fixture.componentInstance as unknown as ComponentProtected;
       expect(comp.wellbeingScore).toBeNull();
+    });
+  });
+
+  describe('alertes FODMAP IA dans les cartes repas', () => {
+    it('affiche une alerte danger quand aiFodmapFlags contient un élément severity danger', async () => {
+      const flags: AiFodmapAlert[] = [
+        { item: 'Oignon', reason: 'Contient des fructanes', severity: 'danger' },
+      ];
+      const fixture = await createComponent([makeMealEntry(HIGH_ITEMS, flags)]);
+      fixture.detectChanges();
+      const alert = fixture.nativeElement.querySelector('.fodmap-alert--danger');
+      expect(alert).not.toBeNull();
+      expect(alert.textContent).toContain('Oignon');
+    });
+
+    it('affiche une alerte warning quand aiFodmapFlags contient un élément severity warning', async () => {
+      const flags: AiFodmapAlert[] = [
+        { item: 'Blé', reason: 'Fructanes à dose modérée', severity: 'warning' },
+      ];
+      const fixture = await createComponent([makeMealEntry(LOW_ITEMS, flags)]);
+      fixture.detectChanges();
+      const alert = fixture.nativeElement.querySelector('.fodmap-alert--warning');
+      expect(alert).not.toBeNull();
+      expect(alert.textContent).toContain('Blé');
+    });
+
+    it('n\'affiche aucune alerte quand aiFodmapFlags est absent', async () => {
+      const fixture = await createComponent([makeMealEntry(LOW_ITEMS)]);
+      fixture.detectChanges();
+      const alerts = fixture.nativeElement.querySelectorAll('.fodmap-alert');
+      expect(alerts).toHaveLength(0);
+    });
+
+    it('n\'affiche aucune alerte quand aiFodmapFlags est un tableau vide', async () => {
+      const fixture = await createComponent([makeMealEntry(LOW_ITEMS, [])]);
+      fixture.detectChanges();
+      const alerts = fixture.nativeElement.querySelectorAll('.fodmap-alert');
+      expect(alerts).toHaveLength(0);
+    });
+
+    it('affiche autant d\'alertes que d\'éléments dans aiFodmapFlags', async () => {
+      const flags: AiFodmapAlert[] = [
+        { item: 'Oignon', reason: 'Fructanes', severity: 'danger' },
+        { item: 'Ail', reason: 'Fructanes élevés', severity: 'danger' },
+      ];
+      const fixture = await createComponent([makeMealEntry(HIGH_ITEMS, flags)]);
+      fixture.detectChanges();
+      const alerts = fixture.nativeElement.querySelectorAll('.fodmap-alert');
+      expect(alerts).toHaveLength(2);
     });
   });
 

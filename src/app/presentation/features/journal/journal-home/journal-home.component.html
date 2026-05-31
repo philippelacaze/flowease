@@ -179,6 +179,16 @@
                     <app-food-chip [item]="item" [removable]="false" />
                   }
                 </div>
+                @if (e.data.aiFodmapFlags?.length) {
+                  <ul class="fodmap-alerts" aria-label="Alertes FODMAP">
+                    @for (flag of e.data.aiFodmapFlags; track flag.item) {
+                      <li class="fodmap-alert fodmap-alert--{{ flag.severity }}"
+                          [attr.aria-label]="'Alerte FODMAP ' + flag.severity + ' : ' + flag.item">
+                        ⚠️ <strong>{{ flag.item }}</strong> — {{ flag.reason }}
+                      </li>
+                    }
+                  </ul>
+                }
               </div>
             }
           </section>

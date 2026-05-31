@@ -154,19 +154,19 @@ describe('AnthropicAdapter', () => {
   // --- Cas à la marge : image/texte sans nourriture ---
 
   describe('image ne contenant pas de nourriture', () => {
-    it('analyzeMealPhoto retourne [] et affiche le message par défaut si IA retourne un tableau vide sans explication', async () => {
+    it('analyzeMealPhoto retourne items vide et affiche le message par défaut si IA retourne un objet sans aliments', async () => {
       getApiKey.mockReturnValue('sk-ant-test-key');
 
       const promise = adapter.analyzeMealPhoto('abc123', 'image/jpeg');
       const req = httpTesting.expectOne(API_URL);
-      req.flush(mockResponse('[]'));
+      req.flush(mockResponse(JSON.stringify({ items: [], fodmapAlerts: [] })));
 
       const result = await promise;
-      expect(result).toEqual([]);
+      expect(result?.items).toEqual([]);
       expect(showWarning).toHaveBeenCalledWith('Aucun aliment identifié dans cette image.');
     });
 
-    it('analyzeMealPhoto retourne [] et affiche l\'explication de l\'IA quand elle envoie un bloc ```json``` avec texte', async () => {
+    it('analyzeMealPhoto interprète le format tableau vide hérité et affiche l\'explication de l\'IA', async () => {
       getApiKey.mockReturnValue('sk-ant-test-key');
 
       const aiResponse = '```json\n[]\n```\nCette photo montre une forêt, pas un repas.';
@@ -175,25 +175,25 @@ describe('AnthropicAdapter', () => {
       req.flush(mockResponse(aiResponse));
 
       const result = await promise;
-      expect(result).toEqual([]);
+      expect(result?.items).toEqual([]);
       expect(showWarning).toHaveBeenCalledWith('Cette photo montre une forêt, pas un repas.');
     });
   });
 
   describe('texte ne décrivant pas un repas', () => {
-    it('extractMealFromText retourne [] et affiche le message par défaut si IA retourne un tableau vide sans explication', async () => {
+    it('extractMealFromText retourne items vide et affiche le message par défaut si IA retourne un objet sans aliments', async () => {
       getApiKey.mockReturnValue('sk-ant-test-key');
 
       const promise = adapter.extractMealFromText('je me sens fatigué aujourd\'hui');
       const req = httpTesting.expectOne(API_URL);
-      req.flush(mockResponse('[]'));
+      req.flush(mockResponse(JSON.stringify({ items: [], fodmapAlerts: [] })));
 
       const result = await promise;
-      expect(result).toEqual([]);
+      expect(result?.items).toEqual([]);
       expect(showWarning).toHaveBeenCalledWith('Aucun aliment identifié dans ce texte.');
     });
 
-    it('extractMealFromText retourne [] et affiche l\'explication de l\'IA quand elle envoie un bloc ```json``` avec texte', async () => {
+    it('extractMealFromText interprète le format tableau vide hérité et affiche l\'explication de l\'IA', async () => {
       getApiKey.mockReturnValue('sk-ant-test-key');
 
       const aiResponse = '```json\n[]\n```\nAucun aliment mentionné dans ce message.';
@@ -202,7 +202,7 @@ describe('AnthropicAdapter', () => {
       req.flush(mockResponse(aiResponse));
 
       const result = await promise;
-      expect(result).toEqual([]);
+      expect(result?.items).toEqual([]);
       expect(showWarning).toHaveBeenCalledWith('Aucun aliment mentionné dans ce message.');
     });
   });
@@ -210,16 +210,32 @@ describe('AnthropicAdapter', () => {
   // --- Cas nominal ---
 
   describe('cas nominal', () => {
-    it('extractMealFromText retourne les aliments parsés depuis la réponse IA', async () => {
+    it('extractMealFromText retourne items et aiFodmapFlags parsés depuis la réponse IA', async () => {
       getApiKey.mockReturnValue('sk-ant-test-key');
 
       const foodItems = [{ name: 'Riz', fodmap: { level: 'low' }, confirmed: false }];
+      const aiPayload = { items: foodItems, fodmapAlerts: [] };
       const promise = adapter.extractMealFromText('riz blanc');
       const req = httpTesting.expectOne(API_URL);
-      req.flush(mockResponse(JSON.stringify(foodItems)));
+      req.flush(mockResponse(JSON.stringify(aiPayload)));
 
       const result = await promise;
-      expect(result).toEqual(foodItems);
+      expect(result?.items).toEqual(foodItems);
+      expect(result?.aiFodmapFlags).toEqual([]);
+    });
+
+    it('extractMealFromText propage les alertes FODMAP retournées par l\'IA', async () => {
+      getApiKey.mockReturnValue('sk-ant-test-key');
+
+      const foodItems = [{ name: 'Oignon', fodmap: { level: 'high' }, confirmed: false }];
+      const alerts = [{ item: 'Oignon', reason: 'Fructanes élevés', severity: 'danger' }];
+      const aiPayload = { items: foodItems, fodmapAlerts: alerts };
+      const promise = adapter.extractMealFromText('oignon cru');
+      const req = httpTesting.expectOne(API_URL);
+      req.flush(mockResponse(JSON.stringify(aiPayload)));
+
+      const result = await promise;
+      expect(result?.aiFodmapFlags).toEqual(alerts);
     });
   });
 });

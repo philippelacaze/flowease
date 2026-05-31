@@ -1,4 +1,19 @@
-import type { FoodItemVO } from '../../entities/meal.entity';
+import type { FoodItemVO, AiFodmapAlert } from '../../entities/meal.entity';
+
+/**
+ * Résultat d'une analyse de repas par l'IA.
+ *
+ * @remarks
+ * Regroupe les aliments identifiés et les alertes FODMAP contextuelles
+ * en un seul appel IA (évite un second appel pour les alertes).
+ *
+ * @param items - Aliments identifiés avec confirmed = false
+ * @param aiFodmapFlags - Alertes contextuelles pour les aliments FODMAP problématiques
+ */
+export interface MealAnalysisResult {
+  readonly items: ReadonlyArray<FoodItemVO>;
+  readonly aiFodmapFlags: ReadonlyArray<AiFodmapAlert>;
+}
 
 /**
  * Port d'analyse des repas par intelligence artificielle.
@@ -15,19 +30,19 @@ import type { FoodItemVO } from '../../entities/meal.entity';
  */
 export interface MealAnalysisPort {
   /**
-   * Analyse une photo de repas et extrait les aliments identifiés.
+   * Analyse une photo de repas et extrait les aliments identifiés ainsi que les alertes FODMAP.
    *
    * @param base64Image - Image encodée en base64
    * @param mediaType - Type MIME de l'image (ex. "image/jpeg")
-   * @returns Liste de FoodItemVO avec confirmed = false, ou null si IA indisponible
+   * @returns MealAnalysisResult ou null si IA indisponible
    */
-  analyzeMealPhoto(base64Image: string, mediaType: string): Promise<FoodItemVO[] | null>;
+  analyzeMealPhoto(base64Image: string, mediaType: string): Promise<MealAnalysisResult | null>;
 
   /**
-   * Extrait les aliments depuis une description textuelle ou vocale.
+   * Extrait les aliments et alertes FODMAP depuis une description textuelle ou vocale.
    *
    * @param text - Texte décrivant le repas (transcription vocale ou saisie libre)
-   * @returns Liste de FoodItemVO avec confirmed = false, ou null si IA indisponible
+   * @returns MealAnalysisResult ou null si IA indisponible
    */
-  extractMealFromText(text: string): Promise<FoodItemVO[] | null>;
+  extractMealFromText(text: string): Promise<MealAnalysisResult | null>;
 }

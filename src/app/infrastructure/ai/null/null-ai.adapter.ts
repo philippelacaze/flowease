@@ -1,6 +1,5 @@
 import { Injectable } from '@angular/core';
-import type { FoodItemVO } from '../../../domain/entities/meal.entity';
-import type { MealAnalysisPort } from '../../../domain/repositories/ai/meal-analysis.port';
+import type { MealAnalysisPort, MealAnalysisResult } from '../../../domain/repositories/ai/meal-analysis.port';
 import type { NoteTaggingPort, NoteTaggingResult } from '../../../domain/repositories/ai/note-tagging.port';
 import type { AnalysisPort, AnalysisContext, AnalysisResult } from '../../../domain/repositories/ai/analysis.port';
 import type { ReportPort, ReportData } from '../../../domain/repositories/ai/report.port';
@@ -32,14 +31,14 @@ export class NullAIAdapter implements MealAnalysisPort, NoteTaggingPort, Analysi
   /**
    * @returns null — IA indisponible
    */
-  async analyzeMealPhoto(_base64Image: string, _mediaType: string): Promise<FoodItemVO[] | null> {
+  async analyzeMealPhoto(_base64Image: string, _mediaType: string): Promise<MealAnalysisResult | null> {
     return null;
   }
 
   /**
    * @returns null — IA indisponible
    */
-  async extractMealFromText(_text: string): Promise<FoodItemVO[] | null> {
+  async extractMealFromText(_text: string): Promise<MealAnalysisResult | null> {
     return null;
   }
 

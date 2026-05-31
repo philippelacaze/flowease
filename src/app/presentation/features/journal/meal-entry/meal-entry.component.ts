@@ -20,7 +20,7 @@ import {
   PhotoSelectedEvent,
 } from '../../../shared/components/photo-input/photo-input.component';
 import { FoodChipComponent } from '../../../shared/components/food-chip/food-chip.component';
-import type { FoodItemVO, MealInputMode, MealType } from '../../../../domain/entities/meal.entity';
+import type { AiFodmapAlert, FoodItemVO, MealInputMode, MealType } from '../../../../domain/entities/meal.entity';
 
 type MealPhase = 'processing' | 'validation' | 'form' | 'empty' | 'network' | 'confirm';
 
@@ -68,6 +68,7 @@ export class MealEntryComponent implements OnInit, OnDestroy {
   protected textInput = '';
   protected newItemName = '';
   protected proposedItems: FoodItemVO[] = [];
+  protected pendingAiFodmapFlags: AiFodmapAlert[] = [];
   protected frequentFoods: FoodItemVO[] = [];
   protected aiUnavailableReason: string | null = null;
   protected saving = false;
@@ -133,14 +134,15 @@ export class MealEntryComponent implements OnInit, OnDestroy {
       this.startProcessing();
       this.cdr.markForCheck();
     }
-    const items = await this.extractMealFromText.execute(text);
+    const result = await this.extractMealFromText.execute(text);
     this.clearProcessingTimers();
-    if (items.length === 0) {
+    if (result.items.length === 0) {
       this.aiUnavailableReason = this.errorNotification.current()?.message
         ?? 'Analyse IA indisponible — ajoutez les aliments manuellement';
       this.phase = !navigator.onLine ? 'network' : 'empty';
     } else {
-      this.proposedItems = [...this.proposedItems, ...items];
+      this.proposedItems = [...this.proposedItems, ...result.items];
+      this.pendingAiFodmapFlags = [...result.aiFodmapFlags];
       this.phase = 'validation';
     }
     this.cdr.markForCheck();
@@ -148,17 +150,18 @@ export class MealEntryComponent implements OnInit, OnDestroy {
 
   protected async onPhotoSelected(event: PhotoSelectedEvent): Promise<void> {
     this.aiUnavailableReason = null;
-    const items = await this.analyzeMealPhoto.execute({
+    const result = await this.analyzeMealPhoto.execute({
       base64Image: event.base64,
       mediaType: event.mediaType,
     });
     this.clearProcessingTimers();
-    if (items.length === 0) {
+    if (result.items.length === 0) {
       this.aiUnavailableReason = this.errorNotification.current()?.message
         ?? 'Analyse IA indisponible — ajoutez les aliments manuellement';
       this.phase = !navigator.onLine ? 'network' : 'empty';
     } else {
-      this.proposedItems = [...this.proposedItems, ...items];
+      this.proposedItems = [...this.proposedItems, ...result.items];
+      this.pendingAiFodmapFlags = [...result.aiFodmapFlags];
       this.phase = 'validation';
     }
     this.cdr.markForCheck();
@@ -223,6 +226,7 @@ export class MealEntryComponent implements OnInit, OnDestroy {
       inputMode: this.srcMode as MealInputMode,
       items,
       notes,
+      aiFodmapFlags: this.pendingAiFodmapFlags.length > 0 ? this.pendingAiFodmapFlags : undefined,
     });
 
     this.saving = false;

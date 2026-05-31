@@ -2,8 +2,8 @@ import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { firstValueFrom } from 'rxjs';
 
-import type { FoodItemVO } from '../../../domain/entities/meal.entity';
-import type { MealAnalysisPort } from '../../../domain/repositories/ai/meal-analysis.port';
+import type { FoodItemVO, AiFodmapAlert } from '../../../domain/entities/meal.entity';
+import type { MealAnalysisPort, MealAnalysisResult } from '../../../domain/repositories/ai/meal-analysis.port';
 import type { NoteTaggingPort, NoteTaggingResult } from '../../../domain/repositories/ai/note-tagging.port';
 import type { AnalysisPort, AnalysisContext, AnalysisResult } from '../../../domain/repositories/ai/analysis.port';
 import type { ReportPort, ReportData } from '../../../domain/repositories/ai/report.port';
@@ -67,9 +67,9 @@ export class AnthropicAdapter implements MealAnalysisPort, NoteTaggingPort, Anal
    *
    * @param base64Image - Image encodée en base64
    * @param mediaType - Type MIME de l'image
-   * @returns FoodItemVO[] ou null si IA indisponible
+   * @returns MealAnalysisResult ou null si IA indisponible
    */
-  async analyzeMealPhoto(base64Image: string, mediaType: string): Promise<FoodItemVO[] | null> {
+  async analyzeMealPhoto(base64Image: string, mediaType: string): Promise<MealAnalysisResult | null> {
     const apiKey = this.requireApiKey();
     if (!apiKey) return null;
 
@@ -98,19 +98,19 @@ export class AnthropicAdapter implements MealAnalysisPort, NoteTaggingPort, Anal
 
       const rawText = response.content[0]?.text ?? '';
       const { json, explanation } = this.extractJsonBlock(rawText);
-      const items = this.parseJsonArray(json);
+      const result = this.parseMealAnalysisResult(json);
 
-      if (items === null) {
+      if (result === null) {
         console.error('[AnthropicAdapter] analyzeMealPhoto: réponse JSON invalide');
         this.errorNotification.show('Réponse IA illisible — réessayez');
         return null;
       }
-      if (items.length === 0) {
+      if (result.items.length === 0) {
         this.errorNotification.showWarning(
           explanation ?? 'Aucun aliment identifié dans cette image.',
         );
       }
-      return items;
+      return result;
     } catch (err) {
       const msg = err instanceof Error ? err.message : 'Erreur inconnue';
       console.error('[AnthropicAdapter] analyzeMealPhoto:', msg);
@@ -123,9 +123,9 @@ export class AnthropicAdapter implements MealAnalysisPort, NoteTaggingPort, Anal
    * Extrait les aliments depuis une description textuelle.
    *
    * @param text - Description du repas
-   * @returns FoodItemVO[] ou null si IA indisponible
+   * @returns MealAnalysisResult ou null si IA indisponible
    */
-  async extractMealFromText(text: string): Promise<FoodItemVO[] | null> {
+  async extractMealFromText(text: string): Promise<MealAnalysisResult | null> {
     const apiKey = this.requireApiKey();
     if (!apiKey) return null;
 
@@ -134,17 +134,17 @@ export class AnthropicAdapter implements MealAnalysisPort, NoteTaggingPort, Anal
     if (response === null) return null;
 
     const { json, explanation } = this.extractJsonBlock(response);
-    const items = this.parseJsonArray(json);
-    if (items === null) {
+    const result = this.parseMealAnalysisResult(json);
+    if (result === null) {
       this.errorNotification.show('Réponse IA illisible — réessayez');
       return null;
     }
-    if (items.length === 0) {
+    if (result.items.length === 0) {
       this.errorNotification.showWarning(
         explanation ?? 'Aucun aliment identifié dans ce texte.',
       );
     }
-    return items;
+    return result;
   }
 
   // --- NoteTaggingPort ---
@@ -443,14 +443,24 @@ export class AnthropicAdapter implements MealAnalysisPort, NoteTaggingPort, Anal
   }
 
   /**
-   * Parse un tableau JSON de FoodItemVO.
-   * Retourne null si le JSON est invalide (erreur technique) — jamais throw.
+   * Parse la réponse IA d'analyse de repas — accepte le nouveau format objet
+   * { items, fodmapAlerts } et l'ancien format tableau (rétrocompatibilité).
+   * Retourne null si le JSON est invalide — jamais throw.
    */
-  private parseJsonArray(json: string): FoodItemVO[] | null {
+  private parseMealAnalysisResult(json: string): MealAnalysisResult | null {
     try {
-      const parsed = JSON.parse(json);
-      if (!Array.isArray(parsed)) return null;
-      return parsed as FoodItemVO[];
+      const parsed = JSON.parse(json) as unknown;
+      if (Array.isArray(parsed)) {
+        return { items: parsed as FoodItemVO[], aiFodmapFlags: [] };
+      }
+      if (parsed !== null && typeof parsed === 'object' && 'items' in parsed) {
+        const obj = parsed as { items: unknown; fodmapAlerts?: unknown };
+        return {
+          items: Array.isArray(obj.items) ? (obj.items as FoodItemVO[]) : [],
+          aiFodmapFlags: Array.isArray(obj.fodmapAlerts) ? (obj.fodmapAlerts as AiFodmapAlert[]) : [],
+        };
+      }
+      return null;
     } catch {
       return null;
     }

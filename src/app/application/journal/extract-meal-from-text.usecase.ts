@@ -1,15 +1,16 @@
 import { Injectable, Inject } from '@angular/core';
-import type { FoodItemVO } from '../../domain/entities/meal.entity';
-import type { MealAnalysisPort } from '../../domain/repositories/ai/meal-analysis.port';
+import type { MealAnalysisPort, MealAnalysisResult } from '../../domain/repositories/ai/meal-analysis.port';
 import { MEAL_ANALYSIS_PORT } from '../tokens';
 
+const EMPTY_RESULT: MealAnalysisResult = { items: [], aiFodmapFlags: [] };
+
 /**
- * Extrait les aliments d'une description textuelle ou vocale via l'IA.
+ * Extrait les aliments et alertes FODMAP d'une description textuelle ou vocale via l'IA.
  *
  * @remarks
  * Respecte SRP : responsabilité unique d'orchestrer l'extraction textuelle via MealAnalysisPort.
  * Séparé de AnalyzeMealPhotoUseCase (ISP) : les deux méthodes du port ont des flux distincts.
- * Mode dégradé : retourne [] si le port retourne null (NullAIAdapter ou clé absente).
+ * Mode dégradé : retourne un résultat vide si le port retourne null (NullAIAdapter ou clé absente).
  * Les FoodItemVO retournés ont confirmed = false — l'utilisateur valide les suggestions.
  *
  * Exemple d'injection TestBed :
@@ -24,13 +25,13 @@ export class ExtractMealFromTextUseCase {
   ) {}
 
   /**
-   * Appelle le port d'extraction textuelle et retourne les aliments identifiés.
+   * Appelle le port d'extraction textuelle et retourne aliments et alertes FODMAP.
    *
    * @param text - Texte décrivant le repas (transcription vocale ou saisie libre)
-   * @returns FoodItemVO[] — liste vide si IA indisponible ou aucun aliment extrait.
+   * @returns MealAnalysisResult — résultat vide si IA indisponible ou aucun aliment extrait.
    *          L'adapter a déjà notifié l'utilisateur via ErrorNotificationService.
    */
-  async execute(text: string): Promise<FoodItemVO[]> {
-    return (await this.mealAnalysisPort.extractMealFromText(text)) ?? [];
+  async execute(text: string): Promise<MealAnalysisResult> {
+    return (await this.mealAnalysisPort.extractMealFromText(text)) ?? EMPTY_RESULT;
   }
 }

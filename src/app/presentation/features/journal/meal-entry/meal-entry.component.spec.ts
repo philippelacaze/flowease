@@ -10,12 +10,16 @@ import { ExtractMealFromTextUseCase } from '../../../../application/journal/extr
 import { GetFrequentFoodsUseCase } from '../../../../application/journal/get-frequent-foods.usecase';
 import { ErrorNotificationService } from '../../../../core/error-notification.service';
 import type { FoodItemVO } from '../../../../domain/entities/meal.entity';
+import type { MealAnalysisResult } from '../../../../domain/repositories/ai/meal-analysis.port';
 import type { PhotoSelectedEvent } from '../../../shared/components/photo-input/photo-input.component';
 
 const mockItems: FoodItemVO[] = [
   { name: 'Riz blanc', fodmap: { level: 'low' }, confirmed: false },
   { name: 'Poulet grillé', fodmap: { level: 'low' }, confirmed: false },
 ];
+
+const mockResult: MealAnalysisResult = { items: mockItems, aiFodmapFlags: [] };
+const emptyResult: MealAnalysisResult = { items: [], aiFodmapFlags: [] };
 
 type ComponentPrivate = {
   onPhotoSelected(event: PhotoSelectedEvent): Promise<void>;
@@ -25,11 +29,11 @@ type ComponentPrivate = {
   aiUnavailable: boolean;
 };
 
-function makeUseCaseMocks(analyzeMealPhotoResult: FoodItemVO[] = mockItems) {
+function makeUseCaseMocks(analyzeMealPhotoResult: MealAnalysisResult = mockResult) {
   return {
     addMeal: { execute: vi.fn().mockResolvedValue('meal-id') },
     analyzeMealPhoto: { execute: vi.fn().mockResolvedValue(analyzeMealPhotoResult) },
-    extractMealFromText: { execute: vi.fn().mockResolvedValue([]) },
+    extractMealFromText: { execute: vi.fn().mockResolvedValue(emptyResult) },
     getFrequentFoods: { execute: vi.fn().mockResolvedValue([]) },
   };
 }
@@ -59,7 +63,7 @@ describe('MealEntryComponent', () => {
     let mocks: ReturnType<typeof makeUseCaseMocks>;
 
     beforeEach(async () => {
-      mocks = makeUseCaseMocks(mockItems);
+      mocks = makeUseCaseMocks(mockResult);
       fixture = await createComponent(mocks);
     });
 
@@ -104,7 +108,7 @@ describe('MealEntryComponent', () => {
     let fixture: ComponentFixture<MealEntryComponent>;
 
     beforeEach(async () => {
-      const mocks = makeUseCaseMocks([]);
+      const mocks = makeUseCaseMocks(emptyResult);
       fixture = await createComponent(mocks);
     });
 
@@ -157,7 +161,7 @@ describe('MealEntryComponent', () => {
       originalDescriptor = Object.getOwnPropertyDescriptor(navigator, 'onLine');
       Object.defineProperty(navigator, 'onLine', { get: () => false, configurable: true });
 
-      const mocks = makeUseCaseMocks();
+      const mocks = makeUseCaseMocks(mockResult);
       fixture = await createComponent(mocks);
     });
 

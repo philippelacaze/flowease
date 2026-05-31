@@ -23,7 +23,8 @@
       "Bash(Select-Object FullName)",
       "Bash(xargs head -5)",
       "Bash(Select-String -Pattern \"\\(PASS|FAIL|ERROR|transit|blood|mucus|frequency|add-symptom|symptom-entry\\)\")",
-      "Bash(python3 -c \"import sys,json; d=json.load\\(sys.stdin\\); print\\(json.dumps\\(d.get\\('projects',{}\\).get\\('flow-ease',{}\\).get\\('architect',{}\\).get\\('test',{}\\), indent=2\\)\\)\")"
+      "Bash(python3 -c \"import sys,json; d=json.load\\(sys.stdin\\); print\\(json.dumps\\(d.get\\('projects',{}\\).get\\('flow-ease',{}\\).get\\('architect',{}\\).get\\('test',{}\\), indent=2\\)\\)\")",
+      "Bash(xargs wc -l)"
     ]
   }
 }

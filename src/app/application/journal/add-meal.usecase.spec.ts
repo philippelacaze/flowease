@@ -87,6 +87,25 @@ describe('AddMealUseCase', () => {
         expect.objectContaining({ notes: 'Repas léger' }),
       );
     });
+
+    it('persiste les alertes FODMAP IA quand elles sont fournies', async () => {
+      const useCase = TestBed.inject(AddMealUseCase);
+      const flags = [
+        { item: 'Oignon', reason: 'Contient des fructanes', severity: 'danger' as const },
+      ];
+      await useCase.execute({ ...baseInput, aiFodmapFlags: flags });
+      expect(mockStorage.save).toHaveBeenCalledWith(
+        'meals',
+        expect.objectContaining({ aiFodmapFlags: flags }),
+      );
+    });
+
+    it('n\'inclut pas aiFodmapFlags si absent de l\'input', async () => {
+      const useCase = TestBed.inject(AddMealUseCase);
+      await useCase.execute(baseInput);
+      const savedMeal = mockStorage.save.mock.calls[0][1];
+      expect(savedMeal.aiFodmapFlags).toBeUndefined();
+    });
   });
 
   describe('erreur storage — save échoue', () => {

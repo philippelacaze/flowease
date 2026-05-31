@@ -3,12 +3,24 @@ import { vi } from 'vitest';
 import { AnalyzeMealPhotoUseCase } from './analyze-meal-photo.usecase';
 import { MEAL_ANALYSIS_PORT } from '../tokens';
 import { NullAIAdapter } from '../../infrastructure/ai/null/null-ai.adapter';
-import type { FoodItemVO } from '../../domain/entities/meal.entity';
+import type { MealAnalysisResult } from '../../domain/repositories/ai/meal-analysis.port';
 
-const mockItems: FoodItemVO[] = [
-  { name: 'Riz blanc', quantity: '150', unit: 'g', fodmap: { level: 'low' }, confirmed: false },
-  { name: 'Poulet grillé', fodmap: { level: 'low' }, confirmed: false },
-];
+const mockResult: MealAnalysisResult = {
+  items: [
+    { name: 'Riz blanc', quantity: '150', unit: 'g', fodmap: { level: 'low' }, confirmed: false },
+    { name: 'Poulet grillé', fodmap: { level: 'low' }, confirmed: false },
+  ],
+  aiFodmapFlags: [],
+};
+
+const mockResultWithFlags: MealAnalysisResult = {
+  items: [
+    { name: 'Oignon', fodmap: { level: 'high' }, confirmed: false },
+  ],
+  aiFodmapFlags: [
+    { item: 'Oignon', reason: 'Contient des fructanes — fermentation rapide dans le SIBO', severity: 'danger' },
+  ],
+};
 
 describe('AnalyzeMealPhotoUseCase', () => {
 
@@ -20,7 +32,7 @@ describe('AnalyzeMealPhotoUseCase', () => {
 
     beforeEach(() => {
       vi.clearAllMocks();
-      mockPort.analyzeMealPhoto.mockResolvedValue(mockItems);
+      mockPort.analyzeMealPhoto.mockResolvedValue(mockResult);
       TestBed.configureTestingModule({
         providers: [
           AnalyzeMealPhotoUseCase,
@@ -29,10 +41,10 @@ describe('AnalyzeMealPhotoUseCase', () => {
       });
     });
 
-    it('retourne les aliments identifiés par l\'IA depuis une photo JPEG', async () => {
+    it('retourne les aliments et les alertes FODMAP identifiés depuis une photo JPEG', async () => {
       const useCase = TestBed.inject(AnalyzeMealPhotoUseCase);
       const result = await useCase.execute({ base64Image: 'abc123==', mediaType: 'image/jpeg' });
-      expect(result).toEqual(mockItems);
+      expect(result).toEqual(mockResult);
     });
 
     it('transmet le base64 et le mediaType exacts au port d\'analyse', async () => {
@@ -41,11 +53,20 @@ describe('AnalyzeMealPhotoUseCase', () => {
       expect(mockPort.analyzeMealPhoto).toHaveBeenCalledWith('xyz==', 'image/png');
     });
 
-    it('retourne un tableau vide si le port retourne un tableau vide', async () => {
-      mockPort.analyzeMealPhoto.mockResolvedValue([]);
+    it('retourne un résultat vide si le port retourne un résultat sans aliments', async () => {
+      mockPort.analyzeMealPhoto.mockResolvedValue({ items: [], aiFodmapFlags: [] });
       const useCase = TestBed.inject(AnalyzeMealPhotoUseCase);
       const result = await useCase.execute({ base64Image: 'abc', mediaType: 'image/jpeg' });
-      expect(result).toEqual([]);
+      expect(result.items).toEqual([]);
+      expect(result.aiFodmapFlags).toEqual([]);
+    });
+
+    it('propage les alertes FODMAP retournées par le port', async () => {
+      mockPort.analyzeMealPhoto.mockResolvedValue(mockResultWithFlags);
+      const useCase = TestBed.inject(AnalyzeMealPhotoUseCase);
+      const result = await useCase.execute({ base64Image: 'abc', mediaType: 'image/jpeg' });
+      expect(result.aiFodmapFlags).toHaveLength(1);
+      expect(result.aiFodmapFlags[0].severity).toBe('danger');
     });
   });
 
@@ -59,10 +80,11 @@ describe('AnalyzeMealPhotoUseCase', () => {
       });
     });
 
-    it('retourne un tableau vide sans lever d\'exception', async () => {
+    it('retourne un résultat vide sans lever d\'exception', async () => {
       const useCase = TestBed.inject(AnalyzeMealPhotoUseCase);
       const result = await useCase.execute({ base64Image: '', mediaType: 'image/jpeg' });
-      expect(result).toEqual([]);
+      expect(result.items).toEqual([]);
+      expect(result.aiFodmapFlags).toEqual([]);
     });
 
     it('ne lève pas d\'exception même si le base64 est vide', async () => {

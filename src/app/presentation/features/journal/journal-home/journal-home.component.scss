@@ -162,6 +162,36 @@
     /* Repas — chips */
     .food-chips-row { display: flex; flex-wrap: wrap; gap: 5px; padding: 2px 0; }
 
+    /* Repas — alertes FODMAP IA */
+    .fodmap-alerts {
+      list-style: none;
+      margin: 6px 0 0;
+      padding: 0;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .fodmap-alert {
+      font-size: 12px;
+      line-height: 1.4;
+      padding: 4px 8px;
+      border-radius: 6px;
+      border-left: 3px solid;
+    }
+
+    .fodmap-alert--warning {
+      background: color-mix(in srgb, var(--fodmap-medium-dot) 12%, transparent);
+      border-color: var(--fodmap-medium-dot);
+      color: var(--text-1);
+    }
+
+    .fodmap-alert--danger {
+      background: color-mix(in srgb, var(--fodmap-high-dot) 12%, transparent);
+      border-color: var(--fodmap-high-dot);
+      color: var(--text-1);
+    }
+
     /* Symptômes — barre d'intensité */
     .intensity-row { display: flex; align-items: center; gap: 8px; }
     .intensity-bar { flex: 1; height: 6px; background: var(--border); border-radius: 3px; overflow: hidden; }
