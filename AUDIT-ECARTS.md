@@ -73,7 +73,7 @@ Le panneau de confirmation détaillée (tap long sur une carte de traitement) do
 |---|---|
 | **Réf. spec** | §1.5.4 — Gestion des cures |
 | **Décision** | ☑ VALIDER &nbsp;&nbsp; ☐ INVALIDER |
-| **Statut** | ⬜ À traiter |
+| **Statut** | ✅ Traité |
 
 **Ce que dit la spec :**  
 Quand un traitement de type "cure" est actif, le journal doit afficher une **barre de progression de cure** (ex : `"Rifaximine — Jour 8/14"`). À la fin de la cure, le traitement passe automatiquement en statut "Inactif".

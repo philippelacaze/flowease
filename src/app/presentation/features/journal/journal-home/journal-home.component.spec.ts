@@ -4,6 +4,7 @@ import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 import { vi } from 'vitest';
 import { JournalHomeComponent } from './journal-home.component';
 import { GetJournalDayUseCase } from '../../../../application/journal/get-journal-day.usecase';
+import { GetActiveCuresUseCase } from '../../../../application/journal/get-active-cures.usecase';
 import { LOCAL_SETTINGS_PORT } from '../../../../application/tokens';
 import type { FoodItemVO } from '../../../../domain/entities/meal.entity';
 
@@ -30,6 +31,7 @@ async function createComponent() {
     providers: [
       provideRouter([]),
       { provide: GetJournalDayUseCase, useValue: { execute: vi.fn().mockResolvedValue([]) } },
+      { provide: GetActiveCuresUseCase, useValue: { execute: vi.fn().mockResolvedValue([]) } },
       { provide: LOCAL_SETTINGS_PORT, useValue: { getLanguage: () => 'fr', getApiKey: () => null } },
     ],
   }).compileComponents();

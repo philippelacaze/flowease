@@ -151,6 +151,9 @@
     }
   </div>
 
+  <!-- Cures en cours -->
+  <app-cure-progress [cures]="activeCures" />
+
   <!-- Journal du jour -->
   @if (loading) {
     <div class="loading" role="status" aria-live="polite">Chargement…</div>

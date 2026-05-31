@@ -10,8 +10,10 @@ import { Router } from '@angular/router';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { GetJournalDayUseCase, JournalEntry } from '../../../../application/journal/get-journal-day.usecase';
+import { GetActiveCuresUseCase, CureProgressVO } from '../../../../application/journal/get-active-cures.usecase';
 import { OfflineBannerComponent } from '../../../shared/components/offline-banner/offline-banner.component';
 import { FoodChipComponent } from '../../../shared/components/food-chip/food-chip.component';
+import { CureProgressComponent } from '../cure-progress/cure-progress.component';
 import type { FoodItemVO } from '../../../../domain/entities/meal.entity';
 
 const MEAL_LABELS: Record<string, string> = {
@@ -34,18 +36,20 @@ const MEAL_LABELS: Record<string, string> = {
 @Component({
   selector: 'app-journal-home',
   standalone: true,
-  imports: [DatePipe, MatButtonModule, MatIconModule, OfflineBannerComponent, FoodChipComponent],
+  imports: [DatePipe, MatButtonModule, MatIconModule, OfflineBannerComponent, FoodChipComponent, CureProgressComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './journal-home.component.html',
   styleUrl: './journal-home.component.scss',
 })
 export class JournalHomeComponent implements OnInit {
   private readonly getJournalDay = inject(GetJournalDayUseCase);
+  private readonly getActiveCures = inject(GetActiveCuresUseCase);
   private readonly router = inject(Router);
   private readonly cdr = inject(ChangeDetectorRef);
 
   protected currentDate = new Date();
   protected entries: JournalEntry[] = [];
+  protected activeCures: CureProgressVO[] = [];
   protected loading = true;
 
   protected showWellbeing = false;
@@ -72,6 +76,7 @@ export class JournalHomeComponent implements OnInit {
 
   ngOnInit(): void {
     void this.loadEntries();
+    void this.loadActiveCures();
   }
 
   protected prevDay(): void {
@@ -159,6 +164,11 @@ export class JournalHomeComponent implements OnInit {
     this.cdr.markForCheck();
     this.entries = await this.getJournalDay.execute(this.currentDate);
     this.loading = false;
+    this.cdr.markForCheck();
+  }
+
+  private async loadActiveCures(): Promise<void> {
+    this.activeCures = await this.getActiveCures.execute();
     this.cdr.markForCheck();
   }
 }
