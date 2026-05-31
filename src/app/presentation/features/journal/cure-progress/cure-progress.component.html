@@ -1,0 +1,21 @@
+@if (cures().length > 0) {
+  <div class="cure-progress-list" role="region" aria-label="Cures en cours">
+    @for (cure of cures(); track cure.id) {
+      <div class="cure-progress-item"
+           data-testid="cure-progress-item">
+        <div class="cure-header">
+          <span class="cure-name">{{ cure.name }}</span>
+          <span class="cure-day" aria-hidden="true">Jour {{ cure.currentDay }}/{{ cure.totalDays }}</span>
+        </div>
+        <div class="cure-bar"
+             role="progressbar"
+             [attr.aria-label]="cure.name + ' — jour ' + cure.currentDay + ' sur ' + cure.totalDays"
+             [attr.aria-valuenow]="cure.currentDay"
+             [attr.aria-valuemin]="1"
+             [attr.aria-valuemax]="cure.totalDays">
+          <div class="cure-fill" [style.width.%]="cure.progressPercent"></div>
+        </div>
+      </div>
+    }
+  </div>
+}

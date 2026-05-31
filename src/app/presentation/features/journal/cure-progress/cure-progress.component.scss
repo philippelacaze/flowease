@@ -1,0 +1,46 @@
+.cure-progress-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 12px 16px;
+  background: var(--surface-variant, #f3f0f7);
+  border-radius: 12px;
+  margin: 0 16px 12px;
+}
+
+.cure-progress-item {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.cure-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.cure-name {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--on-surface, #1c1b1f);
+}
+
+.cure-day {
+  font-size: 12px;
+  color: var(--on-surface-variant, #49454f);
+}
+
+.cure-bar {
+  height: 6px;
+  background: var(--surface-container-highest, #ddd);
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.cure-fill {
+  height: 100%;
+  background: var(--primary, #6750a4);
+  border-radius: 3px;
+  transition: width 0.3s ease;
+}
