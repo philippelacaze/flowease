@@ -119,7 +119,7 @@ Chaque traitement actif peut avoir des rappels via **Web Notifications API** (he
 | | |
 |---|---|
 | **Réf. spec** | §1.2 — Principes UX |
-| **Décision** | ☐ VALIDER &nbsp;&nbsp; ☐ INVALIDER |
+| **Décision** | ☑ VALIDER &nbsp;&nbsp; ☐ INVALIDER |
 | **Statut** | ⬜ À traiter |
 
 **Ce que dit la spec :**  
@@ -164,8 +164,8 @@ Les tags générés par Claude s'affichent **en attente de confirmation**. L'uti
 | | |
 |---|---|
 | **Réf. spec** | §1.4.2 — Bien-être global |
-| **Décision** | ☐ VALIDER &nbsp;&nbsp; ☐ INVALIDER |
-| **Statut** | ⬜ À traiter |
+| **Décision** | ☑ VALIDER &nbsp;&nbsp; ☐ INVALIDER |
+| **Statut** | ✅ Traité |
 
 **Ce que dit la spec :**  
 Le score de bien-être est un symptôme de catégorie `'wellbeing'`. La heatmap mensuelle du Module 2 dépend de ces données historiques.

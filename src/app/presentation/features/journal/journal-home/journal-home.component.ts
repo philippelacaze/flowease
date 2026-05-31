@@ -11,6 +11,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { GetJournalDayUseCase, JournalEntry } from '../../../../application/journal/get-journal-day.usecase';
 import { GetActiveCuresUseCase, CureProgressVO } from '../../../../application/journal/get-active-cures.usecase';
+import { SaveWellbeingScoreUseCase } from '../../../../application/journal/save-wellbeing-score.usecase';
 import { OfflineBannerComponent } from '../../../shared/components/offline-banner/offline-banner.component';
 import { FoodChipComponent } from '../../../shared/components/food-chip/food-chip.component';
 import { CureProgressComponent } from '../cure-progress/cure-progress.component';
@@ -44,6 +45,7 @@ const MEAL_LABELS: Record<string, string> = {
 export class JournalHomeComponent implements OnInit {
   private readonly getJournalDay = inject(GetJournalDayUseCase);
   private readonly getActiveCures = inject(GetActiveCuresUseCase);
+  private readonly saveWellbeingScore = inject(SaveWellbeingScoreUseCase);
   private readonly router = inject(Router);
   private readonly cdr = inject(ChangeDetectorRef);
 
@@ -61,7 +63,10 @@ export class JournalHomeComponent implements OnInit {
     return this.entries.filter((e): e is Extract<JournalEntry, { kind: 'meal' }> => e.kind === 'meal');
   }
   protected get symptoms() {
-    return this.entries.filter((e): e is Extract<JournalEntry, { kind: 'symptom' }> => e.kind === 'symptom');
+    return this.entries.filter(
+      (e): e is Extract<JournalEntry, { kind: 'symptom' }> =>
+        e.kind === 'symptom' && e.data.category !== 'wellbeing',
+    );
   }
   protected get intakes() {
     return this.entries.filter((e): e is Extract<JournalEntry, { kind: 'intake' }> => e.kind === 'intake');
@@ -103,6 +108,7 @@ export class JournalHomeComponent implements OnInit {
     this.wellbeingTime = new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
     this.showWellbeing = false;
     this.cdr.markForCheck();
+    void this.saveWellbeingScore.execute({ date: this.currentDate, score: n });
   }
 
   protected hasFodmapHigh(items: ReadonlyArray<FoodItemVO>): boolean {
@@ -161,10 +167,26 @@ export class JournalHomeComponent implements OnInit {
 
   private async loadEntries(): Promise<void> {
     this.loading = true;
+    this.wellbeingScore = null;
+    this.showWellbeing = false;
     this.cdr.markForCheck();
     this.entries = await this.getJournalDay.execute(this.currentDate);
+    this.prefillWellbeing();
     this.loading = false;
     this.cdr.markForCheck();
+  }
+
+  private prefillWellbeing(): void {
+    const entry = this.entries.find(
+      (e): e is Extract<JournalEntry, { kind: 'symptom' }> =>
+        e.kind === 'symptom' && e.data.symptomKey === 'wellbeing_score',
+    );
+    if (!entry) return;
+    this.wellbeingScore = entry.data.intensity;
+    this.wellbeingTime = new Date(entry.data.occurredAt).toLocaleTimeString('fr-FR', {
+      hour: '2-digit',
+      minute: '2-digit',
+    });
   }
 
   private async loadActiveCures(): Promise<void> {
