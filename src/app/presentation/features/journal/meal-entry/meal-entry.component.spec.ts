@@ -5,6 +5,7 @@ import { provideRouter } from '@angular/router';
 import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 import { MealEntryComponent } from './meal-entry.component';
 import { AddMealUseCase } from '../../../../application/journal/add-meal.usecase';
+import { EditMealUseCase } from '../../../../application/journal/edit-meal.usecase';
 import { AnalyzeMealPhotoUseCase } from '../../../../application/journal/analyze-meal-photo.usecase';
 import { ExtractMealFromTextUseCase } from '../../../../application/journal/extract-meal-from-text.usecase';
 import { GetFrequentFoodsUseCase } from '../../../../application/journal/get-frequent-foods.usecase';
@@ -32,6 +33,7 @@ type ComponentPrivate = {
 function makeUseCaseMocks(analyzeMealPhotoResult: MealAnalysisResult = mockResult) {
   return {
     addMeal: { execute: vi.fn().mockResolvedValue('meal-id') },
+    editMeal: { execute: vi.fn().mockResolvedValue(undefined) },
     analyzeMealPhoto: { execute: vi.fn().mockResolvedValue(analyzeMealPhotoResult) },
     extractMealFromText: { execute: vi.fn().mockResolvedValue(emptyResult) },
     getFrequentFoods: { execute: vi.fn().mockResolvedValue([]) },
@@ -44,6 +46,7 @@ async function createComponent(mocks: ReturnType<typeof makeUseCaseMocks>) {
     providers: [
       provideRouter([]),
       { provide: AddMealUseCase, useValue: mocks.addMeal },
+      { provide: EditMealUseCase, useValue: mocks.editMeal },
       { provide: AnalyzeMealPhotoUseCase, useValue: mocks.analyzeMealPhoto },
       { provide: ExtractMealFromTextUseCase, useValue: mocks.extractMealFromText },
       { provide: GetFrequentFoodsUseCase, useValue: mocks.getFrequentFoods },

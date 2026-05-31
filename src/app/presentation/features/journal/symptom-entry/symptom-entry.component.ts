@@ -9,11 +9,12 @@ import {
 import { FormsModule } from '@angular/forms';
 import { Router, ActivatedRoute } from '@angular/router';
 import { AddSymptomUseCase } from '../../../../application/journal/add-symptom.usecase';
+import { EditSymptomUseCase } from '../../../../application/journal/edit-symptom.usecase';
 import { GetActiveSymptomsUseCase } from '../../../../application/journal/get-active-symptoms.usecase';
 import { IntensitySliderComponent } from '../../../shared/components/intensity-slider/intensity-slider.component';
 import { AbdominalMapComponent } from '../../../shared/components/abdominal-map/abdominal-map.component';
 import { BristolScaleComponent } from '../../../shared/components/bristol-scale/bristol-scale.component';
-import type { SymptomCategory } from '../../../../domain/entities/symptom.entity';
+import type { SymptomCategory, SymptomEntity } from '../../../../domain/entities/symptom.entity';
 import type { AbdominalZone } from '../../../../domain/value-objects/pain-location.vo';
 import type { PainType } from '../../../../domain/value-objects/pain-type.vo';
 import type { BristolType } from '../../../../domain/value-objects/bristol-type.vo';
@@ -79,6 +80,7 @@ const FALLBACK_META: SymptomMeta = { category: 'systemic', hasMap: false, hasPai
 })
 export class SymptomEntryComponent implements OnInit {
   private readonly addSymptom = inject(AddSymptomUseCase);
+  private readonly editSymptom = inject(EditSymptomUseCase);
   private readonly getActiveSymptoms = inject(GetActiveSymptomsUseCase);
   private readonly router = inject(Router);
   private readonly route = inject(ActivatedRoute);
@@ -93,6 +95,7 @@ export class SymptomEntryComponent implements OnInit {
   protected customSymptoms: SymptomRow[] = [];
 
   protected rows: SymptomRow[] = [];
+  private editingEntry: SymptomEntity | null = null;
 
   protected get allRows(): SymptomRow[] {
     return [...this.rows, ...this.customSymptoms];
@@ -138,6 +141,30 @@ export class SymptomEntryComponent implements OnInit {
   }
 
   async ngOnInit(): Promise<void> {
+    const state = history.state as { editEntry?: SymptomEntity };
+
+    if (state?.editEntry) {
+      this.editingEntry = state.editEntry;
+      const entry = state.editEntry;
+      const meta = SYMPTOM_METADATA[entry.symptomKey] ?? FALLBACK_META;
+      const editRow: SymptomRow = {
+        ...meta,
+        key: entry.symptomKey,
+        labelFr: entry.symptomKey,
+        intensity: entry.intensity,
+        painZones: entry.painZones ? [...entry.painZones] : [],
+        painTypes: entry.painTypes ? [...entry.painTypes] : [],
+        bristolType: entry.stool?.bristolType ?? null,
+        stoolBlood: entry.stool?.blood ?? false,
+        stoolMucus: entry.stool?.mucus ?? false,
+        stoolFrequency: entry.stool?.frequency ?? 0,
+      };
+      this.rows = [editRow];
+      this.customSymptoms = [];
+      this.cdr.markForCheck();
+      return;
+    }
+
     const mode = this.route.snapshot.queryParams['mode'] as string | undefined;
     this.srcMode = mode === 'voice' ? 'voice' : 'form';
 
@@ -224,6 +251,31 @@ export class SymptomEntryComponent implements OnInit {
     const rowsToSave = this.allRows.filter(
       r => r.intensity > 0 || this.hasStoolData(r),
     );
+
+    if (this.editingEntry) {
+      const row = rowsToSave[0];
+      if (row) {
+        await this.editSymptom.execute({
+          id: this.editingEntry.id,
+          occurredAt: this.editingEntry.occurredAt,
+          category: row.category,
+          symptomKey: row.key,
+          intensity: row.intensity || 5,
+          ...(row.painZones.length > 0 && { painZones: row.painZones }),
+          ...(row.painTypes.length > 0 && { painTypes: row.painTypes }),
+          ...(this.hasStoolData(row) && {
+            stool: {
+              bristolType: row.bristolType,
+              ...(row.stoolFrequency > 0 && { frequency: row.stoolFrequency }),
+              ...(row.stoolBlood && { blood: true }),
+              ...(row.stoolMucus && { mucus: true }),
+            },
+          }),
+        });
+      }
+      void this.router.navigate(['/journal']).catch(() => undefined);
+      return;
+    }
 
     await Promise.all(
       rowsToSave.map(row => {

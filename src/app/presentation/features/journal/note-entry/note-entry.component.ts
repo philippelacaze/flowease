@@ -3,12 +3,14 @@ import {
   ChangeDetectionStrategy,
   ChangeDetectorRef,
   inject,
+  OnInit,
 } from '@angular/core';
 
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { MatBottomSheet } from '@angular/material/bottom-sheet';
 import { AddNoteUseCase } from '../../../../application/journal/add-note.usecase';
+import { EditNoteUseCase } from '../../../../application/journal/edit-note.usecase';
 import { TagNoteUseCase } from '../../../../application/journal/tag-note.usecase';
 import { GetJournalDayUseCase } from '../../../../application/journal/get-journal-day.usecase';
 import { VoiceInputComponent } from '../../../shared/components/voice-input/voice-input.component';
@@ -17,7 +19,7 @@ import {
   PhotoSelectedEvent,
 } from '../../../shared/components/photo-input/photo-input.component';
 import { LinkEntriesSheetComponent } from './link-entries-sheet.component';
-import type { NoteInputMode, LinkedEntry } from '../../../../domain/entities/note.entity';
+import type { NoteEntity, NoteInputMode, LinkedEntry } from '../../../../domain/entities/note.entity';
 
 /**
  * Page de saisie d'une note — modes texte, vocal et photo.
@@ -39,8 +41,9 @@ import type { NoteInputMode, LinkedEntry } from '../../../../domain/entities/not
   templateUrl: './note-entry.component.html',
   styleUrl: './note-entry.component.scss',
 })
-export class NoteEntryComponent {
+export class NoteEntryComponent implements OnInit {
   private readonly addNote = inject(AddNoteUseCase);
+  private readonly editNote = inject(EditNoteUseCase);
   private readonly tagNote = inject(TagNoteUseCase);
   private readonly getJournalDay = inject(GetJournalDayUseCase);
   private readonly router = inject(Router);
@@ -54,12 +57,25 @@ export class NoteEntryComponent {
   protected linkedEntries: LinkedEntry[] = [];
   protected savedTags: string[] = [];
   protected saving = false;
+  private editingEntry: NoteEntity | null = null;
 
   protected readonly modes: { key: NoteInputMode; emoji: string; label: string }[] = [
     { key: 'text',  emoji: '✏️', label: 'Texte' },
     { key: 'voice', emoji: '🎤', label: 'Vocal' },
     { key: 'photo', emoji: '📷', label: 'Photo' },
   ];
+
+  ngOnInit(): void {
+    const state = history.state as { editEntry?: NoteEntity };
+    if (state?.editEntry) {
+      this.editingEntry = state.editEntry;
+      this.mode = state.editEntry.inputMode;
+      this.content = state.editEntry.content;
+      this.imageBase64 = state.editEntry.imageBase64 ?? null;
+      this.linkedEntries = [...state.editEntry.linkedEntries];
+      this.cdr.markForCheck();
+    }
+  }
 
   protected get canSubmit(): boolean {
     return this.content.trim().length > 0 || this.imageBase64 !== null;
@@ -103,6 +119,19 @@ export class NoteEntryComponent {
     if (!this.canSubmit || this.saving) return;
     this.saving = true;
     this.cdr.markForCheck();
+
+    if (this.editingEntry) {
+      await this.editNote.execute({
+        id: this.editingEntry.id,
+        occurredAt: this.editingEntry.occurredAt,
+        inputMode: this.mode,
+        content: this.content.trim() || '(photo)',
+        ...(this.imageBase64 && { imageBase64: this.imageBase64 }),
+        ...(this.linkedEntries.length > 0 && { linkedEntries: this.linkedEntries }),
+      });
+      void this.router.navigate(['/journal']).catch(() => undefined);
+      return;
+    }
 
     const noteId = await this.addNote.execute({
       occurredAt: new Date(),

@@ -172,7 +172,13 @@
               <div class="entry-card" data-testid="meal-entry">
                 <div class="entry-head">
                   <span class="entry-label">{{ mealLabel(e.data.type) }}</span>
-                  <span class="entry-time">{{ e.data.occurredAt | date:'HH:mm' }}</span>
+                  <div class="entry-head-right">
+                    <span class="entry-time">{{ e.data.occurredAt | date:'HH:mm' }}</span>
+                    <button class="entry-edit-btn" aria-label="Modifier ce repas"
+                            data-testid="edit-meal-btn" (click)="editMeal(e.data)">
+                      <mat-icon aria-hidden="true">edit</mat-icon>
+                    </button>
+                  </div>
                 </div>
                 <div class="food-chips-row" role="list" aria-label="Aliments">
                   @for (item of e.data.items; track item) {
@@ -203,7 +209,13 @@
               <div class="entry-card" data-testid="symptom-entry">
                 <div class="entry-head">
                   <span class="entry-label">{{ e.data.symptomKey }}</span>
-                  <span class="entry-time">{{ e.data.occurredAt | date:'HH:mm' }}</span>
+                  <div class="entry-head-right">
+                    <span class="entry-time">{{ e.data.occurredAt | date:'HH:mm' }}</span>
+                    <button class="entry-edit-btn" aria-label="Modifier ce symptôme"
+                            data-testid="edit-symptom-btn" (click)="editSymptom(e.data)">
+                      <mat-icon aria-hidden="true">edit</mat-icon>
+                    </button>
+                  </div>
                 </div>
                 <div class="intensity-row" [attr.aria-label]="'Intensité ' + e.data.intensity + ' sur 10'">
                   <div class="intensity-bar">
@@ -232,7 +244,13 @@
               <div class="entry-card" data-testid="intake-entry">
                 <div class="entry-head">
                   <span class="entry-label">{{ e.data.treatmentId }}</span>
-                  <span class="entry-time">{{ e.data.confirmedAt | date:'HH:mm' }}</span>
+                  <div class="entry-head-right">
+                    <span class="entry-time">{{ e.data.confirmedAt | date:'HH:mm' }}</span>
+                    <button class="entry-edit-btn" aria-label="Modifier cette prise"
+                            data-testid="edit-intake-btn" (click)="editIntake(e.data)">
+                      <mat-icon aria-hidden="true">edit</mat-icon>
+                    </button>
+                  </div>
                 </div>
                 <span class="status-badge"
                   [class.status-taken]="e.data.status === 'taken'"
@@ -254,6 +272,10 @@
               <div class="entry-card" data-testid="note-entry">
                 <div class="entry-head">
                   <span class="entry-time">{{ e.data.occurredAt | date:'HH:mm' }}</span>
+                  <button class="entry-edit-btn" aria-label="Modifier cette note"
+                          data-testid="edit-note-btn" (click)="editNote(e.data)">
+                    <mat-icon aria-hidden="true">edit</mat-icon>
+                  </button>
                 </div>
                 <p class="note-content">{{ e.data.content }}</p>
                 @if (e.data.tags.length > 0) {

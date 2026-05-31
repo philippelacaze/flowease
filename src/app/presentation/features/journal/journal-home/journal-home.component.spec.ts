@@ -11,6 +11,8 @@ import type { FoodItemVO, AiFodmapAlert } from '../../../../domain/entities/meal
 import type { JournalEntry } from '../../../../application/journal/get-journal-day.usecase';
 import type { SymptomEntity } from '../../../../domain/entities/symptom.entity';
 import type { MealEntity } from '../../../../domain/entities/meal.entity';
+import type { NoteEntity } from '../../../../domain/entities/note.entity';
+import type { IntakeEntity } from '../../../../domain/entities/intake.entity';
 
 const LOW_ITEMS: FoodItemVO[] = [
   { name: 'Riz', fodmap: { level: 'low' }, confirmed: true },
@@ -55,6 +57,8 @@ type ComponentProtected = {
   startSymptomVoice(event: Event): void;
   startIntakeVoice(event: Event): void;
   startNoteVoice(event: Event): void;
+  editMeal(data: MealEntity): void;
+  editNote(data: NoteEntity): void;
   wellbeingScore: number | null;
   symptoms: JournalEntry[];
 };
@@ -93,6 +97,36 @@ function makeMealEntry(items: FoodItemVO[], aiFodmapFlags?: AiFodmapAlert[]): Jo
       items,
       aiFodmapFlags,
     } as MealEntity,
+  };
+}
+
+function makeNoteEntry(): JournalEntry {
+  return {
+    kind: 'note',
+    data: {
+      id: 'note-1',
+      createdAt: new Date(),
+      occurredAt: new Date(),
+      inputMode: 'text',
+      content: 'Contenu de test',
+      tags: [],
+      summary: '',
+      linkedEntries: [],
+    } as NoteEntity,
+  };
+}
+
+function makeIntakeEntry(): JournalEntry {
+  return {
+    kind: 'intake',
+    data: {
+      id: 'intake-1',
+      treatmentId: 'treatment-1',
+      scheduledAt: new Date(),
+      confirmedAt: new Date(),
+      createdAt: new Date(),
+      status: 'taken',
+    } as IntakeEntity,
   };
 }
 
@@ -228,6 +262,49 @@ describe('JournalHomeComponent', () => {
       fixture.detectChanges();
       const alerts = fixture.nativeElement.querySelectorAll('.fodmap-alert');
       expect(alerts).toHaveLength(2);
+    });
+  });
+
+  describe('boutons d\'édition', () => {
+    it('affiche un bouton édition sur les cartes repas', async () => {
+      const fixture = await createComponent([makeMealEntry(LOW_ITEMS)]);
+      fixture.detectChanges();
+      const btn = fixture.nativeElement.querySelector('[data-testid="edit-meal-btn"]');
+      expect(btn).not.toBeNull();
+    });
+
+    it('affiche un bouton édition sur les cartes notes', async () => {
+      const fixture = await createComponent([makeNoteEntry()]);
+      fixture.detectChanges();
+      const btn = fixture.nativeElement.querySelector('[data-testid="edit-note-btn"]');
+      expect(btn).not.toBeNull();
+    });
+
+    it('affiche un bouton édition sur les cartes prises', async () => {
+      const fixture = await createComponent([makeIntakeEntry()]);
+      fixture.detectChanges();
+      const btn = fixture.nativeElement.querySelector('[data-testid="edit-intake-btn"]');
+      expect(btn).not.toBeNull();
+    });
+
+    it('le clic sur edit-meal-btn appelle editMeal', async () => {
+      const fixture = await createComponent([makeMealEntry(LOW_ITEMS)]);
+      const comp = fixture.componentInstance as unknown as ComponentProtected;
+      const spy = vi.spyOn(comp as never, 'editMeal' as never);
+      fixture.detectChanges();
+      const btn = fixture.nativeElement.querySelector('[data-testid="edit-meal-btn"]');
+      btn.click();
+      expect(spy).toHaveBeenCalledOnce();
+    });
+
+    it('le clic sur edit-note-btn appelle editNote', async () => {
+      const fixture = await createComponent([makeNoteEntry()]);
+      const comp = fixture.componentInstance as unknown as ComponentProtected;
+      const spy = vi.spyOn(comp as never, 'editNote' as never);
+      fixture.detectChanges();
+      const btn = fixture.nativeElement.querySelector('[data-testid="edit-note-btn"]');
+      btn.click();
+      expect(spy).toHaveBeenCalledOnce();
     });
   });
 

@@ -56,6 +56,7 @@ export interface GasEvent {
  * @param stool - Données de transit (si applicable)
  * @param gas - Données gazeuses (si applicable)
  * @param notes - Note libre
+ * @param editedAt - Timestamp de la dernière modification (absent si jamais édité)
  */
 export interface SymptomEntity {
   readonly id: string;
@@ -69,4 +70,5 @@ export interface SymptomEntity {
   readonly stool?: StoolEntry;
   readonly gas?: GasEvent;
   readonly notes?: string;
+  readonly editedAt?: Date;
 }

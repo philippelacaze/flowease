@@ -10,6 +10,7 @@ import {
 import { FormsModule } from '@angular/forms';
 import { Router, ActivatedRoute } from '@angular/router';
 import { AddMealUseCase } from '../../../../application/journal/add-meal.usecase';
+import { EditMealUseCase } from '../../../../application/journal/edit-meal.usecase';
 import { AnalyzeMealPhotoUseCase } from '../../../../application/journal/analyze-meal-photo.usecase';
 import { ExtractMealFromTextUseCase } from '../../../../application/journal/extract-meal-from-text.usecase';
 import { GetFrequentFoodsUseCase } from '../../../../application/journal/get-frequent-foods.usecase';
@@ -20,7 +21,7 @@ import {
   PhotoSelectedEvent,
 } from '../../../shared/components/photo-input/photo-input.component';
 import { FoodChipComponent } from '../../../shared/components/food-chip/food-chip.component';
-import type { AiFodmapAlert, FoodItemVO, MealInputMode, MealType } from '../../../../domain/entities/meal.entity';
+import type { AiFodmapAlert, FoodItemVO, MealEntity, MealInputMode, MealType } from '../../../../domain/entities/meal.entity';
 
 type MealPhase = 'processing' | 'validation' | 'form' | 'empty' | 'network' | 'confirm';
 
@@ -50,6 +51,7 @@ const MEAL_TYPE_LABELS: Record<string, string> = {
 })
 export class MealEntryComponent implements OnInit, OnDestroy {
   private readonly addMeal = inject(AddMealUseCase);
+  private readonly editMeal = inject(EditMealUseCase);
   private readonly analyzeMealPhoto = inject(AnalyzeMealPhotoUseCase);
   private readonly extractMealFromText = inject(ExtractMealFromTextUseCase);
   private readonly getFrequentFoods = inject(GetFrequentFoodsUseCase);
@@ -72,6 +74,7 @@ export class MealEntryComponent implements OnInit, OnDestroy {
   protected frequentFoods: FoodItemVO[] = [];
   protected aiUnavailableReason: string | null = null;
   protected saving = false;
+  private editingEntry: MealEntity | null = null;
 
   protected get mealTypeLabel(): string {
     return MEAL_TYPE_LABELS[this.mealType] ?? this.mealType;
@@ -88,8 +91,26 @@ export class MealEntryComponent implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     void this.loadFrequentFoods();
+    const state = history.state as {
+      transcript?: string;
+      photo?: { base64: string; mediaType: string };
+      editEntry?: MealEntity;
+    };
+
+    if (state?.editEntry) {
+      this.editingEntry = state.editEntry;
+      this.mealType = state.editEntry.type;
+      this.mealTime = this.toTimeString(state.editEntry.occurredAt);
+      this.proposedItems = [...state.editEntry.items];
+      this.pendingAiFodmapFlags = state.editEntry.aiFodmapFlags
+        ? [...state.editEntry.aiFodmapFlags]
+        : [];
+      this.phase = 'validation';
+      this.cdr.markForCheck();
+      return;
+    }
+
     const mode = this.route.snapshot.queryParams['mode'] as string | undefined;
-    const state = history.state as { transcript?: string; photo?: { base64: string; mediaType: string } };
 
     if (mode === 'voice') {
       this.srcMode = 'voice';
@@ -220,14 +241,26 @@ export class MealEntryComponent implements OnInit, OnDestroy {
     this.saving = true;
     this.cdr.markForCheck();
 
-    await this.addMeal.execute({
-      occurredAt,
-      type: this.mealType,
-      inputMode: this.srcMode as MealInputMode,
-      items,
-      notes,
-      aiFodmapFlags: this.pendingAiFodmapFlags.length > 0 ? this.pendingAiFodmapFlags : undefined,
-    });
+    if (this.editingEntry) {
+      await this.editMeal.execute({
+        id: this.editingEntry.id,
+        occurredAt,
+        type: this.mealType,
+        inputMode: this.editingEntry.inputMode,
+        items,
+        notes: notes ?? this.editingEntry.notes,
+        aiFodmapFlags: this.pendingAiFodmapFlags.length > 0 ? this.pendingAiFodmapFlags : this.editingEntry.aiFodmapFlags,
+      });
+    } else {
+      await this.addMeal.execute({
+        occurredAt,
+        type: this.mealType,
+        inputMode: this.srcMode as MealInputMode,
+        items,
+        notes,
+        aiFodmapFlags: this.pendingAiFodmapFlags.length > 0 ? this.pendingAiFodmapFlags : undefined,
+      });
+    }
 
     this.saving = false;
     this.phase = 'confirm';
@@ -257,7 +290,11 @@ export class MealEntryComponent implements OnInit, OnDestroy {
   }
 
   private nowTime(): string {
-    const now = new Date();
-    return `${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}`;
+    return this.toTimeString(new Date());
+  }
+
+  private toTimeString(date: Date): string {
+    const d = new Date(date);
+    return `${d.getHours().toString().padStart(2, '0')}:${d.getMinutes().toString().padStart(2, '0')}`;
   }
 }

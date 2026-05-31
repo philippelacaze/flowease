@@ -38,6 +38,7 @@ export type SkipReason =
  * @param skipReason - Raison du saut (uniquement si status === 'skipped')
  * @param actualDose - Dose réellement prise si différente de la dose prescrite
  * @param notes - Note libre
+ * @param editedAt - Timestamp de la dernière modification (absent si jamais édité)
  */
 export interface IntakeEntity {
   readonly id: string;
@@ -49,4 +50,5 @@ export interface IntakeEntity {
   readonly skipReason?: SkipReason;
   readonly actualDose?: string;
   readonly notes?: string;
+  readonly editedAt?: Date;
 }

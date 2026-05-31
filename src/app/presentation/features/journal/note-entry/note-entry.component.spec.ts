@@ -6,6 +6,7 @@ import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 import { MatBottomSheet } from '@angular/material/bottom-sheet';
 import { NoteEntryComponent } from './note-entry.component';
 import { AddNoteUseCase } from '../../../../application/journal/add-note.usecase';
+import { EditNoteUseCase } from '../../../../application/journal/edit-note.usecase';
 import { TagNoteUseCase } from '../../../../application/journal/tag-note.usecase';
 import { GetJournalDayUseCase } from '../../../../application/journal/get-journal-day.usecase';
 import type { NoteInputMode } from '../../../../domain/entities/note.entity';
@@ -23,6 +24,7 @@ type ComponentPrivate = {
 
 async function createComponent() {
   const mockAddNote = { execute: vi.fn().mockResolvedValue('note-id') };
+  const mockEditNote = { execute: vi.fn().mockResolvedValue(undefined) };
   const mockTagNote = { execute: vi.fn().mockResolvedValue({ tags: ['tag1'] }) };
   const mockGetJournalDay = { execute: vi.fn().mockResolvedValue([]) };
   const mockBottomSheet = { open: vi.fn().mockReturnValue({ afterDismissed: () => ({ toPromise: () => Promise.resolve(undefined) }) }) };
@@ -32,6 +34,7 @@ async function createComponent() {
     providers: [
       provideRouter([]),
       { provide: AddNoteUseCase, useValue: mockAddNote },
+      { provide: EditNoteUseCase, useValue: mockEditNote },
       { provide: TagNoteUseCase, useValue: mockTagNote },
       { provide: GetJournalDayUseCase, useValue: mockGetJournalDay },
       { provide: MatBottomSheet, useValue: mockBottomSheet },

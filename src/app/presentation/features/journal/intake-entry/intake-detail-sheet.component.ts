@@ -2,12 +2,13 @@ import { Component, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { MatBottomSheetRef, MAT_BOTTOM_SHEET_DATA } from '@angular/material/bottom-sheet';
 import type { TreatmentEntity } from '../../../../domain/entities/treatment.entity';
-import type { SkipReason } from '../../../../domain/entities/intake.entity';
+import type { IntakeEntity, SkipReason } from '../../../../domain/entities/intake.entity';
 
 interface SheetData {
   readonly treatment: TreatmentEntity;
   readonly confirmed: boolean;
   readonly skipped: boolean;
+  readonly editEntry?: IntakeEntity;
 }
 
 /**
@@ -164,11 +165,13 @@ export class IntakeDetailSheetComponent {
 
   protected readonly skipReasonOptions = SKIP_REASON_OPTIONS;
 
-  protected detailTime = this.nowTime();
-  protected detailDose = '';
-  protected detailNote = '';
-  protected selectedSkipReason: SkipReason | '' = '';
-  protected showSkipReason = false;
+  protected detailTime = this.data.editEntry
+    ? this.toTimeString(this.data.editEntry.confirmedAt)
+    : this.nowTime();
+  protected detailDose = this.data.editEntry?.actualDose ?? '';
+  protected detailNote = this.data.editEntry?.notes ?? '';
+  protected selectedSkipReason: SkipReason | '' = this.data.editEntry?.skipReason ?? '';
+  protected showSkipReason = this.data.editEntry?.status === 'skipped';
 
   protected confirmTaken(): void {
     this.sheetRef.dismiss({
@@ -190,7 +193,11 @@ export class IntakeDetailSheetComponent {
   }
 
   private nowTime(): string {
-    const now = new Date();
-    return `${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}`;
+    return this.toTimeString(new Date());
+  }
+
+  private toTimeString(date: Date): string {
+    const d = new Date(date);
+    return `${d.getHours().toString().padStart(2, '0')}:${d.getMinutes().toString().padStart(2, '0')}`;
   }
 }

@@ -11,8 +11,10 @@ import { Router } from '@angular/router';
 import { MatBottomSheet } from '@angular/material/bottom-sheet';
 import { GetActiveTreatmentsUseCase } from '../../../../application/journal/get-active-treatments.usecase';
 import { ConfirmIntakeUseCase } from '../../../../application/journal/confirm-intake.usecase';
+import { EditIntakeUseCase } from '../../../../application/journal/edit-intake.usecase';
 import { IntakeDetailSheetComponent, type SheetResult } from './intake-detail-sheet.component';
 import type { TreatmentEntity } from '../../../../domain/entities/treatment.entity';
+import type { IntakeEntity } from '../../../../domain/entities/intake.entity';
 
 interface TreatmentState {
   readonly treatment: TreatmentEntity;
@@ -39,12 +41,14 @@ interface TreatmentState {
 export class IntakeEntryComponent implements OnInit, OnDestroy {
   private readonly getActiveTreatments = inject(GetActiveTreatmentsUseCase);
   private readonly confirmIntake = inject(ConfirmIntakeUseCase);
+  private readonly editIntake = inject(EditIntakeUseCase);
   private readonly bottomSheet = inject(MatBottomSheet);
   private readonly router = inject(Router);
   private readonly cdr = inject(ChangeDetectorRef);
 
   protected treatmentStates: TreatmentState[] = [];
   protected loading = true;
+  private editingEntry: IntakeEntity | null = null;
 
   private longPressTimer: ReturnType<typeof setTimeout> | null = null;
   private didLongPress = false;
@@ -54,6 +58,10 @@ export class IntakeEntryComponent implements OnInit, OnDestroy {
   }
 
   ngOnInit(): void {
+    const state = history.state as { editEntry?: IntakeEntity };
+    if (state?.editEntry) {
+      this.editingEntry = state.editEntry;
+    }
     void this.loadTreatments();
   }
 
@@ -87,10 +95,34 @@ export class IntakeEntryComponent implements OnInit, OnDestroy {
   }
 
   protected openDetail(state: TreatmentState): void {
-    const ref = this.bottomSheet.open(IntakeDetailSheetComponent, { data: state });
+    const ref = this.bottomSheet.open(IntakeDetailSheetComponent, {
+      data: { ...state, editEntry: undefined },
+    });
     ref.afterDismissed().subscribe((result: SheetResult | undefined) => {
       if (result) void this.confirmFromDetail(state, result);
       this.cdr.markForCheck();
+    });
+  }
+
+  private openEditSheet(editEntry: IntakeEntity): void {
+    const matchingState = this.treatmentStates.find(
+      s => s.treatment.id === editEntry.treatmentId,
+    );
+    if (!matchingState) return;
+    const ref = this.bottomSheet.open(IntakeDetailSheetComponent, {
+      data: { ...matchingState, editEntry },
+    });
+    ref.afterDismissed().subscribe((result: SheetResult | undefined) => {
+      if (result) {
+        void this.editIntake.execute({
+          id: editEntry.id,
+          confirmedAt: new Date(),
+          status: result.action,
+          skipReason: result.skipReason,
+          notes: result.notes,
+        });
+      }
+      void this.router.navigate(['/journal']).catch(() => undefined);
     });
   }
 
@@ -158,6 +190,10 @@ export class IntakeEntryComponent implements OnInit, OnDestroy {
     }));
     this.loading = false;
     this.cdr.markForCheck();
+
+    if (this.editingEntry) {
+      this.openEditSheet(this.editingEntry);
+    }
   }
 
   private clearLongPressTimer(): void {

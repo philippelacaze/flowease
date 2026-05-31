@@ -120,7 +120,7 @@ Chaque traitement actif peut avoir des rappels via **Web Notifications API** (he
 |---|---|
 | **Réf. spec** | §1.2 — Principes UX |
 | **Décision** | ☑ VALIDER &nbsp;&nbsp; ☐ INVALIDER |
-| **Statut** | ⬜ À traiter |
+| **Statut** | ✅ Traité |
 
 **Ce que dit la spec :**  
 "Toujours modifiable : toute entrée du journal est éditable après coup."
@@ -512,7 +512,7 @@ Les traductions sont chargées à l'exécution depuis des fichiers JSON statique
 | 1.2 | Prises : skipReason + note dans détail | S | |
 | 1.3 | Cures : barre de progression journal | L | |
 | 1.4 | Rappels de traitement | L | |
-| 1.5 | Édition des entrées existantes | L | |
+| 1.5 | Édition des entrées existantes | L | ✅ |
 | 1.6 | Tags IA : confirmation interactive | M | |
 | 1.7 | Bien-être non persisté | S | |
 | 1.8 | aiFodmapFlags absents | M | ✅ |

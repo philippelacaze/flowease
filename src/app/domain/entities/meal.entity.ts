@@ -75,6 +75,7 @@ export interface AiFodmapAlert {
  * @param items - Liste des aliments composant le repas
  * @param notes - Note libre optionnelle associée au repas
  * @param aiFodmapFlags - Alertes FODMAP contextuelles générées par l'IA (optionnel)
+ * @param editedAt - Timestamp de la dernière modification (absent si jamais édité)
  */
 export interface MealEntity {
   readonly id: string;
@@ -85,4 +86,5 @@ export interface MealEntity {
   readonly items: ReadonlyArray<FoodItemVO>;
   readonly notes?: string;
   readonly aiFodmapFlags?: ReadonlyArray<AiFodmapAlert>;
+  readonly editedAt?: Date;
 }

@@ -15,7 +15,10 @@ import { SaveWellbeingScoreUseCase } from '../../../../application/journal/save-
 import { OfflineBannerComponent } from '../../../shared/components/offline-banner/offline-banner.component';
 import { FoodChipComponent } from '../../../shared/components/food-chip/food-chip.component';
 import { CureProgressComponent } from '../cure-progress/cure-progress.component';
-import type { FoodItemVO } from '../../../../domain/entities/meal.entity';
+import type { FoodItemVO, MealEntity } from '../../../../domain/entities/meal.entity';
+import type { SymptomEntity } from '../../../../domain/entities/symptom.entity';
+import type { IntakeEntity } from '../../../../domain/entities/intake.entity';
+import type { NoteEntity } from '../../../../domain/entities/note.entity';
 
 const MEAL_LABELS: Record<string, string> = {
   breakfast: 'Petit-déjeuner',
@@ -113,6 +116,22 @@ export class JournalHomeComponent implements OnInit {
 
   protected hasFodmapHigh(items: ReadonlyArray<FoodItemVO>): boolean {
     return items.some(item => item.fodmap?.level === 'high');
+  }
+
+  protected editMeal(data: MealEntity): void {
+    void this.router.navigate(['/journal/meal'], { state: { editEntry: data } }).catch(() => undefined);
+  }
+
+  protected editSymptom(data: SymptomEntity): void {
+    void this.router.navigate(['/journal/symptom'], { state: { editEntry: data } }).catch(() => undefined);
+  }
+
+  protected editIntake(data: IntakeEntity): void {
+    void this.router.navigate(['/journal/intake'], { state: { editEntry: data } }).catch(() => undefined);
+  }
+
+  protected editNote(data: NoteEntity): void {
+    void this.router.navigate(['/journal/note'], { state: { editEntry: data } }).catch(() => undefined);
   }
 
   protected startSymptomVoice(event: Event): void {

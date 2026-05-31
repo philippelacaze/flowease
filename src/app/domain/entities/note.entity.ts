@@ -35,6 +35,7 @@ export interface LinkedEntry {
  * @param tags - Tags générés par TagNoteUseCase (vide si IA indisponible)
  * @param summary - Résumé court généré par TagNoteUseCase (vide si IA indisponible)
  * @param linkedEntries - Entrées du journal liées à cette note
+ * @param editedAt - Timestamp de la dernière modification (absent si jamais édité)
  */
 export interface NoteEntity {
   readonly id: string;
@@ -46,4 +47,5 @@ export interface NoteEntity {
   readonly tags: ReadonlyArray<string>;
   readonly summary: string;
   readonly linkedEntries: ReadonlyArray<LinkedEntry>;
+  readonly editedAt?: Date;
 }

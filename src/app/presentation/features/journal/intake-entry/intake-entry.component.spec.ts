@@ -7,6 +7,7 @@ import { MatBottomSheet } from '@angular/material/bottom-sheet';
 import { IntakeEntryComponent } from './intake-entry.component';
 import { GetActiveTreatmentsUseCase } from '../../../../application/journal/get-active-treatments.usecase';
 import { ConfirmIntakeUseCase } from '../../../../application/journal/confirm-intake.usecase';
+import { EditIntakeUseCase } from '../../../../application/journal/edit-intake.usecase';
 import type { TreatmentEntity } from '../../../../domain/entities/treatment.entity';
 import type { SheetResult } from './intake-detail-sheet.component';
 
@@ -56,6 +57,7 @@ describe('IntakeEntryComponent', () => {
       providers: [
         provideRouter([]),
         { provide: ConfirmIntakeUseCase, useValue: mockConfirmIntake },
+        { provide: EditIntakeUseCase, useValue: { execute: vi.fn().mockResolvedValue(undefined) } },
         { provide: GetActiveTreatmentsUseCase, useValue: mockGetActiveTreatments },
         { provide: MatBottomSheet, useValue: mockBottomSheet },
       ],

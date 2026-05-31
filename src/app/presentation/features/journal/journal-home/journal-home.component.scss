@@ -151,13 +151,43 @@
 
     .entry-head {
       display: flex;
-      align-items: baseline;
+      align-items: center;
       justify-content: space-between;
       gap: 8px;
       margin-bottom: 6px;
     }
+    .entry-head-right {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      flex-shrink: 0;
+    }
     .entry-label { font-size: 14px; font-weight: 600; color: var(--text-1); }
-    .entry-time  { font-size: 12px; color: var(--text-3); white-space: nowrap; flex-shrink: 0; }
+    .entry-time  { font-size: 12px; color: var(--text-3); white-space: nowrap; }
+
+    .entry-edit-btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 28px;
+      height: 28px;
+      min-width: 28px;
+      border-radius: 50%;
+      background: transparent;
+      border: none;
+      cursor: pointer;
+      color: var(--text-3);
+      padding: 0;
+      font-family: inherit;
+      transition: background 0.15s, color 0.15s;
+    }
+    .entry-edit-btn:hover,
+    .entry-edit-btn:focus-visible {
+      background: var(--surface-var);
+      color: var(--teal);
+      outline: none;
+    }
+    .entry-edit-btn mat-icon { font-size: 16px; width: 16px; height: 16px; }
 
     /* Repas — chips */
     .food-chips-row { display: flex; flex-wrap: wrap; gap: 5px; padding: 2px 0; }

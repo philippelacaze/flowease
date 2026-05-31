@@ -5,6 +5,7 @@ import { provideRouter } from '@angular/router';
 import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 import { SymptomEntryComponent } from './symptom-entry.component';
 import { AddSymptomUseCase } from '../../../../application/journal/add-symptom.usecase';
+import { EditSymptomUseCase } from '../../../../application/journal/edit-symptom.usecase';
 import { GetActiveSymptomsUseCase, type ActiveSymptomConfig } from '../../../../application/journal/get-active-symptoms.usecase';
 
 type StoolRow = {
@@ -57,6 +58,7 @@ async function createComponent(mode?: string) {
     providers: [
       provideRouter([]),
       { provide: AddSymptomUseCase, useValue: mock },
+      { provide: EditSymptomUseCase, useValue: { execute: vi.fn().mockResolvedValue(undefined) } },
       { provide: GetActiveSymptomsUseCase, useValue: makeGetActiveMock() },
     ],
   }).compileComponents();
@@ -75,6 +77,7 @@ async function createComponentWithTransit() {
     providers: [
       provideRouter([]),
       { provide: AddSymptomUseCase, useValue: mock },
+      { provide: EditSymptomUseCase, useValue: { execute: vi.fn().mockResolvedValue(undefined) } },
       { provide: GetActiveSymptomsUseCase, useValue: { execute: vi.fn().mockResolvedValue(MOCK_WITH_TRANSIT) } },
     ],
   }).compileComponents();
