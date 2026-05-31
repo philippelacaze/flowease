@@ -2,6 +2,7 @@ import { Component, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { MatBottomSheetRef, MAT_BOTTOM_SHEET_DATA } from '@angular/material/bottom-sheet';
 import type { TreatmentEntity } from '../../../../domain/entities/treatment.entity';
+import type { SkipReason } from '../../../../domain/entities/intake.entity';
 
 interface SheetData {
   readonly treatment: TreatmentEntity;
@@ -10,11 +11,33 @@ interface SheetData {
 }
 
 /**
+ * Résultat renvoyé au parent lors du dismiss du bottom sheet.
+ *
+ * @remarks
+ * Exported pour permettre au parent (IntakeEntryComponent) de typer correctement
+ * l'abonnement à afterDismissed().
+ */
+export interface SheetResult {
+  readonly action: 'taken' | 'skipped';
+  readonly notes?: string;
+  readonly skipReason?: SkipReason;
+}
+
+/** Options de raison de saut affichées en UI (spec §1.5.3). */
+export const SKIP_REASON_OPTIONS: ReadonlyArray<{ value: SkipReason; label: string }> = [
+  { value: 'forgot',            label: 'Oubli' },
+  { value: 'side_effects',      label: 'Effet secondaire' },
+  { value: 'deliberate_choice', label: 'Choix délibéré' },
+  { value: 'other',             label: 'Autre' },
+];
+
+/**
  * Bottom sheet de confirmation détaillée d'une prise de traitement.
  *
  * @remarks
  * Ouvert par IntakeEntryComponent via MatBottomSheet (long press sur un traitement).
- * Dismiss avec 'taken' | 'skipped' pour déclencher la confirmation dans le parent.
+ * Dismiss avec SheetResult pour transmettre l'action, la note et la raison du saut.
+ * Le sélecteur de raison n'est visible qu'après un premier tap sur "Sauté".
  */
 @Component({
   selector: 'app-intake-detail-sheet',
@@ -78,18 +101,92 @@ interface SheetData {
       color: var(--text-2);
       border: 0.5px solid var(--border);
     }
+    .sheet-btn--skipped-confirm {
+      flex: 1;
+      background: var(--fodmap-high-bg);
+      color: var(--fodmap-high-text);
+      border: 0.5px solid var(--fodmap-high-border);
+    }
+
+    .sheet-note { margin: 12px 0; }
+    .sheet-note-label {
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.6px;
+      color: var(--text-3);
+      display: block;
+      margin-bottom: 6px;
+    }
+    .sheet-note-input {
+      width: 100%;
+      padding: 10px 12px;
+      border: 0.5px solid var(--border);
+      border-radius: 10px;
+      background: var(--input-bg);
+      color: var(--text-1);
+      font-size: 14px;
+      font-family: inherit;
+      resize: none;
+      box-sizing: border-box;
+      min-height: 72px;
+    }
+    .sheet-note-input::placeholder { color: var(--text-3); }
+
+    .sheet-skip-reason { margin-bottom: 12px; }
+    .sheet-skip-reason-label {
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.6px;
+      color: var(--text-3);
+      display: block;
+      margin-bottom: 6px;
+    }
+    .sheet-skip-reason-select {
+      width: 100%;
+      padding: 10px 12px;
+      border: 0.5px solid var(--border);
+      border-radius: 10px;
+      background: var(--input-bg);
+      color: var(--text-1);
+      font-size: 14px;
+      font-family: inherit;
+      min-height: 44px;
+      appearance: auto;
+    }
   `],
 })
 export class IntakeDetailSheetComponent {
   private readonly sheetRef =
-    inject<MatBottomSheetRef<IntakeDetailSheetComponent, 'taken' | 'skipped'>>(MatBottomSheetRef);
+    inject<MatBottomSheetRef<IntakeDetailSheetComponent, SheetResult>>(MatBottomSheetRef);
   readonly data: SheetData = inject(MAT_BOTTOM_SHEET_DATA);
+
+  protected readonly skipReasonOptions = SKIP_REASON_OPTIONS;
 
   protected detailTime = this.nowTime();
   protected detailDose = '';
+  protected detailNote = '';
+  protected selectedSkipReason: SkipReason | '' = '';
+  protected showSkipReason = false;
 
-  protected confirm(action: 'taken' | 'skipped'): void {
-    this.sheetRef.dismiss(action);
+  protected confirmTaken(): void {
+    this.sheetRef.dismiss({
+      action: 'taken',
+      ...(this.detailNote.trim() && { notes: this.detailNote.trim() }),
+    });
+  }
+
+  protected initiateSkip(): void {
+    if (!this.showSkipReason) {
+      this.showSkipReason = true;
+      return;
+    }
+    this.sheetRef.dismiss({
+      action: 'skipped',
+      ...(this.detailNote.trim() && { notes: this.detailNote.trim() }),
+      ...(this.selectedSkipReason && { skipReason: this.selectedSkipReason }),
+    });
   }
 
   private nowTime(): string {

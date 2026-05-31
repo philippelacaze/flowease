@@ -47,7 +47,7 @@ La saisie du transit doit inclure, en plus du type Bristol (1-7) :
 |---|---|
 | **Réf. spec** | §1.5.3 — Confirmation détaillée (tap long) |
 | **Décision** | ☑ VALIDER &nbsp;&nbsp; ☐ INVALIDER |
-| **Statut** | ⬜ À traiter |
+| **Statut** | ✅ Traité |
 
 **Ce que dit la spec :**  
 Le panneau de confirmation détaillée (tap long sur une carte de traitement) doit contenir :

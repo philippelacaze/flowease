@@ -8,6 +8,7 @@ import { IntakeEntryComponent } from './intake-entry.component';
 import { GetActiveTreatmentsUseCase } from '../../../../application/journal/get-active-treatments.usecase';
 import { ConfirmIntakeUseCase } from '../../../../application/journal/confirm-intake.usecase';
 import type { TreatmentEntity } from '../../../../domain/entities/treatment.entity';
+import type { SheetResult } from './intake-detail-sheet.component';
 
 const mockTreatment: TreatmentEntity = {
   id: 'treat-1',
@@ -131,14 +132,14 @@ describe('IntakeEntryComponent', () => {
       expect(mockBottomSheet.open).toHaveBeenCalledOnce();
     });
 
-    it('appelle ConfirmIntakeUseCase avec "taken" quand la sheet dismiss avec "taken"', async () => {
+    it('appelle ConfirmIntakeUseCase avec "taken" quand la sheet dismiss avec { action: "taken" }', async () => {
       const comp = fixture.componentInstance as unknown as ComponentPrivate;
       comp.openDetail(comp.treatmentStates[0]);
 
       const callback = mockAfterDismissed.subscribe.mock.calls[0][0] as (
-        action: 'taken' | 'skipped' | undefined,
+        result: SheetResult | undefined,
       ) => void;
-      callback('taken');
+      callback({ action: 'taken' });
       await fixture.whenStable();
 
       expect(mockConfirmIntake.execute).toHaveBeenCalledWith(
@@ -146,18 +147,18 @@ describe('IntakeEntryComponent', () => {
       );
     });
 
-    it('appelle ConfirmIntakeUseCase avec "skipped" quand la sheet dismiss avec "skipped"', async () => {
+    it('appelle ConfirmIntakeUseCase avec "skipped" et skipReason quand la sheet dismiss avec les données complètes', async () => {
       const comp = fixture.componentInstance as unknown as ComponentPrivate;
       comp.openDetail(comp.treatmentStates[0]);
 
       const callback = mockAfterDismissed.subscribe.mock.calls[0][0] as (
-        action: 'taken' | 'skipped' | undefined,
+        result: SheetResult | undefined,
       ) => void;
-      callback('skipped');
+      callback({ action: 'skipped', skipReason: 'forgot', notes: 'Oubli matinal' });
       await fixture.whenStable();
 
       expect(mockConfirmIntake.execute).toHaveBeenCalledWith(
-        expect.objectContaining({ treatmentId: 'treat-1', status: 'skipped' }),
+        expect.objectContaining({ treatmentId: 'treat-1', status: 'skipped', skipReason: 'forgot', notes: 'Oubli matinal' }),
       );
     });
 

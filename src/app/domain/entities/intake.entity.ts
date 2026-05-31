@@ -16,6 +16,7 @@ export type IntakeStatus = 'taken' | 'skipped';
 export type SkipReason =
   | 'forgot'
   | 'side_effects'
+  | 'deliberate_choice'
   | 'out_of_stock'
   | 'felt_better'
   | 'other';

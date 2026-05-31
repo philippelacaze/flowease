@@ -24,21 +24,54 @@
   </div>
 </div>
 
+<div class="sheet-note">
+  <label class="sheet-note-label" for="sheet-note-input">Note (optionnelle)</label>
+  <textarea
+    id="sheet-note-input"
+    class="sheet-note-input"
+    [(ngModel)]="detailNote"
+    placeholder="Ex : pris avec repas léger…"
+    aria-label="Note libre sur la prise"
+    data-testid="detail-note"
+    rows="3"
+  ></textarea>
+</div>
+
+@if (showSkipReason) {
+  <div class="sheet-skip-reason">
+    <label class="sheet-skip-reason-label" for="sheet-skip-reason-select">
+      Raison du saut
+    </label>
+    <select
+      id="sheet-skip-reason-select"
+      class="sheet-skip-reason-select"
+      [(ngModel)]="selectedSkipReason"
+      aria-label="Raison du saut de la prise"
+      data-testid="skip-reason-select"
+    >
+      <option value="">— Sélectionner —</option>
+      @for (opt of skipReasonOptions; track opt.value) {
+        <option [value]="opt.value">{{ opt.label }}</option>
+      }
+    </select>
+  </div>
+}
+
 <div class="sheet-actions">
   <button
     class="sheet-btn sheet-btn--taken"
     aria-label="Confirmer la prise"
     data-testid="confirm-taken"
-    (click)="confirm('taken')"
+    (click)="confirmTaken()"
     >
     ✓ Pris
   </button>
   <button
-    class="sheet-btn sheet-btn--skipped"
-    aria-label="Marquer comme sauté"
+    [class]="showSkipReason ? 'sheet-btn sheet-btn--skipped-confirm' : 'sheet-btn sheet-btn--skipped'"
+    [attr.aria-label]="showSkipReason ? 'Confirmer le saut de la prise' : 'Marquer comme sauté'"
     data-testid="confirm-skipped"
-    (click)="confirm('skipped')"
+    (click)="initiateSkip()"
     >
-    Sauté
+    {{ showSkipReason ? 'Confirmer le saut' : 'Sauté' }}
   </button>
 </div>

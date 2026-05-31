@@ -11,9 +11,8 @@ import { Router } from '@angular/router';
 import { MatBottomSheet } from '@angular/material/bottom-sheet';
 import { GetActiveTreatmentsUseCase } from '../../../../application/journal/get-active-treatments.usecase';
 import { ConfirmIntakeUseCase } from '../../../../application/journal/confirm-intake.usecase';
-import { IntakeDetailSheetComponent } from './intake-detail-sheet.component';
+import { IntakeDetailSheetComponent, type SheetResult } from './intake-detail-sheet.component';
 import type { TreatmentEntity } from '../../../../domain/entities/treatment.entity';
-import type { IntakeStatus } from '../../../../domain/entities/intake.entity';
 
 interface TreatmentState {
   readonly treatment: TreatmentEntity;
@@ -89,8 +88,8 @@ export class IntakeEntryComponent implements OnInit, OnDestroy {
 
   protected openDetail(state: TreatmentState): void {
     const ref = this.bottomSheet.open(IntakeDetailSheetComponent, { data: state });
-    ref.afterDismissed().subscribe((action: 'taken' | 'skipped' | undefined) => {
-      if (action) void this.confirmFromDetail(state, action);
+    ref.afterDismissed().subscribe((result: SheetResult | undefined) => {
+      if (result) void this.confirmFromDetail(state, result);
       this.cdr.markForCheck();
     });
   }
@@ -135,16 +134,18 @@ export class IntakeEntryComponent implements OnInit, OnDestroy {
     this.cdr.markForCheck();
   }
 
-  private async confirmFromDetail(state: TreatmentState, action: IntakeStatus): Promise<void> {
+  private async confirmFromDetail(state: TreatmentState, result: SheetResult): Promise<void> {
     await this.confirmIntake.execute({
       treatmentId: state.treatment.id,
       scheduledAt: new Date(),
       confirmedAt: new Date(),
-      status: action,
+      status: result.action,
+      ...(result.skipReason && { skipReason: result.skipReason }),
+      ...(result.notes && { notes: result.notes }),
     });
 
-    state.confirmed = action === 'taken';
-    state.skipped = action === 'skipped';
+    state.confirmed = result.action === 'taken';
+    state.skipped = result.action === 'skipped';
     this.cdr.markForCheck();
   }
 
