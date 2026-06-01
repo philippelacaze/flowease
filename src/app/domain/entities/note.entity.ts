@@ -24,7 +24,8 @@ export interface LinkedEntry {
  * @remarks
  * Interface readonly — jamais de mutation directe.
  * id, createdAt sont assignés par AddNoteUseCase.
- * Les tags sont vides à la création et renseignés par TagNoteUseCase (port IA).
+ * Flux de taguage IA : TagNoteUseCase écrit dans aiTagSuggestions (en attente de confirmation).
+ * ConfirmNoteTagsUseCase déplace les tags validés dans tags[] et vide aiTagSuggestions.
  *
  * @param id - UUID v4 assigné par crypto.randomUUID()
  * @param createdAt - Timestamp d'enregistrement
@@ -32,7 +33,8 @@ export interface LinkedEntry {
  * @param inputMode - Canal de saisie (text, voice, photo)
  * @param content - Contenu textuel de la note
  * @param imageBase64 - Image encodée en base64 (si inputMode === 'photo')
- * @param tags - Tags générés par TagNoteUseCase (vide si IA indisponible)
+ * @param tags - Tags confirmés par l'utilisateur
+ * @param aiTagSuggestions - Tags proposés par l'IA, en attente de confirmation (absent si aucune suggestion)
  * @param summary - Résumé court généré par TagNoteUseCase (vide si IA indisponible)
  * @param linkedEntries - Entrées du journal liées à cette note
  * @param editedAt - Timestamp de la dernière modification (absent si jamais édité)
@@ -45,6 +47,7 @@ export interface NoteEntity {
   readonly content: string;
   readonly imageBase64?: string;
   readonly tags: ReadonlyArray<string>;
+  readonly aiTagSuggestions?: ReadonlyArray<string>;
   readonly summary: string;
   readonly linkedEntries: ReadonlyArray<LinkedEntry>;
   readonly editedAt?: Date;

@@ -55,7 +55,6 @@ export class NoteEntryComponent implements OnInit {
   protected imageBase64: string | null = null;
   protected imageMediaType = '';
   protected linkedEntries: LinkedEntry[] = [];
-  protected savedTags: string[] = [];
   protected saving = false;
   private editingEntry: NoteEntity | null = null;
 
@@ -142,11 +141,8 @@ export class NoteEntryComponent implements OnInit {
     });
 
     // Taguage IA asynchrone — ne bloque pas la navigation
-    this.tagNote.execute(noteId).then(result => {
-      this.savedTags = result.tags as string[];
-    }).catch(() => {
-      // mode dégradé : tags restent vides
-    });
+    // Les suggestions seront visibles dans le journal (aiTagSuggestions) après confirmation
+    this.tagNote.execute(noteId).catch(() => undefined);
 
     void this.router.navigate(['/journal']).catch(() => undefined);
   }

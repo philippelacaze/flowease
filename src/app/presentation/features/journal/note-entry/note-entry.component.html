@@ -85,18 +85,6 @@
       </div>
     }
 
-    <!-- Tags IA (après sauvegarde) -->
-    @if (savedTags.length > 0) {
-      <div class="tags-section">
-        <p class="tags-label">Tags générés par l'IA</p>
-        <div class="note-tags-row">
-          @for (tag of savedTags; track tag) {
-            <span class="note-tag-chip">#{{ tag }}</span>
-          }
-        </div>
-      </div>
-    }
-
     <!-- Entrées liées -->
     @if (linkedEntries.length > 0) {
       <div class="linked-section">

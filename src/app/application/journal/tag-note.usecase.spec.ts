@@ -64,16 +64,25 @@ describe('TagNoteUseCase', () => {
       expect(mockTaggingPort.tagNote).toHaveBeenCalledWith(mockNote.content);
     });
 
-    it('persiste la note mise à jour avec les tags et le résumé', async () => {
+    it('persiste les suggestions IA dans aiTagSuggestions (pas dans tags)', async () => {
       const useCase = TestBed.inject(TagNoteUseCase);
       await useCase.execute(mockNote.id);
       expect(mockStorage.save).toHaveBeenCalledWith(
         'notes',
         expect.objectContaining({
           id: mockNote.id,
-          tags: mockTaggingResult.tags,
+          aiTagSuggestions: mockTaggingResult.tags,
           summary: mockTaggingResult.summary,
         }),
+      );
+    });
+
+    it('ne modifie pas tags[] lors du taguage IA (tags restent vides)', async () => {
+      const useCase = TestBed.inject(TagNoteUseCase);
+      await useCase.execute(mockNote.id);
+      expect(mockStorage.save).toHaveBeenCalledWith(
+        'notes',
+        expect.objectContaining({ tags: mockNote.tags }),
       );
     });
 

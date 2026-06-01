@@ -12,6 +12,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { GetJournalDayUseCase, JournalEntry } from '../../../../application/journal/get-journal-day.usecase';
 import { GetActiveCuresUseCase, CureProgressVO } from '../../../../application/journal/get-active-cures.usecase';
 import { SaveWellbeingScoreUseCase } from '../../../../application/journal/save-wellbeing-score.usecase';
+import { ConfirmNoteTagsUseCase } from '../../../../application/journal/confirm-note-tags.usecase';
 import { OfflineBannerComponent } from '../../../shared/components/offline-banner/offline-banner.component';
 import { FoodChipComponent } from '../../../shared/components/food-chip/food-chip.component';
 import { CureProgressComponent } from '../cure-progress/cure-progress.component';
@@ -49,6 +50,7 @@ export class JournalHomeComponent implements OnInit {
   private readonly getJournalDay = inject(GetJournalDayUseCase);
   private readonly getActiveCures = inject(GetActiveCuresUseCase);
   private readonly saveWellbeingScore = inject(SaveWellbeingScoreUseCase);
+  private readonly confirmNoteTagsUseCase = inject(ConfirmNoteTagsUseCase);
   private readonly router = inject(Router);
   private readonly cdr = inject(ChangeDetectorRef);
 
@@ -182,6 +184,45 @@ export class JournalHomeComponent implements OnInit {
 
     // reset so same file can be re-selected
     (event.target as HTMLInputElement).value = '';
+  }
+
+  protected confirmTag(note: NoteEntity, tag: string): void {
+    const newTags = [...note.tags, tag];
+    const newSuggestions = (note.aiTagSuggestions ?? []).filter(t => t !== tag);
+    this.applyNoteTagUpdate(note.id, newTags, newSuggestions);
+  }
+
+  protected rejectTag(note: NoteEntity, tag: string): void {
+    const newSuggestions = (note.aiTagSuggestions ?? []).filter(t => t !== tag);
+    this.applyNoteTagUpdate(note.id, [...note.tags], newSuggestions);
+  }
+
+  protected confirmAllTags(note: NoteEntity): void {
+    const newTags = [...note.tags, ...(note.aiTagSuggestions ?? [])];
+    this.applyNoteTagUpdate(note.id, newTags, []);
+  }
+
+  protected addFreeTag(note: NoteEntity, inputEl: HTMLInputElement): void {
+    const tag = inputEl.value.trim().toLowerCase().replace(/\s+/g, '-');
+    if (!tag || note.tags.includes(tag)) return;
+    inputEl.value = '';
+    const newTags = [...note.tags, tag];
+    this.applyNoteTagUpdate(note.id, newTags, [...(note.aiTagSuggestions ?? [])]);
+  }
+
+  private applyNoteTagUpdate(
+    noteId: string,
+    tags: ReadonlyArray<string>,
+    aiTagSuggestions: ReadonlyArray<string>,
+  ): void {
+    this.entries = this.entries.map(e => {
+      if (e.kind === 'note' && e.data.id === noteId) {
+        return { ...e, data: { ...e.data, tags, aiTagSuggestions } };
+      }
+      return e;
+    });
+    this.cdr.markForCheck();
+    void this.confirmNoteTagsUseCase.execute(noteId, tags, aiTagSuggestions);
   }
 
   private async loadEntries(): Promise<void> {

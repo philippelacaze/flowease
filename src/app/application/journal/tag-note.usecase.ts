@@ -48,7 +48,8 @@ export class TagNoteUseCase {
       return EMPTY_RESULT;
     }
 
-    const updatedNote: NoteEntity = { ...note, tags: result.tags, summary: result.summary };
+    // Stocke les tags en attente de confirmation, sans modifier tags[] (écart 1.6)
+    const updatedNote: NoteEntity = { ...note, aiTagSuggestions: result.tags, summary: result.summary };
     await this.storage.save('notes', updatedNote);
     return result;
   }

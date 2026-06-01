@@ -278,11 +278,58 @@
                   </button>
                 </div>
                 <p class="note-content">{{ e.data.content }}</p>
+                <!-- Tags confirmés -->
                 @if (e.data.tags.length > 0) {
                   <div class="note-tags">
                     @for (tag of e.data.tags; track tag) {
                       <span class="note-tag">#{{ tag }}</span>
                     }
+                  </div>
+                }
+                <!-- Suggestions IA en attente de confirmation -->
+                @if (e.data.aiTagSuggestions && e.data.aiTagSuggestions.length > 0) {
+                  <div class="note-ai-suggestions" data-testid="note-ai-suggestions">
+                    <p class="note-ai-suggestions-label">
+                      <mat-icon aria-hidden="true" class="note-ai-icon">auto_awesome</mat-icon>
+                      Suggestions IA
+                    </p>
+                    <div class="note-ai-chip-row">
+                      @for (tag of e.data.aiTagSuggestions; track tag) {
+                        <span class="note-ai-chip" [attr.data-testid]="'note-ai-chip-' + tag">
+                          <span class="note-ai-chip-text">#{{ tag }}</span>
+                          <button
+                            class="note-ai-chip-btn note-ai-chip-btn--confirm"
+                            [attr.aria-label]="'Valider le tag ' + tag"
+                            [attr.data-testid]="'note-ai-confirm-' + tag"
+                            (click)="confirmTag(e.data, tag)">✓</button>
+                          <button
+                            class="note-ai-chip-btn note-ai-chip-btn--reject"
+                            [attr.aria-label]="'Rejeter le tag ' + tag"
+                            [attr.data-testid]="'note-ai-reject-' + tag"
+                            (click)="rejectTag(e.data, tag)">✕</button>
+                        </span>
+                      }
+                    </div>
+                    <div class="note-ai-actions">
+                      <button
+                        class="note-ai-confirm-all-btn"
+                        aria-label="Valider tous les tags suggérés"
+                        data-testid="note-ai-confirm-all-btn"
+                        (click)="confirmAllTags(e.data)">✓ Tout valider</button>
+                      <input
+                        #freeTagInput
+                        class="note-ai-free-input"
+                        type="text"
+                        placeholder="Ajouter un tag…"
+                        aria-label="Saisir un tag libre"
+                        data-testid="note-ai-free-input"
+                        (keyup.enter)="addFreeTag(e.data, freeTagInput)" />
+                      <button
+                        class="note-ai-add-btn"
+                        aria-label="Ajouter le tag saisi"
+                        data-testid="note-ai-add-btn"
+                        (click)="addFreeTag(e.data, freeTagInput)">+</button>
+                    </div>
                   </div>
                 }
               </div>

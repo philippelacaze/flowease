@@ -142,8 +142,8 @@ Il n'existe aucun `EditMealUseCase`, `EditSymptomUseCase`, `EditIntakeUseCase`, 
 | | |
 |---|---|
 | **Réf. spec** | §1.6.4 — Tags générés par l'IA |
-| **Décision** | ☐ VALIDER &nbsp;&nbsp; ☐ INVALIDER |
-| **Statut** | ⬜ À traiter |
+| **Décision** | ☑ VALIDER &nbsp;&nbsp; ☐ INVALIDER |
+| **Statut** | ✅ Traité |
 
 **Ce que dit la spec :**  
 Les tags générés par Claude s'affichent **en attente de confirmation**. L'utilisateur peut : valider tous d'un tap "✓ OK", supprimer un tag individuel, ajouter un tag libre non listé.
@@ -513,7 +513,7 @@ Les traductions sont chargées à l'exécution depuis des fichiers JSON statique
 | 1.3 | Cures : barre de progression journal | L | |
 | 1.4 | Rappels de traitement | L | |
 | 1.5 | Édition des entrées existantes | L | ✅ |
-| 1.6 | Tags IA : confirmation interactive | M | |
+| 1.6 | Tags IA : confirmation interactive | M | ✅ |
 | 1.7 | Bien-être non persisté | S | |
 | 1.8 | aiFodmapFlags absents | M | ✅ |
 | 2.1 | Comparaison avant/après cure | S | |

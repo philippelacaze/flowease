@@ -241,8 +241,104 @@
 
     /* Notes — texte complet */
     .note-content { margin: 0 0 6px; font-size: 14px; line-height: 1.5; white-space: pre-wrap; word-break: break-word; }
-    .note-tags    { display: flex; flex-wrap: wrap; gap: 4px; }
+    .note-tags    { display: flex; flex-wrap: wrap; gap: 4px; margin-bottom: 4px; }
     .note-tag     { font-size: 12px; color: var(--teal); }
+
+    /* Suggestions IA en attente */
+    .note-ai-suggestions {
+      margin-top: 8px;
+      padding: 8px 10px;
+      background: var(--surface-var, #f5f5f5);
+      border-radius: 8px;
+      border: 0.5px solid var(--border);
+    }
+    .note-ai-suggestions-label {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      font-size: 11px;
+      color: var(--text-3);
+      margin: 0 0 6px;
+    }
+    .note-ai-icon { font-size: 13px; width: 13px; height: 13px; }
+    .note-ai-chip-row { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 8px; }
+    .note-ai-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 2px;
+      background: var(--card-bg);
+      border: 0.5px solid var(--border);
+      border-radius: 14px;
+      padding: 2px 4px 2px 8px;
+      font-size: 12px;
+    }
+    .note-ai-chip-text { color: var(--text-2); margin-right: 2px; }
+    .note-ai-chip-btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 20px;
+      height: 20px;
+      min-width: 20px;
+      border-radius: 50%;
+      border: none;
+      cursor: pointer;
+      font-size: 10px;
+      padding: 0;
+      line-height: 1;
+      font-family: inherit;
+    }
+    .note-ai-chip-btn--confirm { background: #e8f5e9; color: #2e7d32; }
+    .note-ai-chip-btn--confirm:hover { background: #c8e6c9; }
+    .note-ai-chip-btn--reject { background: #fce4ec; color: #c62828; }
+    .note-ai-chip-btn--reject:hover { background: #f8bbd0; }
+    .note-ai-actions { display: flex; align-items: center; gap: 6px; }
+    .note-ai-confirm-all-btn {
+      font-size: 12px;
+      padding: 4px 10px;
+      border-radius: 14px;
+      border: 0.5px solid var(--teal);
+      background: transparent;
+      color: var(--teal);
+      cursor: pointer;
+      white-space: nowrap;
+      font-family: inherit;
+      min-height: 28px;
+    }
+    .note-ai-confirm-all-btn:hover { background: color-mix(in srgb, var(--teal) 10%, transparent); }
+    .note-ai-free-input {
+      flex: 1;
+      font-size: 12px;
+      border: 0.5px solid var(--border);
+      border-radius: 14px;
+      padding: 4px 10px;
+      background: var(--card-bg);
+      color: var(--text-1);
+      min-width: 0;
+      min-height: 28px;
+      font-family: inherit;
+      outline: none;
+    }
+    .note-ai-free-input:focus { border-color: var(--teal); }
+    .note-ai-add-btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 28px;
+      height: 28px;
+      min-width: 28px;
+      border-radius: 50%;
+      border: none;
+      background: var(--teal);
+      color: #fff;
+      cursor: pointer;
+      font-size: 18px;
+      padding: 0;
+      flex-shrink: 0;
+      line-height: 1;
+      font-family: inherit;
+    }
+    .note-ai-add-btn:hover { opacity: 0.85; }
 
     /* État vide */
     .empty-state {

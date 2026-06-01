@@ -6,6 +6,7 @@ import { JournalHomeComponent } from './journal-home.component';
 import { GetJournalDayUseCase } from '../../../../application/journal/get-journal-day.usecase';
 import { GetActiveCuresUseCase } from '../../../../application/journal/get-active-cures.usecase';
 import { SaveWellbeingScoreUseCase } from '../../../../application/journal/save-wellbeing-score.usecase';
+import { ConfirmNoteTagsUseCase } from '../../../../application/journal/confirm-note-tags.usecase';
 import { LOCAL_SETTINGS_PORT } from '../../../../application/tokens';
 import type { FoodItemVO, AiFodmapAlert } from '../../../../domain/entities/meal.entity';
 import type { JournalEntry } from '../../../../application/journal/get-journal-day.usecase';
@@ -59,14 +60,20 @@ type ComponentProtected = {
   startNoteVoice(event: Event): void;
   editMeal(data: MealEntity): void;
   editNote(data: NoteEntity): void;
+  confirmTag(note: NoteEntity, tag: string): void;
+  rejectTag(note: NoteEntity, tag: string): void;
+  confirmAllTags(note: NoteEntity): void;
+  addFreeTag(note: NoteEntity, inputEl: HTMLInputElement): void;
   wellbeingScore: number | null;
   symptoms: JournalEntry[];
+  entries: JournalEntry[];
 };
 
 const DEFAULT_PROVIDERS = [
   provideRouter([]),
   { provide: GetActiveCuresUseCase, useValue: { execute: vi.fn().mockResolvedValue([]) } },
   { provide: SaveWellbeingScoreUseCase, useValue: { execute: vi.fn().mockResolvedValue('wb-id') } },
+  { provide: ConfirmNoteTagsUseCase, useValue: { execute: vi.fn().mockResolvedValue(undefined) } },
   { provide: LOCAL_SETTINGS_PORT, useValue: { getLanguage: () => 'fr', getApiKey: () => null } },
 ];
 
@@ -111,6 +118,23 @@ function makeNoteEntry(): JournalEntry {
       content: 'Contenu de test',
       tags: [],
       summary: '',
+      linkedEntries: [],
+    } as NoteEntity,
+  };
+}
+
+function makeNoteWithSuggestions(suggestions: string[]): JournalEntry {
+  return {
+    kind: 'note',
+    data: {
+      id: 'note-suggestions',
+      createdAt: new Date(),
+      occurredAt: new Date(),
+      inputMode: 'text',
+      content: 'Note avec suggestions IA',
+      tags: [],
+      aiTagSuggestions: suggestions,
+      summary: 'Résumé IA',
       linkedEntries: [],
     } as NoteEntity,
   };
@@ -319,6 +343,98 @@ describe('JournalHomeComponent', () => {
       const fixture = await createComponent([makeWellbeingEntry(7), makeRegularSymptomEntry()]);
       const comp = fixture.componentInstance as unknown as ComponentProtected;
       expect(comp.symptoms).toHaveLength(1);
+    });
+  });
+
+  describe('suggestions IA sur les notes', () => {
+    it('affiche la section suggestions si aiTagSuggestions est non vide', async () => {
+      const fixture = await createComponent([makeNoteWithSuggestions(['crampes', 'sibo'])]);
+      fixture.detectChanges();
+      const section = fixture.nativeElement.querySelector('[data-testid="note-ai-suggestions"]');
+      expect(section).not.toBeNull();
+    });
+
+    it('n\'affiche pas la section suggestions si aiTagSuggestions est absent', async () => {
+      const fixture = await createComponent([makeNoteEntry()]);
+      fixture.detectChanges();
+      const section = fixture.nativeElement.querySelector('[data-testid="note-ai-suggestions"]');
+      expect(section).toBeNull();
+    });
+
+    it('affiche autant de chips que de suggestions', async () => {
+      const fixture = await createComponent([makeNoteWithSuggestions(['crampes', 'sibo', 'post-repas'])]);
+      fixture.detectChanges();
+      const chips = fixture.nativeElement.querySelectorAll('[data-testid^="note-ai-chip-"]');
+      expect(chips).toHaveLength(3);
+    });
+
+    it('affiche un bouton valider et un bouton rejeter par suggestion', async () => {
+      const fixture = await createComponent([makeNoteWithSuggestions(['crampes'])]);
+      fixture.detectChanges();
+      const confirm = fixture.nativeElement.querySelector('[data-testid="note-ai-confirm-crampes"]');
+      const reject = fixture.nativeElement.querySelector('[data-testid="note-ai-reject-crampes"]');
+      expect(confirm).not.toBeNull();
+      expect(reject).not.toBeNull();
+    });
+
+    it('affiche le bouton "Tout valider"', async () => {
+      const fixture = await createComponent([makeNoteWithSuggestions(['crampes'])]);
+      fixture.detectChanges();
+      const btn = fixture.nativeElement.querySelector('[data-testid="note-ai-confirm-all-btn"]');
+      expect(btn).not.toBeNull();
+    });
+
+    it('confirmTag ajoute le tag à tags[] et le retire de aiTagSuggestions', async () => {
+      const fixture = await createComponent([makeNoteWithSuggestions(['crampes', 'sibo'])]);
+      const comp = fixture.componentInstance as unknown as ComponentProtected;
+      const note = (comp.entries[0] as Extract<JournalEntry, { kind: 'note' }>).data;
+      comp.confirmTag(note, 'crampes');
+      const updatedNote = (comp.entries[0] as Extract<JournalEntry, { kind: 'note' }>).data;
+      expect(updatedNote.tags).toContain('crampes');
+      expect(updatedNote.aiTagSuggestions).not.toContain('crampes');
+      expect(updatedNote.aiTagSuggestions).toContain('sibo');
+    });
+
+    it('rejectTag retire le tag de aiTagSuggestions sans l\'ajouter à tags[]', async () => {
+      const fixture = await createComponent([makeNoteWithSuggestions(['crampes', 'sibo'])]);
+      const comp = fixture.componentInstance as unknown as ComponentProtected;
+      const note = (comp.entries[0] as Extract<JournalEntry, { kind: 'note' }>).data;
+      comp.rejectTag(note, 'crampes');
+      const updatedNote = (comp.entries[0] as Extract<JournalEntry, { kind: 'note' }>).data;
+      expect(updatedNote.tags).not.toContain('crampes');
+      expect(updatedNote.aiTagSuggestions).not.toContain('crampes');
+    });
+
+    it('confirmAllTags déplace toutes les suggestions dans tags[] et vide aiTagSuggestions', async () => {
+      const fixture = await createComponent([makeNoteWithSuggestions(['crampes', 'sibo'])]);
+      const comp = fixture.componentInstance as unknown as ComponentProtected;
+      const note = (comp.entries[0] as Extract<JournalEntry, { kind: 'note' }>).data;
+      comp.confirmAllTags(note);
+      const updatedNote = (comp.entries[0] as Extract<JournalEntry, { kind: 'note' }>).data;
+      expect(updatedNote.tags).toEqual(['crampes', 'sibo']);
+      expect(updatedNote.aiTagSuggestions).toEqual([]);
+    });
+
+    it('addFreeTag ajoute un tag dans tags[] sans modifier aiTagSuggestions', async () => {
+      const fixture = await createComponent([makeNoteWithSuggestions(['crampes'])]);
+      const comp = fixture.componentInstance as unknown as ComponentProtected;
+      const note = (comp.entries[0] as Extract<JournalEntry, { kind: 'note' }>).data;
+      const fakeInput = { value: 'douleur', trim: () => 'douleur' } as unknown as HTMLInputElement;
+      Object.defineProperty(fakeInput, 'value', { get: () => 'douleur', set: vi.fn() });
+      comp.addFreeTag(note, fakeInput);
+      const updatedNote = (comp.entries[0] as Extract<JournalEntry, { kind: 'note' }>).data;
+      expect(updatedNote.tags).toContain('douleur');
+      expect(updatedNote.aiTagSuggestions).toContain('crampes');
+    });
+
+    it('addFreeTag ignore un tag vide', async () => {
+      const fixture = await createComponent([makeNoteWithSuggestions(['crampes'])]);
+      const comp = fixture.componentInstance as unknown as ComponentProtected;
+      const note = (comp.entries[0] as Extract<JournalEntry, { kind: 'note' }>).data;
+      const fakeInput = { value: '   ' } as unknown as HTMLInputElement;
+      comp.addFreeTag(note, fakeInput);
+      const updatedNote = (comp.entries[0] as Extract<JournalEntry, { kind: 'note' }>).data;
+      expect(updatedNote.tags).toHaveLength(0);
     });
   });
 });
