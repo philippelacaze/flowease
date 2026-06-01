@@ -45,24 +45,67 @@
             <div>
               <h2 class="section-title">Importer des données</h2>
               <p class="section-desc">
-                Restaure un export JSON. Les données existantes seront remplacées.
+                Restaure un export JSON. Choisissez de fusionner ou de remplacer vos données existantes.
               </p>
             </div>
           </div>
-          <button
-            mat-stroked-button
-            (click)="fileInput.click()"
-            [disabled]="importing()"
-            aria-label="Importer des données depuis un fichier JSON"
-            data-testid="import-btn"
-            class="action-btn">
-            @if (importing()) {
-              <mat-spinner diameter="20" />
-            } @else {
-              <mat-icon>upload</mat-icon>
-            }
-            Importer JSON
-          </button>
+
+          @if (!pendingImportJson()) {
+            <button
+              mat-stroked-button
+              (click)="fileInput.click()"
+              [disabled]="importing()"
+              aria-label="Importer des données depuis un fichier JSON"
+              data-testid="import-btn"
+              class="action-btn">
+              @if (importing()) {
+                <mat-spinner diameter="20" />
+              } @else {
+                <mat-icon>upload</mat-icon>
+              }
+              Importer JSON
+            </button>
+          }
+
+          @if (pendingImportJson()) {
+            <div class="import-choice-panel" role="group" aria-label="Choisir le mode d'import" data-testid="import-choice-panel">
+              <p class="import-choice-desc">Fichier chargé. Comment souhaitez-vous importer ?</p>
+              <div class="import-choice-btns">
+                <button
+                  mat-raised-button
+                  color="primary"
+                  (click)="confirmImport('merge')"
+                  aria-label="Fusionner avec les données existantes"
+                  data-testid="import-merge-btn"
+                  class="action-btn">
+                  <mat-icon>merge_type</mat-icon>
+                  Fusionner
+                </button>
+                <button
+                  mat-stroked-button
+                  color="warn"
+                  (click)="confirmImport('replace')"
+                  aria-label="Remplacer toutes les données existantes"
+                  data-testid="import-replace-btn"
+                  class="action-btn">
+                  <mat-icon>swap_horiz</mat-icon>
+                  Remplacer tout
+                </button>
+                <button
+                  mat-icon-button
+                  (click)="cancelImport()"
+                  aria-label="Annuler l'import"
+                  data-testid="import-cancel-btn">
+                  <mat-icon>close</mat-icon>
+                </button>
+              </div>
+              <p class="import-choice-hint">
+                <strong>Fusionner</strong> : ajoute les entrées absentes, conserve vos données.<br>
+                <strong>Remplacer</strong> : efface tout et réimporte.
+              </p>
+            </div>
+          }
+
           <input
             #fileInput
             type="file"
@@ -72,8 +115,6 @@
             style="display:none"
             (change)="onFileSelected($event)" />
         </section>
-
-        <mat-divider />
 
         <mat-divider />
 

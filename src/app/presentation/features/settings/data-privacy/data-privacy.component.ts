@@ -8,6 +8,7 @@ import { MatSnackBar } from '@angular/material/snack-bar';
 import { MatDividerModule } from '@angular/material/divider';
 import { ExportDataUseCase } from '../../../../application/settings/export-data.usecase';
 import { ImportDataUseCase, ImportValidationError } from '../../../../application/settings/import-data.usecase';
+import type { ImportMode } from '../../../../application/settings/import-data.usecase';
 import type { StorageRepository } from '../../../../domain/repositories/storage.repository';
 import { STORAGE_PORT } from '../../../../application/tokens';
 
@@ -45,6 +46,7 @@ export class DataPrivacyComponent {
 
   protected exporting = signal(false);
   protected importing = signal(false);
+  protected pendingImportJson = signal<string | null>(null);
 
   protected async onExport(): Promise<void> {
     this.exporting.set(true);
@@ -70,23 +72,38 @@ export class DataPrivacyComponent {
     if (!file) return;
 
     const reader = new FileReader();
-    reader.onload = async (e) => {
+    reader.onload = (e) => {
       const json = e.target?.result as string;
-      this.importing.set(true);
-      try {
-        await this.importData.execute(json);
-        this.snackBar.open('Données importées avec succès', 'OK', { duration: 3000 });
-      } catch (err) {
-        const msg = err instanceof ImportValidationError
-          ? err.message
-          : 'Erreur lors de l\'import';
-        this.snackBar.open(msg, 'OK', { duration: 4000 });
-      } finally {
-        this.importing.set(false);
-        (event.target as HTMLInputElement).value = '';
-      }
+      this.pendingImportJson.set(json);
+      (event.target as HTMLInputElement).value = '';
     };
     reader.readAsText(file);
+  }
+
+  protected cancelImport(): void {
+    this.pendingImportJson.set(null);
+  }
+
+  protected async confirmImport(mode: ImportMode): Promise<void> {
+    const json = this.pendingImportJson();
+    if (!json) return;
+
+    this.pendingImportJson.set(null);
+    this.importing.set(true);
+    try {
+      await this.importData.execute(json, mode);
+      const msg = mode === 'merge'
+        ? 'Données fusionnées avec succès'
+        : 'Données importées avec succès';
+      this.snackBar.open(msg, 'OK', { duration: 3000 });
+    } catch (err) {
+      const msg = err instanceof ImportValidationError
+        ? err.message
+        : 'Erreur lors de l\'import';
+      this.snackBar.open(msg, 'OK', { duration: 4000 });
+    } finally {
+      this.importing.set(false);
+    }
   }
 
   protected async onDeleteAll(): Promise<void> {

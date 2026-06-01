@@ -445,7 +445,7 @@ Ajouter un bloc désactivé dans `data-privacy.component.html` avec :
 |---|---|
 | **Réf. spec** | §5.7 — Import de sauvegarde |
 | **Décision** | ☑ VALIDER &nbsp;&nbsp; ☐ INVALIDER |
-| **Statut** | ⬜ À traiter |
+| **Statut** | ✅ Traité |
 
 **Ce que dit la spec :**  
 "Option : 'Fusionner avec les données existantes' ou 'Remplacer toutes les données' (avec confirmation)."
@@ -470,7 +470,7 @@ Ajouter un bloc désactivé dans `data-privacy.component.html` avec :
 |---|---|
 | **Réf. spec** | Principes non négociables : "Offline first" |
 | **Décision** | ☑ VALIDER &nbsp;&nbsp; ☐ INVALIDER |
-| **Statut** | ⬜ À traiter |
+| **Statut** | ✅ Traité |
 
 **Ce que dit la spec :**  
 "Offline first : toutes les fonctions de saisie fonctionnent sans connexion internet."
@@ -526,8 +526,8 @@ Les traductions sont chargées à l'exécution depuis des fichiers JSON statique
 | 5.3 | UI rappels (paramètres) | L | |
 | 5.4 | Coach : défaut 14j vs 7j spec | S (MAJ spec si INVALIDER) | ✅ |
 | 5.5 | Placeholder Gist sync | XS | ✅ |
-| 5.6 | Import : fusion vs remplacement | M | |
-| T.1 | Service Worker / PWA | M | |
+| 5.6 | Import : fusion vs remplacement | M | ✅ |
+| T.1 | Service Worker / PWA | M | ✅ |
 | T.2 | @angular/localize vs runtime JSON | — (MAJ spec si INVALIDER) | |
 
 **Légende effort :** XS < 2h · S = 2-4h · M = 4-8h · L = 1-2 jours

@@ -25,14 +25,18 @@ export class ImportValidationError extends Error {
   }
 }
 
+/** Mode d'import : remplace tout ou fusionne avec l'existant. */
+export type ImportMode = 'replace' | 'merge';
+
 /**
  * Importe un bundle JSON dans tous les stores IndexedDB.
  *
  * @remarks
  * Respecte SRP : validation + écriture uniquement.
- * Efface les données existantes avant l'import pour garantir la cohérence.
- * Lève ImportValidationError si la structure JSON est invalide — jamais
- * de corruption silencieuse.
+ * Mode `replace` (défaut) : efface les données existantes puis réimporte.
+ * Mode `merge` : insère uniquement les entités absentes — ne touche pas
+ * aux entités dont l'id existe déjà (stratégie conservative).
+ * Lève ImportValidationError si le JSON est invalide ou de version incompatible.
  * La clé API (localStorage) n'est pas touchée par l'import.
  *
  * Exemple d'injection TestBed :
@@ -45,25 +49,31 @@ export class ImportDataUseCase {
   private readonly storage = inject<StorageRepository<{ id: string }>>(STORAGE_PORT as never);
 
   /**
-   * Valide, efface et réimporte toutes les données depuis le JSON.
+   * Valide et importe les données selon le mode choisi.
    *
    * @param json - Contenu JSON exporté par ExportDataUseCase
+   * @param mode - `replace` : efface tout avant import | `merge` : conserve l'existant
    * @throws ImportValidationError si le JSON est invalide ou de version incompatible
    */
-  async execute(json: string): Promise<void> {
+  async execute(json: string, mode: ImportMode = 'replace'): Promise<void> {
     const bundle = this.parse(json);
     this.validate(bundle);
 
-    await Promise.all(
-      Object.keys(bundle.stores).map(store => this.storage.clear(store)),
-    );
+    if (mode === 'replace') {
+      await Promise.all(
+        Object.keys(bundle.stores).map(store => this.storage.clear(store)),
+      );
+    }
 
     for (const [store, entities] of Object.entries(bundle.stores)) {
       if (!VALID_STORES.has(store)) continue;
       for (const entity of entities) {
-        if (this.hasId(entity)) {
-          await this.storage.save(store, entity);
+        if (!this.hasId(entity)) continue;
+        if (mode === 'merge') {
+          const existing = await this.storage.get(store, entity.id);
+          if (existing !== undefined) continue;
         }
+        await this.storage.save(store, entity);
       }
     }
   }

@@ -2,9 +2,11 @@ import {
   ApplicationConfig,
   APP_INITIALIZER,
   LOCALE_ID,
+  isDevMode,
   provideBrowserGlobalErrorListeners,
   inject,
 } from '@angular/core';
+import { provideServiceWorker } from '@angular/service-worker';
 import { registerLocaleData } from '@angular/common';
 import localeFr from '@angular/common/locales/fr';
 registerLocaleData(localeFr);
@@ -66,6 +68,12 @@ export const appConfig: ApplicationConfig = {
       },
       multi: true,
     },
+
+    // Service Worker — actif uniquement en production (désactivé en dev pour éviter les conflits de cache)
+    provideServiceWorker('ngsw-worker.js', {
+      enabled: !isDevMode(),
+      registrationStrategy: 'registerWhenStable:30000',
+    }),
 
     // Ports IA — AnthropicAdapter gère lui-même le cas "clé absente" (retourne null)
     // La factory statique causait un bug : si la clé était ajoutée après démarrage,

@@ -55,6 +55,34 @@
     .danger-section .section-title {
       color: var(--mat-sys-error);
     }
+    .import-choice-panel {
+      padding: 14px 16px;
+      border-radius: 12px;
+      border: 0.5px solid var(--border);
+      background: var(--card-bg);
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    .import-choice-desc {
+      font-size: 14px;
+      font-weight: 500;
+      color: var(--text-1);
+      margin: 0;
+    }
+    .import-choice-btns {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+    .import-choice-hint {
+      font-size: 12px;
+      color: var(--text-3);
+      margin: 0;
+      line-height: 1.6;
+    }
+
     .sync-placeholder-section { opacity: 0.6; }
     .sync-lock-icon { color: var(--text-3); }
     .sync-placeholder-title { display: flex; align-items: center; gap: 8px; }

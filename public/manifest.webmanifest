@@ -1,0 +1,17 @@
+{
+  "name": "FlowEase",
+  "short_name": "FlowEase",
+  "description": "Journal de santé pour SIBO et gastroparésie",
+  "theme_color": "#1a7f7f",
+  "background_color": "#ffffff",
+  "display": "standalone",
+  "scope": "/",
+  "start_url": "/",
+  "icons": [
+    {
+      "src": "favicon.ico",
+      "sizes": "48x48",
+      "type": "image/x-icon"
+    }
+  ]
+}
