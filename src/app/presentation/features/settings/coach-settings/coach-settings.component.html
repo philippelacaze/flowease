@@ -62,6 +62,20 @@
 
         <mat-divider />
 
+        <!-- Suggestions dans le journal -->
+        <section class="setting-section">
+          <h2 class="section-title">Suggestions dans le journal</h2>
+          <mat-slide-toggle
+            [(ngModel)]="prefs.showSuggestions"
+            aria-label="Afficher des suggestions proactives du Coach dans le journal"
+            data-testid="suggestions-toggle">
+            Afficher des suggestions dans le journal
+          </mat-slide-toggle>
+          <p class="section-desc">Affiche des rappels discrets (repas manquant, symptôme en hausse) sans appel IA.</p>
+        </section>
+
+        <mat-divider />
+
         <!-- Langue du Coach -->
         <section class="setting-section">
           <h2 class="section-title">Langue du Coach</h2>

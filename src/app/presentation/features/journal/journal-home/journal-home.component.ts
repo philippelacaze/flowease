@@ -13,6 +13,8 @@ import { GetJournalDayUseCase, JournalEntry } from '../../../../application/jour
 import { GetActiveCuresUseCase, CureProgressVO } from '../../../../application/journal/get-active-cures.usecase';
 import { SaveWellbeingScoreUseCase } from '../../../../application/journal/save-wellbeing-score.usecase';
 import { ConfirmNoteTagsUseCase } from '../../../../application/journal/confirm-note-tags.usecase';
+import { GetJournalSuggestionsUseCase } from '../../../../application/journal/get-journal-suggestions.usecase';
+import type { CoachSuggestionVO } from '../../../../domain/entities/coach-suggestion.vo';
 import { OfflineBannerComponent } from '../../../shared/components/offline-banner/offline-banner.component';
 import { FoodChipComponent } from '../../../shared/components/food-chip/food-chip.component';
 import { CureProgressComponent } from '../cure-progress/cure-progress.component';
@@ -51,12 +53,14 @@ export class JournalHomeComponent implements OnInit {
   private readonly getActiveCures = inject(GetActiveCuresUseCase);
   private readonly saveWellbeingScore = inject(SaveWellbeingScoreUseCase);
   private readonly confirmNoteTagsUseCase = inject(ConfirmNoteTagsUseCase);
+  private readonly getJournalSuggestions = inject(GetJournalSuggestionsUseCase);
   private readonly router = inject(Router);
   private readonly cdr = inject(ChangeDetectorRef);
 
   protected currentDate = new Date();
   protected entries: JournalEntry[] = [];
   protected activeCures: CureProgressVO[] = [];
+  protected coachSuggestions: CoachSuggestionVO[] = [];
   protected loading = true;
 
   protected showWellbeing = false;
@@ -229,10 +233,13 @@ export class JournalHomeComponent implements OnInit {
     this.loading = true;
     this.wellbeingScore = null;
     this.showWellbeing = false;
+    this.coachSuggestions = [];
     this.cdr.markForCheck();
     this.entries = await this.getJournalDay.execute(this.currentDate);
     this.prefillWellbeing();
     this.loading = false;
+    this.cdr.markForCheck();
+    this.coachSuggestions = await this.getJournalSuggestions.execute(this.currentDate, this.entries);
     this.cdr.markForCheck();
   }
 

@@ -17,6 +17,7 @@ interface CoachPreferences {
   mode: string;
   defaultContext: CoachContextWindow;
   showTokenCounter: boolean;
+  showSuggestions: boolean;
   language: string;
 }
 
@@ -52,6 +53,7 @@ export class CoachSettingsComponent implements OnInit {
     mode: 'standard',
     defaultContext: '14d',
     showTokenCounter: false,
+    showSuggestions: false,
     language: 'fr',
   };
 
@@ -60,6 +62,7 @@ export class CoachSettingsComponent implements OnInit {
       mode: this.settings.getCoachMode(),
       defaultContext: this.settings.getDefaultContextWindow(),
       showTokenCounter: this.settings.getShowTokenCounter(),
+      showSuggestions: this.settings.getCoachSuggestions(),
       language: this.settings.getLanguage(),
     };
   }
@@ -68,6 +71,7 @@ export class CoachSettingsComponent implements OnInit {
     this.settings.setCoachMode(this.prefs.mode);
     this.settings.setDefaultContextWindow(this.prefs.defaultContext);
     this.settings.setShowTokenCounter(this.prefs.showTokenCounter);
+    this.settings.setCoachSuggestions(this.prefs.showSuggestions);
     this.settings.setLanguage(this.prefs.language);
     this.snackBar.open('Préférences enregistrées', 'OK', { duration: 2000 });
   }

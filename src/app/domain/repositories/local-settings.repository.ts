@@ -73,4 +73,18 @@ export interface LocalSettingsRepository {
    * @param theme - 'light' | 'dark' | 'auto'
    */
   setTheme(theme: string): void;
+
+  /**
+   * Indique si les suggestions proactives du Coach sont affichées dans le journal.
+   *
+   * @returns true si les suggestions sont activées — false par défaut
+   */
+  getCoachSuggestions(): boolean;
+
+  /**
+   * Persiste la préférence d'affichage des suggestions Coach dans le journal.
+   *
+   * @param enabled - true pour activer les suggestions
+   */
+  setCoachSuggestions(enabled: boolean): void;
 }

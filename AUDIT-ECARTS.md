@@ -261,8 +261,8 @@ Le prompt envoyé à Claude via `AnalysisPort` inclut bien `cureComparison` dans
 | | |
 |---|---|
 | **Réf. spec** | §3.2 — Déclenchement |
-| **Décision** | ☐ VALIDER &nbsp;&nbsp; ☐ INVALIDER |
-| **Statut** | ⬜ À traiter |
+| **Décision** | ☑ VALIDER &nbsp;&nbsp; ☐ INVALIDER |
+| **Statut** | ✅ Traité |
 
 **Ce que dit la spec :**  
 L'utilisateur choisit "la fenêtre temporelle à couvrir (7 / 14 / 30 / 90 jours, **ou plage personnalisée**)".
@@ -304,8 +304,8 @@ La session démarre automatiquement avec la valeur par défaut des paramètres. 
 | | |
 |---|---|
 | **Réf. spec** | §4.2 — Mode d'interaction |
-| **Décision** | ☐ VALIDER &nbsp;&nbsp; ☐ INVALIDER |
-| **Statut** | ⬜ À traiter |
+| **Décision** | ☑ VALIDER &nbsp;&nbsp; ☐ INVALIDER |
+| **Statut** | ✅ Traité |
 
 **Ce que dit la spec :**  
 Deux modes sélectionnables dans les paramètres :
@@ -518,9 +518,9 @@ Les traductions sont chargées à l'exécution depuis des fichiers JSON statique
 | 1.8 | aiFodmapFlags absents | M | ✅ |
 | 2.1 | Comparaison avant/après cure | S | ✅ |
 | 3.1 | Rapport PDF (jsPDF) | M | ✅ |
-| 3.2 | Rapport : plage de dates personnalisée | S | |
+| 3.2 | Rapport : plage de dates personnalisée | S | ✅ |
 | 4.1 | Coach picker : comportement délibéré | — (MAJ spec si INVALIDER) | |
-| 4.2 | Mode chat + suggestions dans journal | M | |
+| 4.2 | Mode chat + suggestions dans journal | M | ✅ |
 | 5.1 | Profil : 5 champs manquants | M | |
 | 5.2 | UI gestion des cures (paramètres) | L | |
 | 5.3 | UI rappels (paramètres) | L | |

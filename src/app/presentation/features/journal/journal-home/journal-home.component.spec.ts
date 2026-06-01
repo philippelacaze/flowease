@@ -7,6 +7,7 @@ import { GetJournalDayUseCase } from '../../../../application/journal/get-journa
 import { GetActiveCuresUseCase } from '../../../../application/journal/get-active-cures.usecase';
 import { SaveWellbeingScoreUseCase } from '../../../../application/journal/save-wellbeing-score.usecase';
 import { ConfirmNoteTagsUseCase } from '../../../../application/journal/confirm-note-tags.usecase';
+import { GetJournalSuggestionsUseCase } from '../../../../application/journal/get-journal-suggestions.usecase';
 import { LOCAL_SETTINGS_PORT } from '../../../../application/tokens';
 import type { FoodItemVO, AiFodmapAlert } from '../../../../domain/entities/meal.entity';
 import type { JournalEntry } from '../../../../application/journal/get-journal-day.usecase';
@@ -74,6 +75,7 @@ const DEFAULT_PROVIDERS = [
   { provide: GetActiveCuresUseCase, useValue: { execute: vi.fn().mockResolvedValue([]) } },
   { provide: SaveWellbeingScoreUseCase, useValue: { execute: vi.fn().mockResolvedValue('wb-id') } },
   { provide: ConfirmNoteTagsUseCase, useValue: { execute: vi.fn().mockResolvedValue(undefined) } },
+  { provide: GetJournalSuggestionsUseCase, useValue: { execute: vi.fn().mockResolvedValue([]) } },
   { provide: LOCAL_SETTINGS_PORT, useValue: { getLanguage: () => 'fr', getApiKey: () => null } },
 ];
 

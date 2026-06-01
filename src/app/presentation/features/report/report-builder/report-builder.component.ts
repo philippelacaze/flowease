@@ -1,6 +1,7 @@
 import { Component, inject, signal } from '@angular/core';
 
 import { RouterLink } from '@angular/router';
+import { FormsModule } from '@angular/forms';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { BuildReportUseCase } from '../../../../application/report/build-report.usecase';
 import { GenerateReportSummaryUseCase } from '../../../../application/report/generate-report-summary.usecase';
@@ -8,7 +9,7 @@ import { PdfReportService } from '../../../../infrastructure/pdf/pdf-report.serv
 import type { ReportEntity, ReportFormat } from '../../../../domain/entities/report.entity';
 import type { ReportData } from '../../../../domain/repositories/ai/report.port';
 
-type WindowPreset = 7 | 14 | 30 | 90;
+type WindowPreset = 7 | 14 | 30 | 90 | 'custom';
 
 /**
  * Page principale de génération de rapport médical.
@@ -23,7 +24,7 @@ type WindowPreset = 7 | 14 | 30 | 90;
 @Component({
   selector: 'app-report-builder',
   standalone: true,
-  imports: [RouterLink],
+  imports: [RouterLink, FormsModule],
   templateUrl: './report-builder.component.html',
   styleUrl: './report-builder.component.scss',
 })
@@ -34,6 +35,8 @@ export class ReportBuilderComponent {
   private readonly snackBar = inject(MatSnackBar);
 
   protected windowPreset: WindowPreset = 14;
+  protected customStartDate = '';
+  protected customEndDate = '';
   protected format: ReportFormat = 'text';
   protected includeAiSummary = false;
 
@@ -46,12 +49,28 @@ export class ReportBuilderComponent {
     { value: 'pdf'  as ReportFormat, icon: '📑', label: 'PDF' },
   ] as const;
 
-  protected setWindowPreset(d: number): void {
+  protected setWindowPreset(d: number | 'custom'): void {
     this.windowPreset = d as WindowPreset;
   }
 
   protected isRangeValid(): boolean {
-    return this.windowPreset > 0;
+    if (this.windowPreset !== 'custom') return true;
+    if (!this.customStartDate || !this.customEndDate) return false;
+    const start = new Date(this.customStartDate);
+    const end = new Date(this.customEndDate);
+    if (isNaN(start.getTime()) || isNaN(end.getTime())) return false;
+    const diffDays = (end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24);
+    return diffDays > 0 && diffDays <= 365;
+  }
+
+  protected get windowLabel(): string {
+    if (this.windowPreset === 'custom') {
+      if (this.customStartDate && this.customEndDate) {
+        return `${this.customStartDate} → ${this.customEndDate}`;
+      }
+      return 'Personnalisée';
+    }
+    return `${this.windowPreset} j`;
   }
 
   protected async onGenerate(): Promise<void> {
@@ -121,6 +140,14 @@ export class ReportBuilderComponent {
   }
 
   private computeRange(): { startDate: Date; endDate: Date; windowDays: number } {
+    if (this.windowPreset === 'custom') {
+      const startDate = new Date(this.customStartDate);
+      startDate.setHours(0, 0, 0, 0);
+      const endDate = new Date(this.customEndDate);
+      endDate.setHours(23, 59, 59, 999);
+      const windowDays = Math.round((endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24));
+      return { startDate, endDate, windowDays };
+    }
     const endDate = new Date();
     endDate.setHours(23, 59, 59, 999);
     const startDate = new Date();
@@ -130,9 +157,12 @@ export class ReportBuilderComponent {
   }
 
   private buildTextContent(report: ReportEntity): string {
+    const periodeLabel = this.windowPreset === 'custom'
+      ? `du ${this.customStartDate} au ${this.customEndDate}`
+      : `${report.windowDays} jours`;
     const lines: string[] = [
       `RAPPORT FLOWEASE — ${new Date(report.generatedAt).toLocaleDateString('fr-FR')}`,
-      `Période : ${report.windowDays} jours`,
+      `Période : ${periodeLabel}`,
       '',
     ];
 

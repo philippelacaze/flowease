@@ -22,6 +22,7 @@ const KEYS = {
   DEFAULT_WINDOW: 'flowease_default_window',
   LAST_ANALYSIS_DATE: 'flowease_last_analysis_date',
   SHOW_TOKEN_COUNTER: 'flowease_show_token_counter',
+  COACH_SUGGESTIONS: 'flowease_coach_suggestions',
 } as const;
 
 export class LocalSettingsAdapter {
@@ -167,5 +168,21 @@ export class LocalSettingsAdapter {
    */
   setShowTokenCounter(show: boolean): void {
     localStorage.setItem(KEYS.SHOW_TOKEN_COUNTER, String(show));
+  }
+
+  /**
+   * Retourne si les suggestions proactives du Coach sont affichées dans le journal.
+   *
+   * @returns true si activé — false par défaut
+   */
+  getCoachSuggestions(): boolean {
+    return localStorage.getItem(KEYS.COACH_SUGGESTIONS) === 'true';
+  }
+
+  /**
+   * @param enabled - true pour activer les suggestions dans le journal
+   */
+  setCoachSuggestions(enabled: boolean): void {
+    localStorage.setItem(KEYS.COACH_SUGGESTIONS, String(enabled));
   }
 }

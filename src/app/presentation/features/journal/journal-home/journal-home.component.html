@@ -154,6 +154,25 @@
   <!-- Cures en cours -->
   <app-cure-progress [cures]="activeCures" />
 
+  <!-- Suggestions Coach proactives -->
+  @if (coachSuggestions.length > 0) {
+    <div class="coach-suggestions" role="list" aria-label="Suggestions du Coach" data-testid="coach-suggestions">
+      @for (s of coachSuggestions; track s.type) {
+        <div class="coach-suggestion-chip" role="listitem" [attr.data-testid]="'suggestion-' + s.type">
+          <span class="coach-suggestion-icon" aria-hidden="true">💡</span>
+          <span class="coach-suggestion-msg">{{ s.message }}</span>
+          @if (s.type === 'symptom_trending_up') {
+            <button class="coach-suggestion-cta"
+                    aria-label="Ouvrir le Coach pour en parler"
+                    (click)="navigate('/coach')">
+              Coach →
+            </button>
+          }
+        </div>
+      }
+    </div>
+  }
+
   <!-- Journal du jour -->
   @if (loading) {
     <div class="loading" role="status" aria-live="polite">Chargement…</div>

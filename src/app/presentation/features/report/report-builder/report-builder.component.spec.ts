@@ -209,4 +209,56 @@ describe('ReportBuilderComponent', () => {
       expect(btn).toBeNull();
     });
   });
+
+  describe('période personnalisée', () => {
+    it('affiche le bouton "Personnalisée" parmi les presets', async () => {
+      const fixture = await createComponent();
+      const btn = fixture.nativeElement.querySelector('[data-testid="window-custom"]');
+      expect(btn).not.toBeNull();
+    });
+
+    it('affiche les inputs de date sur clic "Personnalisée"', async () => {
+      const fixture = await createComponent();
+      fixture.nativeElement.querySelector('[data-testid="window-custom"]').click();
+      fixture.detectChanges();
+      expect(fixture.nativeElement.querySelector('[data-testid="custom-range-inputs"]')).not.toBeNull();
+      expect(fixture.nativeElement.querySelector('[data-testid="custom-start-date"]')).not.toBeNull();
+      expect(fixture.nativeElement.querySelector('[data-testid="custom-end-date"]')).not.toBeNull();
+    });
+
+    it('masque les inputs de date quand un preset numérique est sélectionné', async () => {
+      const fixture = await createComponent();
+      fixture.nativeElement.querySelector('[data-testid="window-custom"]').click();
+      fixture.detectChanges();
+      fixture.nativeElement.querySelector('[data-testid="window-7"]').click();
+      fixture.detectChanges();
+      expect(fixture.nativeElement.querySelector('[data-testid="custom-range-inputs"]')).toBeNull();
+    });
+
+    it('désactive le bouton générer si les dates sont vides', async () => {
+      const fixture = await createComponent();
+      fixture.nativeElement.querySelector('[data-testid="window-custom"]').click();
+      fixture.detectChanges();
+      const btn = fixture.nativeElement.querySelector('[data-testid="generate-button"]');
+      expect(btn.disabled).toBe(true);
+    });
+
+    it('affiche un message d\'erreur si la date de fin est antérieure à la date de début', async () => {
+      const fixture = await createComponent();
+      fixture.nativeElement.querySelector('[data-testid="window-custom"]').click();
+      fixture.detectChanges();
+      await fixture.whenStable();
+      const startInput = fixture.nativeElement.querySelector('[data-testid="custom-start-date"]') as HTMLInputElement;
+      const endInput = fixture.nativeElement.querySelector('[data-testid="custom-end-date"]') as HTMLInputElement;
+      startInput.value = '2026-05-10';
+      startInput.dispatchEvent(new Event('input'));
+      endInput.value = '2026-05-01';
+      endInput.dispatchEvent(new Event('input'));
+      fixture.detectChanges();
+      await fixture.whenStable();
+      fixture.detectChanges();
+      const error = fixture.nativeElement.querySelector('[data-testid="custom-range-error"]');
+      expect(error).not.toBeNull();
+    });
+  });
 });

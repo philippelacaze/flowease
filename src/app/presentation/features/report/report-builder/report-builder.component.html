@@ -17,7 +17,40 @@
                 [attr.data-testid]="'window-' + d"
                 (click)="setWindowPreset(d)">{{ d }} j</button>
       }
+      <button class="window-pill"
+              [class.window-pill--active]="windowPreset === 'custom'"
+              aria-label="Période personnalisée"
+              data-testid="window-custom"
+              (click)="setWindowPreset('custom')">Personnalisée</button>
     </div>
+
+    @if (windowPreset === 'custom') {
+      <div class="custom-range" data-testid="custom-range-inputs">
+        <div class="custom-range-row">
+          <label class="custom-range-label" for="customStartDate">Du</label>
+          <input id="customStartDate"
+                 class="custom-date-input"
+                 type="date"
+                 aria-label="Date de début"
+                 data-testid="custom-start-date"
+                 [(ngModel)]="customStartDate" />
+        </div>
+        <div class="custom-range-row">
+          <label class="custom-range-label" for="customEndDate">Au</label>
+          <input id="customEndDate"
+                 class="custom-date-input"
+                 type="date"
+                 aria-label="Date de fin"
+                 data-testid="custom-end-date"
+                 [(ngModel)]="customEndDate" />
+        </div>
+        @if (customStartDate && customEndDate && !isRangeValid()) {
+          <p class="custom-range-error" role="alert" data-testid="custom-range-error">
+            La date de fin doit être postérieure à la date de début (max 365 jours).
+          </p>
+        }
+      </div>
+    }
   </div>
 
   <!-- Format -->
@@ -63,7 +96,7 @@
       <span class="btn-spinner" aria-hidden="true"></span>
       Génération en cours…
     } @else {
-      📄 Générer le rapport — {{ windowPreset }} j
+      📄 Générer le rapport — {{ windowLabel }}
     }
   </button>
 
