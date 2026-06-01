@@ -5,6 +5,7 @@ import { vi } from 'vitest';
 import { ReportBuilderComponent } from './report-builder.component';
 import { BuildReportUseCase } from '../../../../application/report/build-report.usecase';
 import { GenerateReportSummaryUseCase } from '../../../../application/report/generate-report-summary.usecase';
+import { PdfReportService } from '../../../../infrastructure/pdf/pdf-report.service';
 import { MatSnackBar } from '@angular/material/snack-bar';
 
 const mockReport = {
@@ -17,6 +18,7 @@ const mockReport = {
 
 const mockBuild = { execute: vi.fn().mockResolvedValue(mockReport) };
 const mockSummary = { execute: vi.fn().mockResolvedValue('Résumé IA') };
+const mockPdfService = { generate: vi.fn() };
 const mockSnackBar = { open: vi.fn() };
 
 async function createComponent() {
@@ -26,6 +28,7 @@ async function createComponent() {
       provideRouter([]),
       { provide: BuildReportUseCase, useValue: mockBuild },
       { provide: GenerateReportSummaryUseCase, useValue: mockSummary },
+      { provide: PdfReportService, useValue: mockPdfService },
       { provide: MatSnackBar, useValue: mockSnackBar },
     ],
   }).compileComponents();
@@ -35,6 +38,12 @@ async function createComponent() {
   await fixture.whenStable();
   return fixture;
 }
+
+type ComponentProtected = {
+  format: string;
+  downloadAsPdf(): void;
+  downloadAsText(): void;
+};
 
 describe('ReportBuilderComponent', () => {
   beforeEach(() => { vi.clearAllMocks(); });
@@ -136,6 +145,68 @@ describe('ReportBuilderComponent', () => {
       fixture.nativeElement.querySelector('[data-testid="generate-button"]').click();
       await fixture.whenStable();
       expect(mockSummary.execute).toHaveBeenCalledOnce();
+    });
+  });
+
+  describe('téléchargement PDF', () => {
+    it('affiche le bouton "Télécharger PDF" quand format = pdf et rapport généré', async () => {
+      const fixture = await createComponent();
+      fixture.nativeElement.querySelector('[data-testid="format-pdf"]').click();
+      fixture.nativeElement.querySelector('[data-testid="generate-button"]').click();
+      await fixture.whenStable();
+      fixture.detectChanges();
+      const btn = fixture.nativeElement.querySelector('[data-testid="download-pdf"]');
+      expect(btn).not.toBeNull();
+    });
+
+    it('appelle PdfReportService.generate() sur clic "Télécharger PDF"', async () => {
+      const fixture = await createComponent();
+      fixture.nativeElement.querySelector('[data-testid="format-pdf"]').click();
+      fixture.nativeElement.querySelector('[data-testid="generate-button"]').click();
+      await fixture.whenStable();
+      fixture.detectChanges();
+      fixture.nativeElement.querySelector('[data-testid="download-pdf"]').click();
+      expect(mockPdfService.generate).toHaveBeenCalledOnce();
+    });
+
+    it('PdfReportService.generate() reçoit le rapport et la synthèse IA', async () => {
+      const fixture = await createComponent();
+      fixture.nativeElement.querySelector('[data-testid="format-pdf"]').click();
+      fixture.nativeElement.querySelector('[data-testid="generate-button"]').click();
+      await fixture.whenStable();
+      fixture.detectChanges();
+      fixture.nativeElement.querySelector('[data-testid="download-pdf"]').click();
+      expect(mockPdfService.generate).toHaveBeenCalledWith(mockReport, null);
+    });
+
+    it('n\'affiche pas le bouton PDF quand format = text', async () => {
+      const fixture = await createComponent();
+      fixture.nativeElement.querySelector('[data-testid="generate-button"]').click();
+      await fixture.whenStable();
+      fixture.detectChanges();
+      const btn = fixture.nativeElement.querySelector('[data-testid="download-pdf"]');
+      expect(btn).toBeNull();
+    });
+  });
+
+  describe('téléchargement texte', () => {
+    it('affiche le bouton "Télécharger .txt" quand format = text et rapport généré', async () => {
+      const fixture = await createComponent();
+      fixture.nativeElement.querySelector('[data-testid="generate-button"]').click();
+      await fixture.whenStable();
+      fixture.detectChanges();
+      const btn = fixture.nativeElement.querySelector('[data-testid="download-text"]');
+      expect(btn).not.toBeNull();
+    });
+
+    it('n\'affiche pas le bouton .txt quand format = pdf', async () => {
+      const fixture = await createComponent();
+      fixture.nativeElement.querySelector('[data-testid="format-pdf"]').click();
+      fixture.nativeElement.querySelector('[data-testid="generate-button"]').click();
+      await fixture.whenStable();
+      fixture.detectChanges();
+      const btn = fixture.nativeElement.querySelector('[data-testid="download-text"]');
+      expect(btn).toBeNull();
     });
   });
 });

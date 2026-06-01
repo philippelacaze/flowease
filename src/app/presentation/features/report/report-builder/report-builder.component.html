@@ -92,10 +92,18 @@
       <div class="result-actions">
         @if (format === 'pdf') {
           <button class="action-btn"
-                  aria-label="Télécharger le rapport en PDF"
+                  aria-label="Télécharger le rapport au format PDF"
                   data-testid="download-pdf"
                   (click)="downloadAsPdf()">
             ⬇ Télécharger PDF
+          </button>
+        }
+        @if (format === 'text') {
+          <button class="action-btn"
+                  aria-label="Télécharger le rapport au format texte"
+                  data-testid="download-text"
+                  (click)="downloadAsText()">
+            ⬇ Télécharger .txt
           </button>
         }
         <button class="action-btn"

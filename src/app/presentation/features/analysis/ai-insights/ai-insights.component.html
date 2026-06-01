@@ -46,7 +46,8 @@
           {{ group.label }}
         </h3>
         @for (card of group.cards; track card) {
-          <div class="insight-card" data-testid="insight-card">
+          <div class="insight-card" [class.insight-card--comparison]="card.insight.type === 'cureComparison'"
+               data-testid="insight-card">
             <div class="card-header">
               <span class="card-title">{{ card.insight.title }}</span>
               <span
@@ -59,6 +60,39 @@
                 {{ card.insight.confidence * 100 | number:'1.0-0' }}%
               </span>
             </div>
+            <!-- Tableau avant/pendant/après pour cureComparison -->
+            @if (card.insight.type === 'cureComparison' && card.insight.comparisonPeriods) {
+              <div class="cure-comparison" data-testid="cure-comparison-table">
+                <table class="cure-table" aria-label="Comparaison scores avant, pendant et après la cure">
+                  <thead>
+                    <tr>
+                      <th scope="col"></th>
+                      @for (period of card.insight.comparisonPeriods; track period.label) {
+                        <th scope="col">{{ period.label }}</th>
+                      }
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td class="cure-row-label">Bien-être</td>
+                      @for (period of card.insight.comparisonPeriods; track period.label) {
+                        <td [class.cure-score-null]="period.avgWellbeing === null">
+                          {{ period.avgWellbeing !== null ? (period.avgWellbeing | number:'1.1-1') + '/10' : '—' }}
+                        </td>
+                      }
+                    </tr>
+                    <tr>
+                      <td class="cure-row-label">Symptômes</td>
+                      @for (period of card.insight.comparisonPeriods; track period.label) {
+                        <td [class.cure-score-null]="period.avgSymptomIntensity === null">
+                          {{ period.avgSymptomIntensity !== null ? (period.avgSymptomIntensity | number:'1.1-1') + '/10' : '—' }}
+                        </td>
+                      }
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            }
             <p class="card-description">{{ card.insight.description }}</p>
           </div>
         }

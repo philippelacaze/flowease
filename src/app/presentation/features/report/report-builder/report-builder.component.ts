@@ -4,6 +4,7 @@ import { RouterLink } from '@angular/router';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { BuildReportUseCase } from '../../../../application/report/build-report.usecase';
 import { GenerateReportSummaryUseCase } from '../../../../application/report/generate-report-summary.usecase';
+import { PdfReportService } from '../../../../infrastructure/pdf/pdf-report.service';
 import type { ReportEntity, ReportFormat } from '../../../../domain/entities/report.entity';
 import type { ReportData } from '../../../../domain/repositories/ai/report.port';
 
@@ -29,6 +30,7 @@ type WindowPreset = 7 | 14 | 30 | 90;
 export class ReportBuilderComponent {
   private readonly buildReport = inject(BuildReportUseCase);
   private readonly generateSummary = inject(GenerateReportSummaryUseCase);
+  private readonly pdfService = inject(PdfReportService);
   private readonly snackBar = inject(MatSnackBar);
 
   protected windowPreset: WindowPreset = 14;
@@ -92,13 +94,19 @@ export class ReportBuilderComponent {
   protected downloadAsPdf(): void {
     const report = this.generatedReport();
     if (!report) return;
+    this.pdfService.generate(report, this.aiSummaryText());
+  }
+
+  protected downloadAsText(): void {
+    const report = this.generatedReport();
+    if (!report) return;
 
     const text = this.buildTextContent(report);
     const blob = new Blob([text], { type: 'text/plain;charset=utf-8' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `flowease-rapport-${new Date().toISOString().slice(0, 10)}.txt`;
+    a.download = `FlowEase_rapport_${new Date().toISOString().slice(0, 10)}.txt`;
     a.click();
     URL.revokeObjectURL(url);
   }

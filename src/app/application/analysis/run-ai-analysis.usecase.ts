@@ -56,10 +56,11 @@ export class RunAiAnalysisUseCase {
     lower.setDate(lower.getDate() - windowDays);
     lower.setHours(0, 0, 0, 0);
 
-    const [symptoms, meals, intakes] = await Promise.all([
+    const [symptoms, meals, intakes, cures] = await Promise.all([
       this.storage.getRange('symptoms', 'occurredAt', lower, now) as Promise<SymptomEntity[]>,
       this.storage.getRange('meals', 'occurredAt', lower, now) as Promise<MealEntity[]>,
       this.storage.getRange('intakes', 'occurredAt', lower, now) as Promise<IntakeEntity[]>,
+      this.storage.getAll('cures') as Promise<{ id: string }[]>,
     ]);
 
     const userProfile = await this.storage.get('user-profile', 'singleton') as UserProfileEntity | undefined;
@@ -69,6 +70,7 @@ export class RunAiAnalysisUseCase {
       symptomsJson: JSON.stringify(symptoms),
       mealsJson: JSON.stringify(meals),
       intakesJson: JSON.stringify(intakes),
+      curesJson: cures.length > 0 ? JSON.stringify(cures) : undefined,
       userConditions: userProfile?.conditions ?? [],
       protocol: userProfile?.protocol ?? 'none',
     };
