@@ -190,6 +190,7 @@ export class AnthropicAdapter implements MealAnalysisPort, NoteTaggingPort, Anal
       symptoms: context.symptomsJson,
       meals: context.mealsJson,
       intakes: context.intakesJson,
+      ...(context.curesJson ? { cures: context.curesJson } : {}),
       conditions: context.userConditions,
       protocol: context.protocol,
     });

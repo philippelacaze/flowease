@@ -13,6 +13,8 @@ export interface AnalysisContext {
   readonly intakesJson: string;
   readonly userConditions: readonly string[];
   readonly protocol: string;
+  /** JSON des CureEntity actives ou récentes — absent si aucune cure configurée. */
+  readonly curesJson?: string;
 }
 
 /** Type d'insight retourné par l'analyse IA. */
@@ -20,13 +22,31 @@ export type InsightType =
   | 'correlation'
   | 'pattern'
   | 'alert'
-  | 'recommendation';
+  | 'recommendation'
+  | 'cureComparison';
+
+/**
+ * Données d'une période pour la comparaison avant/pendant/après cure.
+ *
+ * @remarks
+ * Valeurs null si aucune donnée de symptôme n'est disponible pour la période.
+ *
+ * @param label - Libellé de la période ("Avant" | "Pendant" | "Après")
+ * @param avgWellbeing - Score de bien-être moyen (1–10) ou null
+ * @param avgSymptomIntensity - Intensité symptômes moyenne (1–10) ou null
+ */
+export interface CureComparisonPeriodVO {
+  readonly label: string;
+  readonly avgWellbeing: number | null;
+  readonly avgSymptomIntensity: number | null;
+}
 
 /**
  * Résultat d'analyse d'un insight individuel.
  *
  * @remarks
  * Value Object imbriqué dans AnalysisResult. confidence entre 0 et 1.
+ * comparisonPeriods est uniquement présent quand type === 'cureComparison'.
  */
 export interface InsightVO {
   readonly type: InsightType;
@@ -34,6 +54,8 @@ export interface InsightVO {
   readonly description: string;
   readonly confidence: number;
   readonly relatedEntries?: readonly string[];
+  /** Données avant/pendant/après — uniquement pour type === 'cureComparison'. */
+  readonly comparisonPeriods?: ReadonlyArray<CureComparisonPeriodVO>;
 }
 
 /**

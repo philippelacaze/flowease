@@ -214,8 +214,8 @@ Les alertes FODMAP générées par l'IA lors de l'analyse d'un repas doivent êt
 | | |
 |---|---|
 | **Réf. spec** | §2.5.3 — Comparaison avant/après cure |
-| **Décision** | ☐ VALIDER &nbsp;&nbsp; ☐ INVALIDER |
-| **Statut** | ⬜ À traiter |
+| **Décision** | ☑ VALIDER &nbsp;&nbsp; ☐ INVALIDER |
+| **Statut** | ✅ Traité |
 
 **Ce que dit la spec :**  
 "Si une cure est en cours ou vient de se terminer dans la fenêtre : comparaison automatique des scores moyens avant/pendant/après."
@@ -516,7 +516,7 @@ Les traductions sont chargées à l'exécution depuis des fichiers JSON statique
 | 1.6 | Tags IA : confirmation interactive | M | ✅ |
 | 1.7 | Bien-être non persisté | S | |
 | 1.8 | aiFodmapFlags absents | M | ✅ |
-| 2.1 | Comparaison avant/après cure | S | |
+| 2.1 | Comparaison avant/après cure | S | ✅ |
 | 3.1 | Rapport PDF (jsPDF) | M | |
 | 3.2 | Rapport : plage de dates personnalisée | S | |
 | 4.1 | Coach picker : comportement délibéré | — (MAJ spec si INVALIDER) | |

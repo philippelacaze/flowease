@@ -49,13 +49,14 @@ export class AiInsightsComponent implements OnInit, OnChanges {
   protected copied = false;
 
   private readonly TYPE_META: Record<InsightType, { label: string; icon: string }> = {
-    correlation:     { label: 'Corrélations',      icon: 'hub' },
-    pattern:         { label: 'Patterns',           icon: 'timeline' },
-    alert:           { label: 'Alertes',            icon: 'warning' },
-    recommendation:  { label: 'Recommandations',    icon: 'lightbulb' },
+    cureComparison:  { label: 'Comparaison cure',   icon: 'compare_arrows' },
+    correlation:     { label: 'Corrélations',        icon: 'hub' },
+    pattern:         { label: 'Patterns',             icon: 'timeline' },
+    alert:           { label: 'Alertes',              icon: 'warning' },
+    recommendation:  { label: 'Recommandations',      icon: 'lightbulb' },
   };
 
-  private readonly TYPE_ORDER: InsightType[] = ['alert', 'correlation', 'pattern', 'recommendation'];
+  private readonly TYPE_ORDER: InsightType[] = ['cureComparison', 'alert', 'correlation', 'pattern', 'recommendation'];
 
   protected get insightGroups(): { type: InsightType; label: string; icon: string; cards: InsightCard[] }[] {
     return this.TYPE_ORDER

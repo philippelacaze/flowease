@@ -99,6 +99,30 @@ describe('RunAiAnalysisUseCase', () => {
       await useCase.execute(7);
       expect(mockStorage.getRange).toHaveBeenCalledTimes(3);
     });
+
+    it('charge toutes les cures pour la comparaison avant/après', async () => {
+      const useCase = TestBed.inject(RunAiAnalysisUseCase);
+      await useCase.execute(14);
+      expect(mockStorage.getAll).toHaveBeenCalledWith('cures');
+    });
+
+    it('transmet curesJson au port IA quand des cures existent', async () => {
+      const mockCure = { id: 'cure-1', name: 'Rifaximin', status: 'active' };
+      mockStorage.getAll.mockResolvedValue([mockCure]);
+      const useCase = TestBed.inject(RunAiAnalysisUseCase);
+      await useCase.execute(14);
+      expect(mockAnalysisPort.analyzeData).toHaveBeenCalledWith(
+        expect.objectContaining({ curesJson: JSON.stringify([mockCure]) }),
+      );
+    });
+
+    it('omet curesJson du contexte quand aucune cure n\'existe', async () => {
+      mockStorage.getAll.mockResolvedValue([]);
+      const useCase = TestBed.inject(RunAiAnalysisUseCase);
+      await useCase.execute(14);
+      const callArg = mockAnalysisPort.analyzeData.mock.calls[0][0] as Record<string, unknown>;
+      expect(callArg['curesJson']).toBeUndefined();
+    });
   });
 
   describe('mode dégradé — NullAIAdapter injecté', () => {
