@@ -50,6 +50,10 @@ export type AppTheme = 'auto' | 'light' | 'dark';
  * @param conditions - Conditions médicales déclarées
  * @param protocol - Protocole alimentaire en cours
  * @param diagnosedAt - Date de diagnostic
+ * @param otherConditions - Autres conditions médicales (texte libre)
+ * @param referringDoctor - Nom du médecin référent (optionnel)
+ * @param allergies - Allergies connues (texte libre)
+ * @param dietaryRestrictions - Restrictions alimentaires spécifiques (texte libre)
  * @param language - Langue de l'interface
  * @param theme - Thème visuel
  * @param showTokenCounter - Affiche le compteur de tokens Coach
@@ -62,6 +66,10 @@ export interface UserProfileEntity {
   readonly conditions: readonly MedicalCondition[];
   readonly protocol: FodmapProtocol;
   readonly diagnosedAt?: Date;
+  readonly otherConditions?: string;
+  readonly referringDoctor?: string;
+  readonly allergies?: string;
+  readonly dietaryRestrictions?: string;
   readonly language: AppLanguage;
   readonly theme: AppTheme;
   readonly showTokenCounter: boolean;

@@ -71,6 +71,123 @@
         </mat-accordion>
       }
 
+      <!-- Section Cures -->
+      <div class="cures-section" data-testid="cures-section">
+        <div class="cures-header">
+          <h2 class="cures-title">Cures</h2>
+          <button
+            mat-stroked-button
+            (click)="onAddCure()"
+            aria-label="Démarrer une nouvelle cure"
+            data-testid="add-cure-btn">
+            <mat-icon>add</mat-icon>
+            Démarrer une cure
+          </button>
+        </div>
+
+        @if (cures().length === 0) {
+          <p class="cures-empty" data-testid="empty-cures">Aucune cure enregistrée.</p>
+        } @else {
+          <div class="cures-list">
+            @for (cure of cures(); track cure.id) {
+              <div class="cure-card" [attr.data-testid]="'cure-' + cure.id">
+                <div class="cure-card-head">
+                  <div>
+                    <span class="cure-name">{{ cure.name }}</span>
+                    <span class="cure-meta">{{ cure.durationDays }} jours · débuté le {{ cure.startedAt | date:'dd/MM/yyyy' }}</span>
+                  </div>
+                  <span class="cure-status-badge"
+                        [class.cure-status--active]="cure.status === 'active'"
+                        [class.cure-status--done]="cure.status === 'completed'"
+                        [class.cure-status--warn]="cure.status === 'paused' || cure.status === 'abandoned'">
+                    {{ cureStatusLabel(cure.status) }}
+                  </span>
+                </div>
+                @if (cure.notes) {
+                  <p class="cure-notes">{{ cure.notes }}</p>
+                }
+                <div class="cure-actions">
+                  @if (cure.status === 'active') {
+                    <button mat-stroked-button
+                            (click)="onUpdateCureStatus(cure, 'paused')"
+                            [attr.aria-label]="'Mettre en pause la cure ' + cure.name"
+                            [attr.data-testid]="'pause-cure-' + cure.id">
+                      <mat-icon>pause</mat-icon> Pause
+                    </button>
+                    <button mat-stroked-button color="warn"
+                            (click)="onUpdateCureStatus(cure, 'abandoned')"
+                            [attr.aria-label]="'Abandonner la cure ' + cure.name"
+                            [attr.data-testid]="'abandon-cure-' + cure.id">
+                      Abandonner
+                    </button>
+                  }
+                  @if (cure.status === 'paused') {
+                    <button mat-stroked-button
+                            (click)="onUpdateCureStatus(cure, 'active')"
+                            [attr.aria-label]="'Reprendre la cure ' + cure.name"
+                            [attr.data-testid]="'resume-cure-' + cure.id">
+                      <mat-icon>play_arrow</mat-icon> Reprendre
+                    </button>
+                  }
+                  <button mat-icon-button color="warn"
+                          (click)="onDeleteCure(cure)"
+                          [attr.aria-label]="'Supprimer la cure ' + cure.name"
+                          [attr.data-testid]="'delete-cure-' + cure.id">
+                    <mat-icon>delete</mat-icon>
+                  </button>
+                </div>
+              </div>
+            }
+          </div>
+        }
+
+        <!-- Formulaire de création de cure -->
+        @if (showCureForm()) {
+          <div class="add-form" data-testid="add-cure-form">
+            <h3>Nouvelle cure</h3>
+            <form [formGroup]="cureForm" (ngSubmit)="onSaveCure()" class="form-fields">
+
+              <mat-form-field appearance="outline" class="full-width">
+                <mat-label>Nom de la cure</mat-label>
+                <input matInput formControlName="name" aria-label="Nom de la cure" data-testid="cure-name" />
+              </mat-form-field>
+
+              <div class="row-fields">
+                <mat-form-field appearance="outline">
+                  <mat-label>Durée (jours)</mat-label>
+                  <input matInput type="number" formControlName="durationDays" min="1" max="365"
+                         aria-label="Durée de la cure en jours" data-testid="cure-duration" />
+                </mat-form-field>
+
+                <mat-form-field appearance="outline">
+                  <mat-label>Date de début</mat-label>
+                  <input matInput type="date" formControlName="startDate"
+                         aria-label="Date de début de la cure" data-testid="cure-start-date" />
+                </mat-form-field>
+              </div>
+
+              <mat-form-field appearance="outline" class="full-width">
+                <mat-label>Notes (facultatif)</mat-label>
+                <textarea matInput formControlName="notes" rows="2" aria-label="Notes sur la cure"></textarea>
+              </mat-form-field>
+
+              <div class="form-actions">
+                <button mat-stroked-button type="button" (click)="showCureForm.set(false)">Annuler</button>
+                <button
+                  mat-raised-button
+                  color="primary"
+                  type="submit"
+                  [disabled]="cureForm.invalid"
+                  aria-label="Démarrer la cure"
+                  data-testid="save-cure-btn">
+                  Démarrer la cure
+                </button>
+              </div>
+            </form>
+          </div>
+        }
+      </div>
+
       <!-- Formulaire d'ajout -->
       @if (showForm()) {
         <div class="add-form" data-testid="add-form">

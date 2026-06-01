@@ -255,10 +255,14 @@ export class AnthropicAdapter implements MealAnalysisPort, NoteTaggingPort, Anal
     const apiKey = this.requireApiKey();
     if (!apiKey) return;
 
+    const medicalDetails = context.profileContext
+      ? `\n${context.profileContext}\n`
+      : '';
     const systemPrompt = COACH_SYSTEM_PROMPT
       .replace('{{CONDITIONS}}', context.userConditions.join(', ') || 'Non renseigné')
       .replace('{{PROTOCOL}}', context.protocol || 'Non renseigné')
       .replace('{{TREATMENTS}}', context.activeTreatments.join(', ') || 'Aucun')
+      .replace('{{MEDICAL_DETAILS}}', medicalDetails)
       .replace('{{PREVIOUS_SESSION_SUMMARY}}', context.previousSessionSummary ?? 'Première session')
       .replace('{{CONTEXT_DATA}}', context.healthDataJson ?? 'Aucune donnée disponible');
 

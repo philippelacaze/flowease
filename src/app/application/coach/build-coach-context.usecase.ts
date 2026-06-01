@@ -68,7 +68,19 @@ export class BuildCoachContextUseCase {
       protocol: profile?.protocol ?? 'none',
       activeTreatments,
       healthDataJson,
+      profileContext: this.buildProfileContext(profile),
     };
+  }
+
+  private buildProfileContext(profile: UserProfileEntity | undefined): string | undefined {
+    if (!profile) return undefined;
+    const parts: string[] = [];
+    if (profile.diagnosedAt) parts.push(`Diagnostic : ${new Date(profile.diagnosedAt).toLocaleDateString('fr-FR')}`);
+    if (profile.referringDoctor) parts.push(`Médecin référent : ${profile.referringDoctor}`);
+    if (profile.otherConditions) parts.push(`Autres conditions : ${profile.otherConditions}`);
+    if (profile.allergies) parts.push(`Allergies : ${profile.allergies}`);
+    if (profile.dietaryRestrictions) parts.push(`Restrictions alimentaires : ${profile.dietaryRestrictions}`);
+    return parts.length > 0 ? parts.join('\n') : undefined;
   }
 
   private windowToRange(window: Exclude<CoachContextWindow, 'profile_only'>): [Date, Date] {

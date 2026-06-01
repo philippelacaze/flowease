@@ -38,6 +38,62 @@
 
         <mat-divider />
 
+        <!-- Informations médicales complémentaires -->
+        <section class="form-section">
+          <h2 class="section-title">Informations médicales</h2>
+
+          <mat-form-field appearance="outline" class="full-width">
+            <mat-label>Date de diagnostic (facultatif)</mat-label>
+            <input
+              matInput
+              type="date"
+              formControlName="diagnosedAt"
+              aria-label="Date de diagnostic"
+              data-testid="diagnosed-at" />
+          </mat-form-field>
+
+          <mat-form-field appearance="outline" class="full-width">
+            <mat-label>Médecin référent (facultatif)</mat-label>
+            <input
+              matInput
+              formControlName="referringDoctor"
+              aria-label="Médecin référent"
+              data-testid="referring-doctor" />
+          </mat-form-field>
+
+          <mat-form-field appearance="outline" class="full-width">
+            <mat-label>Autres conditions médicales (facultatif)</mat-label>
+            <textarea
+              matInput
+              formControlName="otherConditions"
+              rows="2"
+              aria-label="Autres conditions médicales"
+              data-testid="other-conditions"></textarea>
+          </mat-form-field>
+
+          <mat-form-field appearance="outline" class="full-width">
+            <mat-label>Allergies connues (facultatif)</mat-label>
+            <textarea
+              matInput
+              formControlName="allergies"
+              rows="2"
+              aria-label="Allergies connues"
+              data-testid="allergies"></textarea>
+          </mat-form-field>
+
+          <mat-form-field appearance="outline" class="full-width">
+            <mat-label>Restrictions alimentaires (facultatif)</mat-label>
+            <textarea
+              matInput
+              formControlName="dietaryRestrictions"
+              rows="2"
+              aria-label="Restrictions alimentaires spécifiques"
+              data-testid="dietary-restrictions"></textarea>
+          </mat-form-field>
+        </section>
+
+        <mat-divider />
+
         <!-- Protocole FODMAP -->
         <section class="form-section">
           <h2 class="section-title">Protocole alimentaire</h2>

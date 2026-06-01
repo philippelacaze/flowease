@@ -51,7 +51,7 @@ export class CoachSettingsComponent implements OnInit {
 
   protected prefs: CoachPreferences = {
     mode: 'standard',
-    defaultContext: '14d',
+    defaultContext: '7d',
     showTokenCounter: false,
     showSuggestions: false,
     language: 'fr',

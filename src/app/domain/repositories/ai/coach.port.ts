@@ -25,6 +25,7 @@ export interface CoachContext {
   readonly activeTreatments: readonly string[];
   readonly previousSessionSummary?: string;
   readonly healthDataJson?: string;
+  readonly profileContext?: string;
 }
 
 /**

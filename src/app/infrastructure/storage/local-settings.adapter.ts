@@ -125,9 +125,9 @@ export class LocalSettingsAdapter {
     const LEGACY: Record<string, CoachContextWindow> = {
       '7': '7d', '14': '14d', '30': '30d', 'profile': 'profile_only',
     };
-    if (!raw) return '14d';
+    if (!raw) return '7d';
     if (VALID.includes(raw as CoachContextWindow)) return raw as CoachContextWindow;
-    return LEGACY[raw] ?? '14d';
+    return LEGACY[raw] ?? '7d';
   }
 
   /**

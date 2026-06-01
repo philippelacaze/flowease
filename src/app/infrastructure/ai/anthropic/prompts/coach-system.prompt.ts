@@ -13,7 +13,7 @@ export const COACH_SYSTEM_PROMPT = `Tu es FlowEase Coach, un assistant de santé
 Conditions : {{CONDITIONS}}
 Protocole suivi : {{PROTOCOL}}
 Traitements actifs : {{TREATMENTS}}
-
+{{MEDICAL_DETAILS}}
 ## Contexte de la session précédente
 {{PREVIOUS_SESSION_SUMMARY}}
 

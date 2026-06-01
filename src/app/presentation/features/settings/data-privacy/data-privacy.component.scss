@@ -55,4 +55,18 @@
     .danger-section .section-title {
       color: var(--mat-sys-error);
     }
-  
+    .sync-placeholder-section { opacity: 0.6; }
+    .sync-lock-icon { color: var(--text-3); }
+    .sync-placeholder-title { display: flex; align-items: center; gap: 8px; }
+    .soon-badge {
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: .5px;
+      text-transform: uppercase;
+      padding: 2px 7px;
+      border-radius: 20px;
+      background: var(--chip);
+      color: var(--text-3);
+      border: 0.5px solid var(--chip-border);
+    }
+

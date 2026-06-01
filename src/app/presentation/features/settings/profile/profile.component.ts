@@ -73,6 +73,11 @@ export class ProfileComponent implements OnInit {
   protected readonly form = this.fb.group({
     firstName: [''],
     protocol: ['none' as FodmapProtocol, Validators.required],
+    diagnosedAt: [''],
+    referringDoctor: [''],
+    otherConditions: [''],
+    allergies: [''],
+    dietaryRestrictions: [''],
     language: ['fr' as AppLanguage, Validators.required],
     theme: ['auto' as AppTheme, Validators.required],
     showTokenCounter: [false],
@@ -85,6 +90,13 @@ export class ProfileComponent implements OnInit {
       this.form.patchValue({
         firstName: profile.firstName ?? '',
         protocol: profile.protocol,
+        diagnosedAt: profile.diagnosedAt
+          ? new Date(profile.diagnosedAt).toISOString().slice(0, 10)
+          : '',
+        referringDoctor: profile.referringDoctor ?? '',
+        otherConditions: profile.otherConditions ?? '',
+        allergies: profile.allergies ?? '',
+        dietaryRestrictions: profile.dietaryRestrictions ?? '',
         language: profile.language,
         theme: profile.theme,
         showTokenCounter: profile.showTokenCounter,
@@ -112,12 +124,20 @@ export class ProfileComponent implements OnInit {
     this.saving.set(true);
 
     try {
-      const { firstName, protocol, language, theme, showTokenCounter, defaultCoachContext } = this.form.value;
+      const {
+        firstName, protocol, diagnosedAt, referringDoctor, otherConditions,
+        allergies, dietaryRestrictions, language, theme, showTokenCounter, defaultCoachContext,
+      } = this.form.value;
       const resolvedTheme = (theme ?? 'auto') as AppTheme;
       await this.saveProfile.execute({
         firstName: firstName || undefined,
         conditions: this.selectedConditions(),
         protocol: (protocol ?? 'none') as FodmapProtocol,
+        diagnosedAt: diagnosedAt ? new Date(diagnosedAt) : undefined,
+        referringDoctor: referringDoctor || undefined,
+        otherConditions: otherConditions || undefined,
+        allergies: allergies || undefined,
+        dietaryRestrictions: dietaryRestrictions || undefined,
         language: (language ?? 'fr') as AppLanguage,
         theme: resolvedTheme,
         showTokenCounter: showTokenCounter ?? false,

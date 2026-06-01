@@ -74,8 +74,8 @@ describe('LocalSettingsAdapter', () => {
   // --- Fenêtre de contexte par défaut ---
 
   describe('getDefaultContextWindow', () => {
-    it('retourne "14d" par défaut si aucune valeur n\'est configurée', () => {
-      expect(adapter.getDefaultContextWindow()).toBe('14d');
+    it('retourne "7d" par défaut si aucune valeur n\'est configurée', () => {
+      expect(adapter.getDefaultContextWindow()).toBe('7d');
     });
 
     it('retourne la valeur CoachContextWindow configurée', () => {
@@ -113,9 +113,9 @@ describe('LocalSettingsAdapter', () => {
       expect(adapter.getDefaultContextWindow()).toBe('profile_only');
     });
 
-    it('retourne "14d" comme fallback pour une valeur inconnue', () => {
+    it('retourne "7d" comme fallback pour une valeur inconnue', () => {
       localStorage.setItem('flowease_default_window', 'unknown_value');
-      expect(adapter.getDefaultContextWindow()).toBe('14d');
+      expect(adapter.getDefaultContextWindow()).toBe('7d');
     });
   });
 

@@ -75,6 +75,32 @@
 
         <mat-divider />
 
+        <mat-divider />
+
+        <!-- Sync multi-appareils (placeholder v2) -->
+        <section class="data-section sync-placeholder-section" aria-label="Synchronisation multi-appareils" data-testid="sync-placeholder">
+          <div class="section-icon-title">
+            <mat-icon class="section-icon sync-lock-icon">lock</mat-icon>
+            <div>
+              <h2 class="section-title sync-placeholder-title">Synchronisation multi-appareils <span class="soon-badge">Bientôt</span></h2>
+              <p class="section-desc">
+                La synchronisation multi-appareils via GitHub Gist sera disponible dans une prochaine version.
+              </p>
+            </div>
+          </div>
+          <button
+            mat-stroked-button
+            disabled
+            aria-label="Synchronisation non disponible"
+            data-testid="sync-disabled-btn"
+            class="action-btn">
+            <mat-icon>sync</mat-icon>
+            Configurer la sync
+          </button>
+        </section>
+
+        <mat-divider />
+
         <!-- Suppression -->
         <section class="data-section danger-section">
           <div class="section-icon-title">

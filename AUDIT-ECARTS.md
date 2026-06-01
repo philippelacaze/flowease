@@ -334,8 +334,8 @@ Deux modes sélectionnables dans les paramètres :
 | | |
 |---|---|
 | **Réf. spec** | §5.2 — Section "Mon profil médical" |
-| **Décision** | ☐ VALIDER &nbsp;&nbsp; ☐ INVALIDER |
-| **Statut** | ⬜ À traiter |
+| **Décision** | ☑ VALIDER &nbsp;&nbsp; ☐ INVALIDER |
+| **Statut** | ✅ Traité |
 
 **Ce que dit la spec :**  
 8 champs dans le profil médical. 3 sont implémentés (prénom, conditions, protocole). 5 sont absents :
@@ -361,8 +361,8 @@ Deux modes sélectionnables dans les paramètres :
 | | |
 |---|---|
 | **Réf. spec** | §5.4 — Section "Mes traitements" |
-| **Décision** | ☐ VALIDER &nbsp;&nbsp; ☐ INVALIDER |
-| **Statut** | ⬜ À traiter |
+| **Décision** | ☑ VALIDER &nbsp;&nbsp; ☐ INVALIDER |
+| **Statut** | ✅ Traité |
 
 **Ce que dit la spec :**  
 "Gestion des cures actives : date de début, durée, statut." Et §1.5.4 : "L'utilisateur définit une date de début et une durée dans Paramètres > Mes traitements."
@@ -403,8 +403,8 @@ Identique à Écart 1.4 — côté paramètres : ajouter dans le formulaire d'é
 | | |
 |---|---|
 | **Réf. spec** | §5.6 — Section "Coach IA" |
-| **Décision** | ☐ VALIDER (changer le défaut à 7j) &nbsp;&nbsp; ☐ INVALIDER (MAJ spec → 14j) |
-| **Statut** | ⬜ À traiter |
+| **Décision** | ☑ VALIDER (changer le défaut à 7j) &nbsp;&nbsp; ☐ INVALIDER (MAJ spec → 14j) |
+| **Statut** | ✅ Traité |
 
 **Ce que dit la spec :**  
 "Contexte par défaut : **7 jours**."
@@ -421,8 +421,8 @@ Identique à Écart 1.4 — côté paramètres : ajouter dans le formulaire d'é
 | | |
 |---|---|
 | **Réf. spec** | §5.7 — Sync GitHub Gist (v2 — placeholder) |
-| **Décision** | ☐ VALIDER &nbsp;&nbsp; ☐ INVALIDER |
-| **Statut** | ⬜ À traiter |
+| **Décision** | ☑ VALIDER &nbsp;&nbsp; ☐ INVALIDER |
+| **Statut** | ✅ Traité |
 
 **Ce que dit la spec :**  
 "Section visible mais désactivée en v1. Message : *'La synchronisation multi-appareils via GitHub Gist sera disponible dans une prochaine version.'*"
@@ -521,11 +521,11 @@ Les traductions sont chargées à l'exécution depuis des fichiers JSON statique
 | 3.2 | Rapport : plage de dates personnalisée | S | ✅ |
 | 4.1 | Coach picker : comportement délibéré | — (MAJ spec si INVALIDER) | |
 | 4.2 | Mode chat + suggestions dans journal | M | ✅ |
-| 5.1 | Profil : 5 champs manquants | M | |
-| 5.2 | UI gestion des cures (paramètres) | L | |
+| 5.1 | Profil : 5 champs manquants | M | ✅ |
+| 5.2 | UI gestion des cures (paramètres) | L | ✅ |
 | 5.3 | UI rappels (paramètres) | L | |
-| 5.4 | Coach : défaut 14j vs 7j spec | S (MAJ spec si INVALIDER) | |
-| 5.5 | Placeholder Gist sync | XS | |
+| 5.4 | Coach : défaut 14j vs 7j spec | S (MAJ spec si INVALIDER) | ✅ |
+| 5.5 | Placeholder Gist sync | XS | ✅ |
 | 5.6 | Import : fusion vs remplacement | M | |
 | T.1 | Service Worker / PWA | M | |
 | T.2 | @angular/localize vs runtime JSON | — (MAJ spec si INVALIDER) | |
