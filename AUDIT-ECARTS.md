@@ -444,7 +444,7 @@ Ajouter un bloc désactivé dans `data-privacy.component.html` avec :
 | | |
 |---|---|
 | **Réf. spec** | §5.7 — Import de sauvegarde |
-| **Décision** | ☐ VALIDER &nbsp;&nbsp; ☐ INVALIDER |
+| **Décision** | ☑ VALIDER &nbsp;&nbsp; ☐ INVALIDER |
 | **Statut** | ⬜ À traiter |
 
 **Ce que dit la spec :**  
@@ -469,7 +469,7 @@ Ajouter un bloc désactivé dans `data-privacy.component.html` avec :
 | | |
 |---|---|
 | **Réf. spec** | Principes non négociables : "Offline first" |
-| **Décision** | ☐ VALIDER &nbsp;&nbsp; ☐ INVALIDER |
+| **Décision** | ☑ VALIDER &nbsp;&nbsp; ☐ INVALIDER |
 | **Statut** | ⬜ À traiter |
 
 **Ce que dit la spec :**  

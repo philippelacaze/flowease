@@ -42,13 +42,13 @@ test.describe('Coach — contexte par défaut sans modale forcée', () => {
     await expect(page.locator('[data-testid="chat-input"]')).not.toBeDisabled();
   });
 
-  test('le chip affiche le contexte par défaut (14d si aucun paramètre défini)', async ({ page }) => {
+  test('le chip affiche le contexte par défaut (7d si aucun paramètre défini)', async ({ page }) => {
     await page.goto('/coach');
     await page.waitForLoadState('networkidle');
 
     const chip = page.locator('[data-testid="btn-change-context"]');
     await expect(chip).toBeVisible();
-    await expect(chip).toContainText('14 derniers jours');
+    await expect(chip).toContainText('7 derniers jours');
   });
 
   test('configurer "7 derniers jours" dans les paramètres → chip affiche "7 derniers jours" sur /coach', async ({ page }) => {
@@ -91,14 +91,14 @@ test.describe('Coach — contexte par défaut sans modale forcée', () => {
 
   test('le bottom sheet affiche le badge "Défaut" sur le paramètre des settings', async ({ page }) => {
     await page.goto('/');
-    // default = 14d (non défini = fallback '14d'), session active = 14d aussi → les deux badges sur 14d
+    // default = 7d (non défini = fallback '7d'), session active = 7d aussi → les deux badges sur 7d
     await page.goto('/coach');
     await page.waitForLoadState('networkidle');
 
     await page.locator('[data-testid="btn-change-context"]').click();
 
-    const option14d = page.locator('[data-testid="context-option-14d"]');
-    await expect(option14d).toContainText('Défaut');
+    const option7d = page.locator('[data-testid="context-option-7d"]');
+    await expect(option7d).toContainText('Défaut');
   });
 
   test('fermer le picker sans choisir (Échap) ne change pas le contexte affiché', async ({ page }) => {
