@@ -1,14 +1,32 @@
 import { vi } from 'vitest';
 
-// vi.fn() stable : la même référence est réutilisée à chaque re-run en watch mode.
-// mockImplementation avec `class` (requis par Vitest pour les constructeurs) est
-// reconfiguré dans beforeEach pour pointer vers le mockDoc du test courant.
+// Conteneur stable partagé entre la factory vi.mock et beforeEach.
+//
+// Problème : vi.hoisted() est ré-évalué à chaque invalidation de module
+// en watch mode, créant un nouveau _docRef. La factory vi.mock garde
+// l'ancienne closure → désynchronisation.
+//
+// Solution : stocker le conteneur dans globalThis. Si _docRef existe déjà
+// (re-run watch mode), vi.hoisted() retourne le MÊME objet → factory et
+// beforeEach partagent toujours la même référence, en local et en CI.
+const _docRef = vi.hoisted(() => {
+  const KEY = '__pdf_report_mock__';
+  const g = globalThis as Record<string, unknown>;
+  if (!g[KEY]) g[KEY] = { doc: null as Record<string, unknown> | null };
+  return g[KEY] as { doc: Record<string, unknown> | null };
+});
+
+// Factory : fonction régulière (pas arrow, pas class) utilisable avec new.
+// Object.assign copie les vi.fn() du mockDoc courant vers `this`,
+// donc doc.save === mockDoc.save dans les assertions.
 vi.mock('jspdf', () => ({
-  jsPDF: vi.fn(),
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  jsPDF: function(this: unknown) {
+    if (_docRef.doc) Object.assign(this as object, _docRef.doc);
+  },
 }));
 
 import { TestBed } from '@angular/core/testing';
-import { jsPDF } from 'jspdf';
 import { PdfReportService } from './pdf-report.service';
 import type { ReportEntity } from '../../domain/entities/report.entity';
 
@@ -49,14 +67,7 @@ describe('PdfReportService', () => {
 
   beforeEach(() => {
     mockDoc = createMockDoc();
-
-    // Vitest requiert `class` pour les mocks de constructeur.
-    // Object.assign copie les vi.fn() de mockDoc vers `this` :
-    // doc.save === mockDoc.save → les assertions sur mockDoc restent valides.
-    const snapshot = mockDoc;
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    (jsPDF as any).mockImplementation(class { constructor() { Object.assign(this as object, snapshot); } });
-
+    _docRef.doc = mockDoc;
     TestBed.configureTestingModule({ providers: [PdfReportService] });
     service = TestBed.inject(PdfReportService);
   });
