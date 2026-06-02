@@ -160,7 +160,9 @@ export class IntakeEntryComponent implements OnInit, OnDestroy {
   }
 
   protected back(): void {
-    void this.router.navigate(['/journal']).catch(() => undefined);
+    void this.router.navigate(['/journal'], {
+      state: { journalDate: this.journalDate.toISOString() },
+    }).catch(() => undefined);
   }
 
   private async quickConfirm(state: TreatmentState): Promise<void> {

@@ -1,42 +1,33 @@
 import { vi } from 'vitest';
 
-// Chaque test reçoit un mockDoc neuf — évite les faux négatifs dus au partage d'état
-const { getMockDoc, resetMockDoc } = vi.hoisted(() => {
-  const createDoc = () => ({
-    setFont: vi.fn().mockReturnThis(),
-    setFontSize: vi.fn().mockReturnThis(),
-    setTextColor: vi.fn().mockReturnThis(),
-    text: vi.fn().mockReturnThis(),
-    setDrawColor: vi.fn().mockReturnThis(),
-    setLineWidth: vi.fn().mockReturnThis(),
-    line: vi.fn().mockReturnThis(),
-    splitTextToSize: vi.fn().mockReturnValue(['line 1', 'line 2']),
-    addPage: vi.fn().mockReturnThis(),
-    getNumberOfPages: vi.fn().mockReturnValue(1),
-    setPage: vi.fn().mockReturnThis(),
-    save: vi.fn(),
-  });
-
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  let current: any = createDoc();
-
-  return {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    getMockDoc: (): any => current,
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    resetMockDoc: (): any => { current = createDoc(); return current; },
-  };
-});
-
-// function() {} (pas arrow) utilisable avec new — retourner un objet remplace this
+// vi.fn() stable : la même référence est réutilisée à chaque re-run en watch mode.
+// mockImplementation avec `class` (requis par Vitest pour les constructeurs) est
+// reconfiguré dans beforeEach pour pointer vers le mockDoc du test courant.
 vi.mock('jspdf', () => ({
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  jsPDF: function (): any { return getMockDoc(); },
+  jsPDF: vi.fn(),
 }));
 
 import { TestBed } from '@angular/core/testing';
+import { jsPDF } from 'jspdf';
 import { PdfReportService } from './pdf-report.service';
 import type { ReportEntity } from '../../domain/entities/report.entity';
+
+function createMockDoc() {
+  return {
+    setFont:          vi.fn().mockReturnThis(),
+    setFontSize:      vi.fn().mockReturnThis(),
+    setTextColor:     vi.fn().mockReturnThis(),
+    text:             vi.fn().mockReturnThis(),
+    setDrawColor:     vi.fn().mockReturnThis(),
+    setLineWidth:     vi.fn().mockReturnThis(),
+    line:             vi.fn().mockReturnThis(),
+    splitTextToSize:  vi.fn().mockReturnValue(['line 1', 'line 2']),
+    addPage:          vi.fn().mockReturnThis(),
+    getNumberOfPages: vi.fn().mockReturnValue(1),
+    setPage:          vi.fn().mockReturnThis(),
+    save:             vi.fn(),
+  };
+}
 
 const mockReport: ReportEntity = {
   id: 'report-1',
@@ -54,11 +45,18 @@ const mockReport: ReportEntity = {
 
 describe('PdfReportService', () => {
   let service: PdfReportService;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  let mockDoc: any;
+  let mockDoc: ReturnType<typeof createMockDoc>;
 
   beforeEach(() => {
-    mockDoc = resetMockDoc();
+    mockDoc = createMockDoc();
+
+    // Vitest requiert `class` pour les mocks de constructeur.
+    // Object.assign copie les vi.fn() de mockDoc vers `this` :
+    // doc.save === mockDoc.save → les assertions sur mockDoc restent valides.
+    const snapshot = mockDoc;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    (jsPDF as any).mockImplementation(class { constructor() { Object.assign(this as object, snapshot); } });
+
     TestBed.configureTestingModule({ providers: [PdfReportService] });
     service = TestBed.inject(PdfReportService);
   });

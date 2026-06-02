@@ -96,6 +96,10 @@ export class JournalHomeComponent implements OnInit {
   }
 
   ngOnInit(): void {
+    const state = history.state as { journalDate?: string };
+    if (state?.journalDate) {
+      this.currentDate = new Date(state.journalDate);
+    }
     void this.loadEntries();
     void this.loadActiveCures();
     this.notifDenied = this.notificationPort.getPermissionStatus() === 'denied';

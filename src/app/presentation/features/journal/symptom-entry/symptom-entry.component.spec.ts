@@ -1,7 +1,7 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { By } from '@angular/platform-browser';
 import { vi } from 'vitest';
-import { provideRouter } from '@angular/router';
+import { Router, provideRouter } from '@angular/router';
 import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 import { SymptomEntryComponent } from './symptom-entry.component';
 import { AddSymptomUseCase } from '../../../../application/journal/add-symptom.usecase';
@@ -268,6 +268,38 @@ describe('SymptomEntryComponent', () => {
       fixture.detectChanges();
       const banner = fixture.debugElement.query(By.css('[data-testid="retrospective-banner"]'));
       expect(banner).toBeNull();
+    });
+
+    it('submit navigue vers /journal/symptom/confirm avec journalDate dans le state', async () => {
+      const ref = twoDaysAgo();
+      history.replaceState({ journalDate: ref.toISOString() }, '');
+      const { fixture } = await createComponent();
+      const router = TestBed.inject(Router);
+      const navigateSpy = vi.spyOn(router, 'navigate').mockResolvedValue(true);
+
+      const comp = fixture.componentInstance as unknown as ComponentPrivate;
+      comp.rows[0].intensity = 5;
+      await comp.submit();
+
+      expect(navigateSpy).toHaveBeenCalledWith(
+        ['/journal/symptom/confirm'],
+        expect.objectContaining({ state: expect.objectContaining({ journalDate: ref.toISOString() }) }),
+      );
+    });
+
+    it('back() navigue vers /journal en conservant journalDate dans le state', async () => {
+      const ref = twoDaysAgo();
+      history.replaceState({ journalDate: ref.toISOString() }, '');
+      const { fixture } = await createComponent();
+      const router = TestBed.inject(Router);
+      const navigateSpy = vi.spyOn(router, 'navigate').mockResolvedValue(true);
+
+      (fixture.componentInstance as unknown as { back(): void }).back();
+
+      expect(navigateSpy).toHaveBeenCalledWith(
+        ['/journal'],
+        expect.objectContaining({ state: expect.objectContaining({ journalDate: ref.toISOString() }) }),
+      );
     });
   });
 

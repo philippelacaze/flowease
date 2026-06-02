@@ -41,6 +41,7 @@ Permettre à l'utilisateur de consigner **à la demande**, depuis son smartphone
 
 - **Saisie contextuelle** : l'utilisateur ouvre l'app au moment de l'événement ou plus tard (saisie rétrospective possible avec horodatage manuel).
 - **Date sélectionnée = date de référence** : toute entrée créée depuis le journal (repas, symptôme, prise, note) utilise la date actuellement sélectionnée dans le journal comme date de base. L'heure saisie par l'utilisateur est appliquée sur cette date — jamais sur la date du jour si une date antérieure est sélectionnée. Un bandeau discret `"Saisie pour le [date]"` est affiché dans le formulaire lorsque la date sélectionnée est antérieure à aujourd'hui.
+- **Retour au journal sur la date saisie** : après validation d'une entrée (repas, symptôme, prise, note), l'utilisateur est renvoyé au journal en conservant la date sélectionnée lors de la saisie. Si l'utilisateur saisissait pour hier, le journal s'ouvre sur hier — pas sur aujourd'hui.
 - **Mode dégradé gracieux** : si l'IA est indisponible (pas de clé API, pas de réseau), toutes les fonctions de saisie continuent de fonctionner sans elle.
 - **Pas de formulaire long** : aucun écran ne doit présenter plus de 3 champs actifs simultanément.
 - **Toujours modifiable** : toute entrée du journal est éditable après coup.

@@ -1,7 +1,7 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { By } from '@angular/platform-browser';
 import { vi } from 'vitest';
-import { provideRouter } from '@angular/router';
+import { Router, provideRouter } from '@angular/router';
 import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 import { SymptomConfirmComponent } from './symptom-confirm.component';
 import { GetJournalDayUseCase } from '../../../../application/journal/get-journal-day.usecase';
@@ -15,12 +15,15 @@ function makeUseCaseMock(meals: unknown[] = []) {
   return { execute: vi.fn().mockResolvedValue(meals) };
 }
 
-async function createComponent(stateItems = savedItems, meals: unknown[] = []) {
+async function createComponent(stateItems = savedItems, meals: unknown[] = [], journalDateIso?: string) {
   const mock = makeUseCaseMock(meals);
+
+  const state: Record<string, unknown> = { savedItems: stateItems };
+  if (journalDateIso) state['journalDate'] = journalDateIso;
 
   // Simuler history.state
   Object.defineProperty(window, 'history', {
-    value: { ...window.history, state: { savedItems: stateItems } },
+    value: { ...window.history, state },
     configurable: true,
   });
 
@@ -69,11 +72,50 @@ describe('SymptomConfirmComponent', () => {
       expect(text).toContain('Aucun repas');
     });
 
-    it('charge les entrées du jour avec la date du jour', async () => {
+    it('charge les entrées du jour avec la date du jour par défaut', async () => {
       const { mock } = await createComponent(savedItems, []);
       expect(mock.execute).toHaveBeenCalledOnce();
       const callArg = mock.execute.mock.calls[0][0] as Date;
       expect(callArg.toDateString()).toBe(new Date().toDateString());
+    });
+
+    it('charge les entrées du jour sélectionné quand journalDate est dans le state', async () => {
+      const yesterday = new Date();
+      yesterday.setDate(yesterday.getDate() - 1);
+      yesterday.setHours(0, 0, 0, 0);
+      const { mock } = await createComponent(savedItems, [], yesterday.toISOString());
+      expect(mock.execute).toHaveBeenCalledOnce();
+      const callArg = mock.execute.mock.calls[0][0] as Date;
+      expect(callArg.toDateString()).toBe(yesterday.toDateString());
+    });
+  });
+
+  describe('retour au journal', () => {
+    it('back() navigue vers /journal en conservant journalDate dans le state', async () => {
+      const yesterday = new Date();
+      yesterday.setDate(yesterday.getDate() - 1);
+      yesterday.setHours(0, 0, 0, 0);
+      const { fixture } = await createComponent(savedItems, [], yesterday.toISOString());
+      const router = TestBed.inject(Router);
+      const navigateSpy = vi.spyOn(router, 'navigate').mockResolvedValue(true);
+
+      (fixture.componentInstance as unknown as { back(): void }).back();
+
+      expect(navigateSpy).toHaveBeenCalledWith(
+        ['/journal'],
+        expect.objectContaining({ state: expect.objectContaining({ journalDate: yesterday.toISOString() }) }),
+      );
+    });
+
+    it('back() navigue vers /journal avec la date du jour si journalDate absent du state', async () => {
+      const { fixture } = await createComponent();
+      const router = TestBed.inject(Router);
+      const navigateSpy = vi.spyOn(router, 'navigate').mockResolvedValue(true);
+
+      (fixture.componentInstance as unknown as { back(): void }).back();
+
+      const callState = (navigateSpy.mock.calls[0][1] as { state: { journalDate: string } }).state;
+      expect(new Date(callState.journalDate).toDateString()).toBe(new Date().toDateString());
     });
   });
 

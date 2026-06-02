@@ -284,7 +284,9 @@ export class SymptomEntryComponent implements OnInit {
           }),
         });
       }
-      void this.router.navigate(['/journal']).catch(() => undefined);
+      void this.router.navigate(['/journal'], {
+        state: { journalDate: this.journalDate.toISOString() },
+      }).catch(() => undefined);
       return;
     }
 
@@ -317,11 +319,14 @@ export class SymptomEntryComponent implements OnInit {
       category: r.category as string,
     }));
 
-    void this.router.navigate(['/journal/symptom/confirm'], { state: { savedItems } })
-      .catch(() => undefined);
+    void this.router.navigate(['/journal/symptom/confirm'], {
+      state: { savedItems, journalDate: this.journalDate.toISOString() },
+    }).catch(() => undefined);
   }
 
   protected back(): void {
-    void this.router.navigate(['/journal']).catch(() => undefined);
+    void this.router.navigate(['/journal'], {
+      state: { journalDate: this.journalDate.toISOString() },
+    }).catch(() => undefined);
   }
 }

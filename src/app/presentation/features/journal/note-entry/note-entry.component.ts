@@ -139,7 +139,9 @@ export class NoteEntryComponent implements OnInit {
         ...(this.imageBase64 && { imageBase64: this.imageBase64 }),
         ...(this.linkedEntries.length > 0 && { linkedEntries: this.linkedEntries }),
       });
-      void this.router.navigate(['/journal']).catch(() => undefined);
+      void this.router.navigate(['/journal'], {
+        state: { journalDate: this.journalDate.toISOString() },
+      }).catch(() => undefined);
       return;
     }
 
@@ -155,11 +157,15 @@ export class NoteEntryComponent implements OnInit {
     // Les suggestions seront visibles dans le journal (aiTagSuggestions) après confirmation
     this.tagNote.execute(noteId).catch(() => undefined);
 
-    void this.router.navigate(['/journal']).catch(() => undefined);
+    void this.router.navigate(['/journal'], {
+      state: { journalDate: this.journalDate.toISOString() },
+    }).catch(() => undefined);
   }
 
   protected back(): void {
-    void this.router.navigate(['/journal']).catch(() => undefined);
+    void this.router.navigate(['/journal'], {
+      state: { journalDate: this.journalDate.toISOString() },
+    }).catch(() => undefined);
   }
 
   protected linkEmoji(link: LinkedEntry): string {

@@ -15,7 +15,7 @@ test.describe('Entrées créées sur la date sélectionnée', () => {
 
   // ─── Repas ────────────────────────────────────────────────────────────────
 
-  test('repas saisi sur date antérieure → visible hier, absent aujourd\'hui', async ({ page }) => {
+  test('repas saisi sur date antérieure → journal restauré sur cette date, absent aujourd\'hui', async ({ page }) => {
     await page.goto('/journal');
     await page.waitForLoadState('networkidle');
 
@@ -31,21 +31,21 @@ test.describe('Entrées créées sur la date sélectionnée', () => {
     await page.getByRole('button', { name: /Retour au journal/ }).click();
     await page.waitForURL('**/journal');
 
-    // Aujourd'hui : l'entrée ne doit PAS apparaître
-    await expect(
-      page.locator('[data-testid="meal-entry"]').filter({ hasText: uniqueFood }),
-    ).toHaveCount(0);
-
-    // Hier : l'entrée DOIT apparaître
-    await page.locator('[data-testid="prev-day"]').click();
+    // Le journal est restauré sur hier — l'entrée DOIT apparaître directement
     await expect(
       page.locator('[data-testid="meal-entry"]').filter({ hasText: uniqueFood }),
     ).toBeVisible();
+
+    // Naviguer sur aujourd'hui — l'entrée ne doit PAS y être
+    await page.locator('[data-testid="next-day"]').click();
+    await expect(
+      page.locator('[data-testid="meal-entry"]').filter({ hasText: uniqueFood }),
+    ).toHaveCount(0);
   });
 
   // ─── Symptôme ─────────────────────────────────────────────────────────────
 
-  test('symptôme saisi sur date antérieure → visible dans le journal d\'hier', async ({ page }) => {
+  test('symptôme saisi sur date antérieure → journal restauré sur cette date', async ({ page }) => {
     await page.goto('/journal');
     await page.waitForLoadState('networkidle');
 
@@ -66,14 +66,13 @@ test.describe('Entrées créées sur la date sélectionnée', () => {
     await page.locator('[data-testid="back-to-journal"]').click();
     await page.waitForURL('**/journal');
 
-    // Naviguer à hier et vérifier la présence du symptôme
-    await page.locator('[data-testid="prev-day"]').click();
+    // Le journal est restauré sur hier — le symptôme DOIT apparaître directement
     await expect(page.locator('[data-testid="symptom-entry"]').first()).toBeVisible();
   });
 
   // ─── Prise ────────────────────────────────────────────────────────────────
 
-  test('prise confirmée sur date antérieure → visible dans le journal d\'hier', async ({ page }) => {
+  test('prise confirmée sur date antérieure → journal restauré sur cette date', async ({ page }) => {
     await page.goto('/journal');
     await page.waitForLoadState('networkidle');
     await seedIndexedDB(page);
@@ -91,14 +90,13 @@ test.describe('Entrées créées sur la date sélectionnée', () => {
     await page.locator('[data-testid="done-intake"]').click();
     await page.waitForURL('**/journal');
 
-    // Naviguer à hier et vérifier la présence de la prise
-    await page.locator('[data-testid="prev-day"]').click();
+    // Le journal est restauré sur hier — la prise DOIT apparaître directement
     await expect(page.locator('[data-testid="intake-entry"]').first()).toBeVisible();
   });
 
   // ─── Note ─────────────────────────────────────────────────────────────────
 
-  test('note saisie sur date antérieure → visible hier, absente aujourd\'hui', async ({ page }) => {
+  test('note saisie sur date antérieure → journal restauré sur cette date, absente aujourd\'hui', async ({ page }) => {
     await page.goto('/journal');
     await page.waitForLoadState('networkidle');
 
@@ -112,25 +110,23 @@ test.describe('Entrées créées sur la date sélectionnée', () => {
     await page.locator('[data-testid="submit-note"]').click();
     await page.waitForURL('**/journal');
 
-    // tagNote est appelé de façon asynchrone après la sauvegarde — il peut
-    // échouer (pas de clé API en test) et faire apparaître la bannière d'erreur
-    // qui couvre l'en-tête. On la ferme si elle est visible avant de continuer.
+    // tagNote est asynchrone — fermer la bannière d'erreur si elle apparaît
     await page
       .locator('[data-testid="error-banner"]')
       .waitFor({ state: 'visible', timeout: 1500 })
       .then(() => page.getByRole('button', { name: 'Fermer le message' }).click())
       .catch(() => undefined);
 
-    // Aujourd'hui : la note ne doit PAS apparaître
-    await expect(
-      page.locator('[data-testid="note-entry"]').filter({ hasText: uniqueContent }),
-    ).toHaveCount(0);
-
-    // Hier : la note DOIT apparaître
-    await page.locator('[data-testid="prev-day"]').click();
+    // Le journal est restauré sur hier — la note DOIT apparaître directement
     await expect(
       page.locator('[data-testid="note-entry"]').filter({ hasText: uniqueContent }),
     ).toBeVisible();
+
+    // Naviguer sur aujourd'hui — la note ne doit PAS y être
+    await page.locator('[data-testid="next-day"]').click();
+    await expect(
+      page.locator('[data-testid="note-entry"]').filter({ hasText: uniqueContent }),
+    ).toHaveCount(0);
   });
 
   // ─── Bandeau rétrospectif ─────────────────────────────────────────────────

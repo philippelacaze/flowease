@@ -106,10 +106,14 @@ export class SymptomConfirmComponent implements OnInit {
   protected savedItems: ConfirmItem[] = [];
   protected lastMealItems: string[] = [];
   protected lastMealTime: Date | null = null;
+  private journalDate: Date = new Date();
 
   ngOnInit(): void {
-    const state = history.state as { savedItems?: ConfirmItem[] };
+    const state = history.state as { savedItems?: ConfirmItem[]; journalDate?: string };
     this.savedItems = state?.savedItems ?? [];
+    if (state?.journalDate) {
+      this.journalDate = new Date(state.journalDate);
+    }
     void this.loadLastMeal();
   }
 
@@ -120,11 +124,13 @@ export class SymptomConfirmComponent implements OnInit {
   }
 
   protected back(): void {
-    void this.router.navigate(['/journal']).catch(() => undefined);
+    void this.router.navigate(['/journal'], {
+      state: { journalDate: this.journalDate.toISOString() },
+    }).catch(() => undefined);
   }
 
   private async loadLastMeal(): Promise<void> {
-    const entries = await this.getJournalDay.execute(new Date());
+    const entries = await this.getJournalDay.execute(this.journalDate);
     const meals = entries.filter((e): e is Extract<JournalEntry, { kind: 'meal' }> => e.kind === 'meal');
     if (meals.length > 0) {
       const last = meals[meals.length - 1];

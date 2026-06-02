@@ -1,7 +1,7 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { By } from '@angular/platform-browser';
 import { vi } from 'vitest';
-import { provideRouter } from '@angular/router';
+import { Router, provideRouter } from '@angular/router';
 import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 import { MatBottomSheet } from '@angular/material/bottom-sheet';
 import { NoteEntryComponent } from './note-entry.component';
@@ -206,6 +206,36 @@ describe('NoteEntryComponent', () => {
       fixture.detectChanges();
       const banner = fixture.debugElement.query(By.css('[data-testid="retrospective-banner"]'));
       expect(banner).toBeNull();
+    });
+
+    it('submit navigue vers /journal avec journalDate dans le state', async () => {
+      const ref = daysAgo(3);
+      const { fixture } = await createWithJournalDate(ref);
+      const router = TestBed.inject(Router);
+      const navigateSpy = vi.spyOn(router, 'navigate').mockResolvedValue(true);
+
+      const comp = fixture.componentInstance as unknown as ComponentPrivate;
+      comp.content = 'Note de retour';
+      await comp.submit();
+
+      expect(navigateSpy).toHaveBeenCalledWith(
+        ['/journal'],
+        expect.objectContaining({ state: expect.objectContaining({ journalDate: ref.toISOString() }) }),
+      );
+    });
+
+    it('back() navigue vers /journal avec journalDate dans le state', async () => {
+      const ref = daysAgo(3);
+      const { fixture } = await createWithJournalDate(ref);
+      const router = TestBed.inject(Router);
+      const navigateSpy = vi.spyOn(router, 'navigate').mockResolvedValue(true);
+
+      (fixture.componentInstance as unknown as { back(): void }).back();
+
+      expect(navigateSpy).toHaveBeenCalledWith(
+        ['/journal'],
+        expect.objectContaining({ state: expect.objectContaining({ journalDate: ref.toISOString() }) }),
+      );
     });
   });
 

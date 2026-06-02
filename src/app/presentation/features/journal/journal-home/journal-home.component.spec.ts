@@ -160,6 +160,27 @@ function makeIntakeEntry(): JournalEntry {
 }
 
 describe('JournalHomeComponent', () => {
+  describe('restauration de la date depuis le router state', () => {
+    afterEach(() => history.replaceState({}, ''));
+
+    it('currentDate est restaurée depuis history.state.journalDate au chargement', async () => {
+      const yesterday = new Date();
+      yesterday.setDate(yesterday.getDate() - 1);
+      yesterday.setHours(0, 0, 0, 0);
+      history.replaceState({ journalDate: yesterday.toISOString() }, '');
+
+      const fixture = await createComponent();
+      const comp = fixture.componentInstance as unknown as { currentDate: Date };
+      expect(comp.currentDate.toDateString()).toBe(yesterday.toDateString());
+    });
+
+    it('currentDate reste aujourd\'hui si history.state ne contient pas journalDate', async () => {
+      const fixture = await createComponent();
+      const comp = fixture.componentInstance as unknown as { currentDate: Date };
+      expect(comp.currentDate.toDateString()).toBe(new Date().toDateString());
+    });
+  });
+
   describe('hasFodmapHigh', () => {
     it('retourne true quand au moins un aliment est FODMAP high', async () => {
       const fixture = await createComponent();

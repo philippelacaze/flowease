@@ -1,7 +1,7 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { By } from '@angular/platform-browser';
 import { vi } from 'vitest';
-import { provideRouter } from '@angular/router';
+import { Router, provideRouter } from '@angular/router';
 import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 import { MatBottomSheet } from '@angular/material/bottom-sheet';
 import { IntakeEntryComponent } from './intake-entry.component';
@@ -282,5 +282,18 @@ describe('IntakeEntryComponent — date du journal', () => {
     fixture.detectChanges();
     const banner = fixture.debugElement.query(By.css('[data-testid="retrospective-banner"]'));
     expect(banner).not.toBeNull();
+  });
+
+  it('back() navigue vers /journal en conservant journalDate dans le state', async () => {
+    const ref = yesterday();
+    const router = TestBed.inject(Router);
+    const navigateSpy = vi.spyOn(router, 'navigate').mockResolvedValue(true);
+
+    (fixture.componentInstance as unknown as { back(): void }).back();
+
+    expect(navigateSpy).toHaveBeenCalledWith(
+      ['/journal'],
+      expect.objectContaining({ state: expect.objectContaining({ journalDate: ref.toISOString() }) }),
+    );
   });
 });
