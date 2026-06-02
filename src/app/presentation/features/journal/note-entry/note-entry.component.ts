@@ -50,6 +50,14 @@ export class NoteEntryComponent implements OnInit {
   private readonly bottomSheet = inject(MatBottomSheet);
   private readonly cdr = inject(ChangeDetectorRef);
 
+  protected journalDate: Date = new Date();
+  protected get isRetrospective(): boolean {
+    return this.journalDate.toDateString() !== new Date().toDateString();
+  }
+  protected get journalDateLabel(): string {
+    return this.journalDate.toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long' });
+  }
+
   protected mode: NoteInputMode = 'text';
   protected content = '';
   protected imageBase64: string | null = null;
@@ -65,7 +73,10 @@ export class NoteEntryComponent implements OnInit {
   ];
 
   ngOnInit(): void {
-    const state = history.state as { editEntry?: NoteEntity };
+    const state = history.state as { editEntry?: NoteEntity; journalDate?: string };
+    if (state?.journalDate) {
+      this.journalDate = new Date(state.journalDate);
+    }
     if (state?.editEntry) {
       this.editingEntry = state.editEntry;
       this.mode = state.editEntry.inputMode;
@@ -99,7 +110,7 @@ export class NoteEntryComponent implements OnInit {
   }
 
   protected async openLinkSheet(): Promise<void> {
-    const entries = await this.getJournalDay.execute(new Date());
+    const entries = await this.getJournalDay.execute(this.journalDate);
     const linkable = entries.filter(e => e.kind !== 'note');
 
     const ref = this.bottomSheet.open(LinkEntriesSheetComponent, {
@@ -133,7 +144,7 @@ export class NoteEntryComponent implements OnInit {
     }
 
     const noteId = await this.addNote.execute({
-      occurredAt: new Date(),
+      occurredAt: new Date(this.journalDate),
       inputMode: this.mode,
       content: this.content.trim() || '(photo)',
       ...(this.imageBase64 && { imageBase64: this.imageBase64 }),

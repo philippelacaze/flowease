@@ -204,3 +204,83 @@ describe('IntakeEntryComponent', () => {
     });
   });
 });
+
+describe('IntakeEntryComponent — date du journal', () => {
+  let fixture: ComponentFixture<IntakeEntryComponent>;
+  let mockConfirmIntake: { execute: ReturnType<typeof vi.fn> };
+
+  function yesterday(): Date {
+    const d = new Date();
+    d.setDate(d.getDate() - 1);
+    d.setHours(0, 0, 0, 0);
+    return d;
+  }
+
+  beforeEach(async () => {
+    vi.useRealTimers();
+    history.replaceState({ journalDate: yesterday().toISOString() }, '');
+    mockConfirmIntake = { execute: vi.fn().mockResolvedValue('intake-id') };
+    const mockAfterDismissed = { subscribe: vi.fn() };
+    const mockBottomSheet = { open: vi.fn().mockReturnValue({ afterDismissed: () => mockAfterDismissed }) };
+
+    await TestBed.configureTestingModule({
+      imports: [IntakeEntryComponent, NoopAnimationsModule],
+      providers: [
+        provideRouter([]),
+        { provide: ConfirmIntakeUseCase, useValue: mockConfirmIntake },
+        { provide: EditIntakeUseCase, useValue: { execute: vi.fn().mockResolvedValue(undefined) } },
+        { provide: GetActiveTreatmentsUseCase, useValue: { execute: vi.fn().mockResolvedValue([mockTreatment]) } },
+        { provide: MatBottomSheet, useValue: mockBottomSheet },
+      ],
+    }).compileComponents();
+
+    fixture = TestBed.createComponent(IntakeEntryComponent);
+    fixture.detectChanges();
+    await fixture.whenStable();
+    fixture.detectChanges();
+  });
+
+  afterEach(() => {
+    vi.useRealTimers();
+    history.replaceState({}, '');
+  });
+
+  it('confirmedAt a le bon jour quand journalDate = hier (tap court)', async () => {
+    const ref = yesterday();
+    const comp = fixture.componentInstance as unknown as ComponentPrivate;
+    const state = comp.treatmentStates[0];
+    const event = makeFakePointerEvent();
+    comp.onPointerDown(event, state);
+    comp.onPointerUp(event, state);
+    await fixture.whenStable();
+    const callArg = mockConfirmIntake.execute.mock.calls[0][0] as { confirmedAt: Date };
+    expect(callArg.confirmedAt.getFullYear()).toBe(ref.getFullYear());
+    expect(callArg.confirmedAt.getMonth()).toBe(ref.getMonth());
+    expect(callArg.confirmedAt.getDate()).toBe(ref.getDate());
+  });
+
+  it('scheduledAt a le bon jour quand journalDate = hier (tap court)', async () => {
+    const ref = yesterday();
+    const comp = fixture.componentInstance as unknown as ComponentPrivate;
+    const state = comp.treatmentStates[0];
+    const event = makeFakePointerEvent();
+    comp.onPointerDown(event, state);
+    comp.onPointerUp(event, state);
+    await fixture.whenStable();
+    const callArg = mockConfirmIntake.execute.mock.calls[0][0] as { scheduledAt: Date };
+    expect(callArg.scheduledAt.getFullYear()).toBe(ref.getFullYear());
+    expect(callArg.scheduledAt.getMonth()).toBe(ref.getMonth());
+    expect(callArg.scheduledAt.getDate()).toBe(ref.getDate());
+  });
+
+  it('isRetrospective est vrai quand journalDate est antérieure à aujourd\'hui', () => {
+    const comp = fixture.componentInstance as unknown as { isRetrospective: boolean };
+    expect(comp.isRetrospective).toBe(true);
+  });
+
+  it('affiche data-testid="retrospective-banner" quand journalDate est antérieure', () => {
+    fixture.detectChanges();
+    const banner = fixture.debugElement.query(By.css('[data-testid="retrospective-banner"]'));
+    expect(banner).not.toBeNull();
+  });
+});

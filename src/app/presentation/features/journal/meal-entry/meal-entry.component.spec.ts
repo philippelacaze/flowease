@@ -156,6 +156,64 @@ describe('MealEntryComponent', () => {
     });
   });
 
+  describe('date du journal sélectionnée', () => {
+    afterEach(() => history.replaceState({}, ''));
+
+    function yesterday(): Date {
+      const d = new Date();
+      d.setDate(d.getDate() - 1);
+      d.setHours(0, 0, 0, 0);
+      return d;
+    }
+
+    it('occurredAt a le jour d\'hier avec l\'heure saisie quand journalDate = hier', async () => {
+      const ref = yesterday();
+      history.replaceState({ journalDate: ref.toISOString() }, '');
+      const mocks = makeUseCaseMocks();
+      const fixture = await createComponent(mocks);
+      const comp = fixture.componentInstance as unknown as {
+        mealTime: string; textInput: string; submit(): Promise<void>;
+      };
+      comp.mealTime = '12:30';
+      comp.textInput = 'Poulet grillé';
+      await comp.submit();
+      const callArg = mocks.addMeal.execute.mock.calls[0][0] as { occurredAt: Date };
+      expect(callArg.occurredAt.getFullYear()).toBe(ref.getFullYear());
+      expect(callArg.occurredAt.getMonth()).toBe(ref.getMonth());
+      expect(callArg.occurredAt.getDate()).toBe(ref.getDate());
+      expect(callArg.occurredAt.getHours()).toBe(12);
+      expect(callArg.occurredAt.getMinutes()).toBe(30);
+    });
+
+    it('isRetrospective est vrai quand journalDate est antérieure à aujourd\'hui', async () => {
+      history.replaceState({ journalDate: yesterday().toISOString() }, '');
+      const fixture = await createComponent(makeUseCaseMocks());
+      const comp = fixture.componentInstance as unknown as { isRetrospective: boolean };
+      expect(comp.isRetrospective).toBe(true);
+    });
+
+    it('isRetrospective est faux par défaut (journalDate = aujourd\'hui)', async () => {
+      const fixture = await createComponent(makeUseCaseMocks());
+      const comp = fixture.componentInstance as unknown as { isRetrospective: boolean };
+      expect(comp.isRetrospective).toBe(false);
+    });
+
+    it('affiche data-testid="retrospective-banner" quand journalDate est antérieure', async () => {
+      history.replaceState({ journalDate: yesterday().toISOString() }, '');
+      const fixture = await createComponent(makeUseCaseMocks());
+      fixture.detectChanges();
+      const banner = fixture.debugElement.query(By.css('[data-testid="retrospective-banner"]'));
+      expect(banner).not.toBeNull();
+    });
+
+    it('n\'affiche pas data-testid="retrospective-banner" pour le jour courant', async () => {
+      const fixture = await createComponent(makeUseCaseMocks());
+      fixture.detectChanges();
+      const banner = fixture.debugElement.query(By.css('[data-testid="retrospective-banner"]'));
+      expect(banner).toBeNull();
+    });
+  });
+
   describe('mode photo — bouton désactivé si hors-ligne', () => {
     let fixture: ComponentFixture<MealEntryComponent>;
     let originalDescriptor: PropertyDescriptor | undefined;

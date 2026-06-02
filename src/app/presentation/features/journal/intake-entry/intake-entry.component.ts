@@ -46,6 +46,14 @@ export class IntakeEntryComponent implements OnInit, OnDestroy {
   private readonly router = inject(Router);
   private readonly cdr = inject(ChangeDetectorRef);
 
+  protected journalDate: Date = new Date();
+  protected get isRetrospective(): boolean {
+    return this.journalDate.toDateString() !== new Date().toDateString();
+  }
+  protected get journalDateLabel(): string {
+    return this.journalDate.toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long' });
+  }
+
   protected treatmentStates: TreatmentState[] = [];
   protected loading = true;
   private editingEntry: IntakeEntity | null = null;
@@ -58,7 +66,10 @@ export class IntakeEntryComponent implements OnInit, OnDestroy {
   }
 
   ngOnInit(): void {
-    const state = history.state as { editEntry?: IntakeEntity };
+    const state = history.state as { editEntry?: IntakeEntity; journalDate?: string };
+    if (state?.journalDate) {
+      this.journalDate = new Date(state.journalDate);
+    }
     if (state?.editEntry) {
       this.editingEntry = state.editEntry;
     }
@@ -155,10 +166,11 @@ export class IntakeEntryComponent implements OnInit, OnDestroy {
   private async quickConfirm(state: TreatmentState): Promise<void> {
     if (state.confirmed || state.skipped) return;
 
+    const confirmedAt = this.dateOnJournalDay();
     await this.confirmIntake.execute({
       treatmentId: state.treatment.id,
-      scheduledAt: new Date(),
-      confirmedAt: new Date(),
+      scheduledAt: confirmedAt,
+      confirmedAt,
       status: 'taken',
     });
 
@@ -167,10 +179,11 @@ export class IntakeEntryComponent implements OnInit, OnDestroy {
   }
 
   private async confirmFromDetail(state: TreatmentState, result: SheetResult): Promise<void> {
+    const confirmedAt = this.dateOnJournalDay();
     await this.confirmIntake.execute({
       treatmentId: state.treatment.id,
-      scheduledAt: new Date(),
-      confirmedAt: new Date(),
+      scheduledAt: confirmedAt,
+      confirmedAt,
       status: result.action,
       ...(result.skipReason && { skipReason: result.skipReason }),
       ...(result.notes && { notes: result.notes }),
@@ -194,6 +207,14 @@ export class IntakeEntryComponent implements OnInit, OnDestroy {
     if (this.editingEntry) {
       this.openEditSheet(this.editingEntry);
     }
+  }
+
+  /** Date du journal à l'heure courante — garantit que les prises sont rattachées au bon jour. */
+  private dateOnJournalDay(): Date {
+    const now = new Date();
+    const base = new Date(this.journalDate);
+    base.setHours(now.getHours(), now.getMinutes(), now.getSeconds(), now.getMilliseconds());
+    return base;
   }
 
   private clearLongPressTimer(): void {

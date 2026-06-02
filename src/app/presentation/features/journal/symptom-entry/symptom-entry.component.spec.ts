@@ -219,6 +219,58 @@ describe('SymptomEntryComponent', () => {
     });
   });
 
+  describe('date du journal sélectionnée', () => {
+    afterEach(() => history.replaceState({}, ''));
+
+    function twoDaysAgo(): Date {
+      const d = new Date();
+      d.setDate(d.getDate() - 2);
+      d.setHours(0, 0, 0, 0);
+      return d;
+    }
+
+    it('occurredAt utilise avant-hier quand journalDate = avant-hier', async () => {
+      const ref = twoDaysAgo();
+      history.replaceState({ journalDate: ref.toISOString() }, '');
+      const { fixture, mock } = await createComponent();
+      const comp = fixture.componentInstance as unknown as ComponentPrivate;
+      comp.rows[0].intensity = 5;
+      await comp.submit();
+      const callArg = mock.execute.mock.calls[0][0] as { occurredAt: Date };
+      expect(callArg.occurredAt.getFullYear()).toBe(ref.getFullYear());
+      expect(callArg.occurredAt.getMonth()).toBe(ref.getMonth());
+      expect(callArg.occurredAt.getDate()).toBe(ref.getDate());
+    });
+
+    it('isRetrospective est vrai quand journalDate est antérieure à aujourd\'hui', async () => {
+      history.replaceState({ journalDate: twoDaysAgo().toISOString() }, '');
+      const { fixture } = await createComponent();
+      const comp = fixture.componentInstance as unknown as { isRetrospective: boolean };
+      expect(comp.isRetrospective).toBe(true);
+    });
+
+    it('isRetrospective est faux par défaut (journalDate = aujourd\'hui)', async () => {
+      const { fixture } = await createComponent();
+      const comp = fixture.componentInstance as unknown as { isRetrospective: boolean };
+      expect(comp.isRetrospective).toBe(false);
+    });
+
+    it('affiche data-testid="retrospective-banner" quand journalDate est antérieure', async () => {
+      history.replaceState({ journalDate: twoDaysAgo().toISOString() }, '');
+      const { fixture } = await createComponent();
+      fixture.detectChanges();
+      const banner = fixture.debugElement.query(By.css('[data-testid="retrospective-banner"]'));
+      expect(banner).not.toBeNull();
+    });
+
+    it('n\'affiche pas data-testid="retrospective-banner" pour le jour courant', async () => {
+      const { fixture } = await createComponent();
+      fixture.detectChanges();
+      const banner = fixture.debugElement.query(By.css('[data-testid="retrospective-banner"]'));
+      expect(banner).toBeNull();
+    });
+  });
+
   describe('transit — blood / mucus / frequency', () => {
     it('initialise stoolBlood, stoolMucus, stoolFrequency à false/0 sur la ligne transit', async () => {
       const { fixture } = await createComponentWithTransit();

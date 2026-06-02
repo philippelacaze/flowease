@@ -4,6 +4,12 @@
     <h1 class="note-title">Saisir une note</h1>
   </div>
 
+  @if (isRetrospective) {
+    <div class="retrospective-banner" data-testid="retrospective-banner" role="status" aria-live="polite">
+      Saisie pour le {{ journalDateLabel }}
+    </div>
+  }
+
   <!-- Mode tabs -->
   <div class="note-mode-tabs" role="tablist" aria-label="Mode de saisie">
     @for (m of modes; track m.key) {

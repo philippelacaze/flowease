@@ -60,6 +60,14 @@ export class MealEntryComponent implements OnInit, OnDestroy {
   private readonly cdr = inject(ChangeDetectorRef);
   private readonly errorNotification = inject(ErrorNotificationService);
 
+  protected journalDate: Date = new Date();
+  protected get isRetrospective(): boolean {
+    return this.journalDate.toDateString() !== new Date().toDateString();
+  }
+  protected get journalDateLabel(): string {
+    return this.journalDate.toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long' });
+  }
+
   protected phase: MealPhase = 'form';
   protected srcMode: 'voice' | 'photo' | 'text' = 'text';
   protected processingStep = 0;
@@ -95,7 +103,12 @@ export class MealEntryComponent implements OnInit, OnDestroy {
       transcript?: string;
       photo?: { base64: string; mediaType: string };
       editEntry?: MealEntity;
+      journalDate?: string;
     };
+
+    if (state?.journalDate) {
+      this.journalDate = new Date(state.journalDate);
+    }
 
     if (state?.editEntry) {
       this.editingEntry = state.editEntry;
@@ -228,7 +241,7 @@ export class MealEntryComponent implements OnInit, OnDestroy {
     if (!this.canSubmit || this.saving) return;
 
     const [hours, minutes] = this.mealTime.split(':').map(Number);
-    const occurredAt = new Date();
+    const occurredAt = new Date(this.journalDate);
     occurredAt.setHours(hours, minutes, 0, 0);
 
     let items = this.proposedItems;

@@ -40,6 +40,7 @@ Permettre à l'utilisateur de consigner **à la demande**, depuis son smartphone
 ### 1.2 Principes UX spécifiques
 
 - **Saisie contextuelle** : l'utilisateur ouvre l'app au moment de l'événement ou plus tard (saisie rétrospective possible avec horodatage manuel).
+- **Date sélectionnée = date de référence** : toute entrée créée depuis le journal (repas, symptôme, prise, note) utilise la date actuellement sélectionnée dans le journal comme date de base. L'heure saisie par l'utilisateur est appliquée sur cette date — jamais sur la date du jour si une date antérieure est sélectionnée. Un bandeau discret `"Saisie pour le [date]"` est affiché dans le formulaire lorsque la date sélectionnée est antérieure à aujourd'hui.
 - **Mode dégradé gracieux** : si l'IA est indisponible (pas de clé API, pas de réseau), toutes les fonctions de saisie continuent de fonctionner sans elle.
 - **Pas de formulaire long** : aucun écran ne doit présenter plus de 3 champs actifs simultanément.
 - **Toujours modifiable** : toute entrée du journal est éditable après coup.
@@ -141,6 +142,7 @@ interface FodmapFlag {
 - Par défaut : horodatage = heure de saisie.
 - L'utilisateur peut modifier l'heure du repas via un sélecteur date/heure simple (pas l'heure de saisie, mais l'heure réelle du repas).
 - La distinction `timestamp` / `mealTime` permet de savoir si la saisie était en temps réel ou rétrospective (utile pour l'analyse IA).
+- **Règle de date — non négociable** : la date de base de `occurredAt` est toujours la date sélectionnée dans le journal (`currentDate`), transmise par le journal au formulaire de saisie. L'heure saisie par l'utilisateur (HH:mm) est appliquée sur cette date. Si l'utilisateur est sur le journal du 2026-05-30 et saisit un repas à 12:30, `occurredAt` = `2026-05-30T12:30:00` — jamais la date du jour courant. Cette règle s'applique à tous les types d'entrées : repas, symptômes, prises médicamenteuses et notes.
 
 ---
 

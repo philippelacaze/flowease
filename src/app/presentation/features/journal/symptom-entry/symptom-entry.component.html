@@ -1,5 +1,11 @@
 <div class="symptom-entry">
 
+  @if (isRetrospective) {
+    <div class="retrospective-banner" data-testid="retrospective-banner" role="status" aria-live="polite">
+      Saisie pour le {{ journalDateLabel }}
+    </div>
+  }
+
   <!-- Header contextuel -->
   <div class="sym-header">
     <button class="icon-btn" aria-label="Retour" (click)="back()">←</button>

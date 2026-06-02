@@ -4,6 +4,12 @@
     <h1 class="intake-title">Saisir des prises</h1>
   </div>
 
+  @if (isRetrospective) {
+    <div class="retrospective-banner" data-testid="retrospective-banner" role="status" aria-live="polite">
+      Saisie pour le {{ journalDateLabel }}
+    </div>
+  }
+
   @if (loading) {
     <div class="loading" role="status" aria-live="polite">
       Chargement des traitements…

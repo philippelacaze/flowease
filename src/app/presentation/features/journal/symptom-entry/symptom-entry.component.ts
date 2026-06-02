@@ -86,6 +86,14 @@ export class SymptomEntryComponent implements OnInit {
   private readonly route = inject(ActivatedRoute);
   private readonly cdr = inject(ChangeDetectorRef);
 
+  protected journalDate: Date = new Date();
+  protected get isRetrospective(): boolean {
+    return this.journalDate.toDateString() !== new Date().toDateString();
+  }
+  protected get journalDateLabel(): string {
+    return this.journalDate.toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long' });
+  }
+
   protected readonly painTypes = PAIN_TYPES;
   protected saving = false;
 
@@ -141,7 +149,10 @@ export class SymptomEntryComponent implements OnInit {
   }
 
   async ngOnInit(): Promise<void> {
-    const state = history.state as { editEntry?: SymptomEntity };
+    const state = history.state as { editEntry?: SymptomEntity; journalDate?: string };
+    if (state?.journalDate) {
+      this.journalDate = new Date(state.journalDate);
+    }
 
     if (state?.editEntry) {
       this.editingEntry = state.editEntry;
@@ -247,7 +258,7 @@ export class SymptomEntryComponent implements OnInit {
     this.saving = true;
     this.cdr.markForCheck();
 
-    const now = new Date();
+    const now = new Date(this.journalDate);
     const rowsToSave = this.allRows.filter(
       r => r.intensity > 0 || this.hasStoolData(r),
     );

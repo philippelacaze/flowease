@@ -1,5 +1,11 @@
 # FlowEase — Règles Claude Code
 
+## Environnement
+- OS : Windows 11 natif PowerShell
+- Shell : PowerShell 7
+- Node : V24.13.1
+- Package manager : npm
+ 
 ## Architecture — 4 couches strictes
 ```
 domain/         → interfaces et types purs — ZÉRO import externe

@@ -118,7 +118,10 @@ export class JournalHomeComponent implements OnInit {
   }
 
   protected navigate(route: string, mode?: string): void {
-    void this.router.navigate([route], mode ? { queryParams: { mode } } : {});
+    void this.router.navigate([route], {
+      ...(mode ? { queryParams: { mode } } : {}),
+      state: { journalDate: this.currentDate.toISOString() },
+    });
   }
 
   protected setWellbeing(n: number): void {
@@ -134,34 +137,51 @@ export class JournalHomeComponent implements OnInit {
   }
 
   protected editMeal(data: MealEntity): void {
-    void this.router.navigate(['/journal/meal'], { state: { editEntry: data } }).catch(() => undefined);
+    void this.router.navigate(['/journal/meal'], {
+      state: { editEntry: data, journalDate: this.currentDate.toISOString() },
+    }).catch(() => undefined);
   }
 
   protected editSymptom(data: SymptomEntity): void {
-    void this.router.navigate(['/journal/symptom'], { state: { editEntry: data } }).catch(() => undefined);
+    void this.router.navigate(['/journal/symptom'], {
+      state: { editEntry: data, journalDate: this.currentDate.toISOString() },
+    }).catch(() => undefined);
   }
 
   protected editIntake(data: IntakeEntity): void {
-    void this.router.navigate(['/journal/intake'], { state: { editEntry: data } }).catch(() => undefined);
+    void this.router.navigate(['/journal/intake'], {
+      state: { editEntry: data, journalDate: this.currentDate.toISOString() },
+    }).catch(() => undefined);
   }
 
   protected editNote(data: NoteEntity): void {
-    void this.router.navigate(['/journal/note'], { state: { editEntry: data } }).catch(() => undefined);
+    void this.router.navigate(['/journal/note'], {
+      state: { editEntry: data, journalDate: this.currentDate.toISOString() },
+    }).catch(() => undefined);
   }
 
   protected startSymptomVoice(event: Event): void {
     event.stopPropagation();
-    void this.router.navigate(['/journal/symptom'], { queryParams: { mode: 'voice' } }).catch(() => undefined);
+    void this.router.navigate(['/journal/symptom'], {
+      queryParams: { mode: 'voice' },
+      state: { journalDate: this.currentDate.toISOString() },
+    }).catch(() => undefined);
   }
 
   protected startIntakeVoice(event: Event): void {
     event.stopPropagation();
-    void this.router.navigate(['/journal/intake'], { queryParams: { mode: 'voice' } }).catch(() => undefined);
+    void this.router.navigate(['/journal/intake'], {
+      queryParams: { mode: 'voice' },
+      state: { journalDate: this.currentDate.toISOString() },
+    }).catch(() => undefined);
   }
 
   protected startNoteVoice(event: Event): void {
     event.stopPropagation();
-    void this.router.navigate(['/journal/note'], { queryParams: { mode: 'voice' } }).catch(() => undefined);
+    void this.router.navigate(['/journal/note'], {
+      queryParams: { mode: 'voice' },
+      state: { journalDate: this.currentDate.toISOString() },
+    }).catch(() => undefined);
   }
 
   protected mealLabel(type: string): string {
@@ -170,7 +190,10 @@ export class JournalHomeComponent implements OnInit {
 
   protected startVoice(event: Event): void {
     event.stopPropagation();
-    void this.router.navigate(['/journal/meal'], { queryParams: { mode: 'voice' } }).catch(() => undefined);
+    void this.router.navigate(['/journal/meal'], {
+      queryParams: { mode: 'voice' },
+      state: { journalDate: this.currentDate.toISOString() },
+    }).catch(() => undefined);
   }
 
   protected openCamera(event: Event): void {
@@ -190,7 +213,7 @@ export class JournalHomeComponent implements OnInit {
       const mediaType = header.match(/:(.*?);/)?.[1] ?? 'image/jpeg';
       void this.router.navigate(['/journal/meal'], {
         queryParams: { mode: 'photo' },
-        state: { photo: { base64, mediaType } },
+        state: { photo: { base64, mediaType }, journalDate: this.currentDate.toISOString() },
       });
     };
     reader.readAsDataURL(file);

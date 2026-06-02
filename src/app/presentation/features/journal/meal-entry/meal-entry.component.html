@@ -1,3 +1,9 @@
+@if (isRetrospective) {
+  <div class="retrospective-banner" data-testid="retrospective-banner" role="status" aria-live="polite">
+    Saisie pour le {{ journalDateLabel }}
+  </div>
+}
+
 <!-- Phase : processing -->
 @if (phase === 'processing') {
   <header class="page-header">
