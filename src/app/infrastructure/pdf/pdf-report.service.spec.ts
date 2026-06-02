@@ -1,8 +1,8 @@
 import { vi } from 'vitest';
 
-// vi.hoisted garantit que mockDoc est disponible dans la factory de vi.mock
-const { mockDoc } = vi.hoisted(() => {
-  const mockDoc = {
+// Chaque test reçoit un mockDoc neuf — évite les faux négatifs dus au partage d'état
+const { getMockDoc, resetMockDoc } = vi.hoisted(() => {
+  const createDoc = () => ({
     setFont: vi.fn().mockReturnThis(),
     setFontSize: vi.fn().mockReturnThis(),
     setTextColor: vi.fn().mockReturnThis(),
@@ -15,14 +15,23 @@ const { mockDoc } = vi.hoisted(() => {
     getNumberOfPages: vi.fn().mockReturnValue(1),
     setPage: vi.fn().mockReturnThis(),
     save: vi.fn(),
+  });
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  let current: any = createDoc();
+
+  return {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    getMockDoc: (): any => current,
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    resetMockDoc: (): any => { current = createDoc(); return current; },
   };
-  return { mockDoc };
 });
 
-// function() {} (pas arrow) peut être utilisé avec new — retourner l'objet remplace this
+// function() {} (pas arrow) utilisable avec new — retourner un objet remplace this
 vi.mock('jspdf', () => ({
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  jsPDF: function () { return mockDoc; } as any,
+  jsPDF: function (): any { return getMockDoc(); },
 }));
 
 import { TestBed } from '@angular/core/testing';
@@ -45,11 +54,11 @@ const mockReport: ReportEntity = {
 
 describe('PdfReportService', () => {
   let service: PdfReportService;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  let mockDoc: any;
 
   beforeEach(() => {
-    vi.clearAllMocks();
-    mockDoc.splitTextToSize.mockReturnValue(['line 1', 'line 2']);
-    mockDoc.getNumberOfPages.mockReturnValue(1);
+    mockDoc = resetMockDoc();
     TestBed.configureTestingModule({ providers: [PdfReportService] });
     service = TestBed.inject(PdfReportService);
   });
@@ -82,26 +91,26 @@ describe('PdfReportService', () => {
   it('inclut les titres des sections incluses', () => {
     service.generate(mockReport, null);
     const textCalls = mockDoc.text.mock.calls.map((c: unknown[]) => String(c[0]).toUpperCase());
-    expect(textCalls.some(t => t.includes('ALIMENTATION'))).toBe(true);
-    expect(textCalls.some(t => t.includes('SYMPTÔMES'))).toBe(true);
+    expect(textCalls.some((t: string) => t.includes('ALIMENTATION'))).toBe(true);
+    expect(textCalls.some((t: string) => t.includes('SYMPTÔMES'))).toBe(true);
   });
 
   it('ignore les sections dont included === false', () => {
     service.generate(mockReport, null);
     const textCalls = mockDoc.text.mock.calls.map((c: unknown[]) => String(c[0]).toUpperCase());
-    expect(textCalls.some(t => t.includes('NOTES'))).toBe(false);
+    expect(textCalls.some((t: string) => t.includes('NOTES'))).toBe(false);
   });
 
   it('inclut le titre de synthèse IA quand elle est fournie', () => {
     service.generate(mockReport, 'Ma synthèse IA');
     const textCalls = mockDoc.text.mock.calls.map((c: unknown[]) => String(c[0]).toUpperCase());
-    expect(textCalls.some(t => t.includes('SYNTHÈSE IA'))).toBe(true);
+    expect(textCalls.some((t: string) => t.includes('SYNTHÈSE IA'))).toBe(true);
   });
 
   it('n\'inclut pas de section synthèse IA quand elle est null', () => {
     service.generate(mockReport, null);
     const textCalls = mockDoc.text.mock.calls.map((c: unknown[]) => String(c[0]).toUpperCase());
-    expect(textCalls.some(t => t.includes('SYNTHÈSE IA'))).toBe(false);
+    expect(textCalls.some((t: string) => t.includes('SYNTHÈSE IA'))).toBe(false);
   });
 
   it('gère un rapport sans sections incluses sans lever d\'exception', () => {
