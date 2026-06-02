@@ -7,6 +7,7 @@ import type { AnalysisPort } from '../domain/repositories/ai/analysis.port';
 import type { ReportPort } from '../domain/repositories/ai/report.port';
 import type { CoachPort } from '../domain/repositories/ai/coach.port';
 import type { ApiKeyTestPort } from '../domain/repositories/ai/api-key-test.port';
+import type { NotificationPort } from '../domain/repositories/notification.port';
 
 /**
  * Token d'injection pour le port de stockage générique.
@@ -76,3 +77,12 @@ export const LOCAL_SETTINGS_PORT = new InjectionToken<LocalSettingsRepository>('
  * nécessite un vrai appel réseau. Utilisé par TestApiKeyUseCase uniquement.
  */
 export const API_KEY_TEST_PORT = new InjectionToken<ApiKeyTestPort>('API_KEY_TEST_PORT');
+
+/**
+ * Token d'injection pour le port de gestion des rappels de traitement.
+ *
+ * @remarks
+ * Injecte NotificationService en prod (utilise Web Notifications API).
+ * En test : fournir un mock avec les quatre méthodes du port.
+ */
+export const NOTIFICATION_PORT = new InjectionToken<NotificationPort>('NOTIFICATION_PORT');

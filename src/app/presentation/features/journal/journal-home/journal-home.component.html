@@ -1,5 +1,12 @@
 <app-offline-banner />
 
+@if (notifDenied) {
+  <div class="notif-denied-banner" role="status" data-testid="notif-denied-banner">
+    <mat-icon aria-hidden="true">notifications_off</mat-icon>
+    <span>Rappels de traitement désactivés — autorisez les notifications dans les paramètres du navigateur.</span>
+  </div>
+}
+
 <div class="journal-home">
 
   <!-- En-tête navigation jour -->

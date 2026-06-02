@@ -8,7 +8,8 @@ import { GetActiveCuresUseCase } from '../../../../application/journal/get-activ
 import { SaveWellbeingScoreUseCase } from '../../../../application/journal/save-wellbeing-score.usecase';
 import { ConfirmNoteTagsUseCase } from '../../../../application/journal/confirm-note-tags.usecase';
 import { GetJournalSuggestionsUseCase } from '../../../../application/journal/get-journal-suggestions.usecase';
-import { LOCAL_SETTINGS_PORT } from '../../../../application/tokens';
+import { ScheduleAllRemindersUseCase } from '../../../../application/settings/schedule-all-reminders.usecase';
+import { LOCAL_SETTINGS_PORT, NOTIFICATION_PORT } from '../../../../application/tokens';
 import type { FoodItemVO, AiFodmapAlert } from '../../../../domain/entities/meal.entity';
 import type { JournalEntry } from '../../../../application/journal/get-journal-day.usecase';
 import type { SymptomEntity } from '../../../../domain/entities/symptom.entity';
@@ -76,6 +77,8 @@ const DEFAULT_PROVIDERS = [
   { provide: SaveWellbeingScoreUseCase, useValue: { execute: vi.fn().mockResolvedValue('wb-id') } },
   { provide: ConfirmNoteTagsUseCase, useValue: { execute: vi.fn().mockResolvedValue(undefined) } },
   { provide: GetJournalSuggestionsUseCase, useValue: { execute: vi.fn().mockResolvedValue([]) } },
+  { provide: ScheduleAllRemindersUseCase, useValue: { execute: vi.fn().mockResolvedValue(undefined) } },
+  { provide: NOTIFICATION_PORT, useValue: { getPermissionStatus: () => 'default', scheduleReminders: vi.fn(), cancelReminders: vi.fn(), requestPermission: vi.fn() } },
   { provide: LOCAL_SETTINGS_PORT, useValue: { getLanguage: () => 'fr', getApiKey: () => null } },
 ];
 

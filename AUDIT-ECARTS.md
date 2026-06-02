@@ -97,8 +97,8 @@ Quand un traitement de type "cure" est actif, le journal doit afficher une **bar
 | | |
 |---|---|
 | **Réf. spec** | §1.5.5 — Rappels |
-| **Décision** | ☐ VALIDER &nbsp;&nbsp; ☐ INVALIDER |
-| **Statut** | ⬜ À traiter |
+| **Décision** | ☑ VALIDER &nbsp;&nbsp; ☐ INVALIDER |
+| **Statut** | ✅ Traité |
 
 **Ce que dit la spec :**  
 Chaque traitement actif peut avoir des rappels via **Web Notifications API** (heure fixe ou relatif à un repas). Les rappels sont désactivés automatiquement à la fin d'une cure.
@@ -286,8 +286,8 @@ L'utilisateur choisit "la fenêtre temporelle à couvrir (7 / 14 / 30 / 90 jours
 | | |
 |---|---|
 | **Réf. spec** | §4.3 — Contexte injecté |
-| **Décision** | ☐ VALIDER (revenir au comportement spec) &nbsp;&nbsp; ☐ INVALIDER (MAJ specs) |
-| **Statut** | ⬜ À traiter |
+| **Décision** | ☐ VALIDER (revenir au comportement spec) &nbsp;&nbsp; ☑ INVALIDER (MAJ specs) |
+| **Statut** | ✅ Traité — `flowease-specs.md §4.3` mis à jour |
 
 **Ce que dit la spec :**  
 "L'utilisateur choisit le contexte à inclure **à l'ouverture de chaque nouvelle conversation**, via un panneau de sélection rapide."
@@ -382,8 +382,8 @@ Deux modes sélectionnables dans les paramètres :
 | | |
 |---|---|
 | **Réf. spec** | §5.4 — Rappels par traitement |
-| **Décision** | ☐ VALIDER &nbsp;&nbsp; ☐ INVALIDER |
-| **Statut** | ⬜ À traiter |
+| **Décision** | ☑ VALIDER &nbsp;&nbsp; ☐ INVALIDER |
+| **Statut** | ✅ Traité |
 
 **Ce que dit la spec :**  
 "Configuration des rappels par traitement (heure fixe ou relatif à un repas)."
@@ -491,8 +491,8 @@ Les données sont stockées localement en IndexedDB (les saisies fonctionnent of
 | | |
 |---|---|
 | **Réf. spec** | §Stack technique |
-| **Décision** | ☐ VALIDER (migrer vers @angular/localize) &nbsp;&nbsp; ☐ INVALIDER (MAJ spec → i18n runtime JSON) |
-| **Statut** | ⬜ À traiter |
+| **Décision** | ☐ VALIDER (migrer vers @angular/localize) &nbsp;&nbsp; ☑ INVALIDER (MAJ spec → i18n runtime JSON) |
+| **Statut** | ✅ Traité — `flowease-specs.md §Stack` mis à jour |
 
 **Ce que dit la spec :**  
 "Français + anglais dès la v1 via `@angular/localize`."
@@ -511,7 +511,7 @@ Les traductions sont chargées à l'exécution depuis des fichiers JSON statique
 | 1.1 | Selles : blood / mucus / frequency | M | |
 | 1.2 | Prises : skipReason + note dans détail | S | |
 | 1.3 | Cures : barre de progression journal | L | |
-| 1.4 | Rappels de traitement | L | |
+| 1.4 | Rappels de traitement | L | ✅ |
 | 1.5 | Édition des entrées existantes | L | ✅ |
 | 1.6 | Tags IA : confirmation interactive | M | ✅ |
 | 1.7 | Bien-être non persisté | S | |
@@ -519,15 +519,15 @@ Les traductions sont chargées à l'exécution depuis des fichiers JSON statique
 | 2.1 | Comparaison avant/après cure | S | ✅ |
 | 3.1 | Rapport PDF (jsPDF) | M | ✅ |
 | 3.2 | Rapport : plage de dates personnalisée | S | ✅ |
-| 4.1 | Coach picker : comportement délibéré | — (MAJ spec si INVALIDER) | |
+| 4.1 | Coach picker : comportement délibéré | — (MAJ spec si INVALIDER) | ✅ |
 | 4.2 | Mode chat + suggestions dans journal | M | ✅ |
 | 5.1 | Profil : 5 champs manquants | M | ✅ |
 | 5.2 | UI gestion des cures (paramètres) | L | ✅ |
-| 5.3 | UI rappels (paramètres) | L | |
+| 5.3 | UI rappels (paramètres) | L | ✅ |
 | 5.4 | Coach : défaut 14j vs 7j spec | S (MAJ spec si INVALIDER) | ✅ |
 | 5.5 | Placeholder Gist sync | XS | ✅ |
 | 5.6 | Import : fusion vs remplacement | M | ✅ |
 | T.1 | Service Worker / PWA | M | ✅ |
-| T.2 | @angular/localize vs runtime JSON | — (MAJ spec si INVALIDER) | |
+| T.2 | @angular/localize vs runtime JSON | — (MAJ spec si INVALIDER) | ✅ |
 
 **Légende effort :** XS < 2h · S = 2-4h · M = 4-8h · L = 1-2 jours

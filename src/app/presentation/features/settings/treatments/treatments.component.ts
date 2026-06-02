@@ -16,7 +16,8 @@ import { MatDividerModule } from '@angular/material/divider';
 import type { StorageRepository } from '../../../../domain/repositories/storage.repository';
 import type { TreatmentEntity, TreatmentCategory, TreatmentMode } from '../../../../domain/entities/treatment.entity';
 import type { CureEntity, CureStatus } from '../../../../domain/entities/cure.entity';
-import { STORAGE_PORT } from '../../../../application/tokens';
+import type { NotificationPort } from '../../../../domain/repositories/notification.port';
+import { STORAGE_PORT, NOTIFICATION_PORT } from '../../../../application/tokens';
 import { GetCuresUseCase } from '../../../../application/settings/get-cures.usecase';
 import { CreateCureUseCase } from '../../../../application/settings/create-cure.usecase';
 
@@ -54,6 +55,7 @@ import { CreateCureUseCase } from '../../../../application/settings/create-cure.
 export class TreatmentsComponent implements OnInit {
   private readonly storage = inject<StorageRepository<TreatmentEntity>>(STORAGE_PORT as never);
   private readonly cureStorage = inject<StorageRepository<CureEntity>>(STORAGE_PORT as never);
+  private readonly notifications = inject<NotificationPort>(NOTIFICATION_PORT);
   private readonly getCures = inject(GetCuresUseCase);
   private readonly createCure = inject(CreateCureUseCase);
   private readonly snackBar = inject(MatSnackBar);
@@ -64,6 +66,17 @@ export class TreatmentsComponent implements OnInit {
   protected showForm = signal(false);
   protected showCureForm = signal(false);
 
+  /** Heures de rappel saisies dans le formulaire de création */
+  protected reminderTimes = signal<string[]>([]);
+  /** Identifiant du traitement dont les rappels sont en cours d'édition inline */
+  protected editingRemindersFor = signal<string | null>(null);
+  /** État du toggle dans le panneau d'édition inline */
+  protected editReminderEnabled = signal(false);
+  /** Heures en cours d'édition dans le panneau inline */
+  protected editReminderTimes = signal<string[]>([]);
+  /** Statut de permission de notification (affiché si 'denied') */
+  protected notifPermission = signal(this.notifications.getPermissionStatus());
+
   protected readonly form = this.fb.group({
     name: ['', Validators.required],
     dosage: ['', Validators.required],
@@ -72,6 +85,7 @@ export class TreatmentsComponent implements OnInit {
     category: ['other' as TreatmentCategory, Validators.required],
     mode: ['oral' as TreatmentMode, Validators.required],
     notes: [''],
+    reminderEnabled: [false],
   });
 
   protected readonly cureForm = this.fb.group({
@@ -95,13 +109,28 @@ export class TreatmentsComponent implements OnInit {
   }
 
   protected onAdd(): void {
-    this.form.reset({ category: 'other', mode: 'oral', frequency: 1, unit: 'mg' });
+    this.form.reset({ category: 'other', mode: 'oral', frequency: 1, unit: 'mg', reminderEnabled: false });
+    this.reminderTimes.set([]);
     this.showForm.set(true);
   }
 
   protected async onSave(): Promise<void> {
     if (this.form.invalid) return;
-    const { name, dosage, unit, frequency, category, mode, notes } = this.form.value;
+    const { name, dosage, unit, frequency, category, mode, notes, reminderEnabled } = this.form.value;
+
+    const times = reminderEnabled ? [...this.reminderTimes()] : [];
+
+    if (reminderEnabled && this.notifications.getPermissionStatus() !== 'granted') {
+      const result = await this.notifications.requestPermission();
+      this.notifPermission.set(result);
+      if (result === 'denied') {
+        this.snackBar.open(
+          'Notifications refusées — activez-les dans les paramètres du navigateur',
+          'OK',
+          { duration: 4000 },
+        );
+      }
+    }
 
     const treatment: TreatmentEntity = {
       id: crypto.randomUUID(),
@@ -114,14 +143,86 @@ export class TreatmentsComponent implements OnInit {
       notes: notes ?? '',
       active: true,
       startedAt: new Date(),
-      reminder: { enabled: false, times: [], soundEnabled: false },
+      reminder: { enabled: !!reminderEnabled, times, soundEnabled: false },
       createdAt: new Date(),
     };
 
     await this.storage.save('treatments', treatment);
+
+    if (reminderEnabled && times.length > 0) {
+      this.notifications.scheduleReminders(treatment.id, treatment.name, times);
+    }
+
     this.showForm.set(false);
     await this.loadTreatments();
     this.snackBar.open('Traitement enregistré', 'OK', { duration: 2000 });
+  }
+
+  // --- Gestion des heures dans le formulaire de création ---
+
+  protected addReminderTime(): void {
+    this.reminderTimes.update(times => [...times, '08:00']);
+  }
+
+  protected removeReminderTime(index: number): void {
+    this.reminderTimes.update(times => times.filter((_, i) => i !== index));
+  }
+
+  protected updateReminderTime(index: number, value: string): void {
+    this.reminderTimes.update(times => times.map((t, i) => (i === index ? value : t)));
+  }
+
+  // --- Édition inline des rappels d'un traitement existant ---
+
+  protected onEditReminders(treatment: TreatmentEntity): void {
+    this.editingRemindersFor.set(treatment.id);
+    this.editReminderEnabled.set(treatment.reminder.enabled);
+    this.editReminderTimes.set([...treatment.reminder.times]);
+  }
+
+  protected addEditReminderTime(): void {
+    this.editReminderTimes.update(times => [...times, '08:00']);
+  }
+
+  protected removeEditReminderTime(index: number): void {
+    this.editReminderTimes.update(times => times.filter((_, i) => i !== index));
+  }
+
+  protected updateEditReminderTime(index: number, value: string): void {
+    this.editReminderTimes.update(times => times.map((t, i) => (i === index ? value : t)));
+  }
+
+  protected async onSaveReminders(treatment: TreatmentEntity): Promise<void> {
+    const enabled = this.editReminderEnabled();
+    const times = enabled ? [...this.editReminderTimes()] : [];
+
+    if (enabled && this.notifications.getPermissionStatus() !== 'granted') {
+      const result = await this.notifications.requestPermission();
+      this.notifPermission.set(result);
+      if (result === 'denied') {
+        this.snackBar.open(
+          'Notifications refusées — activez-les dans les paramètres du navigateur',
+          'OK',
+          { duration: 4000 },
+        );
+      }
+    }
+
+    const updated: TreatmentEntity = {
+      ...treatment,
+      reminder: { enabled, times, soundEnabled: false },
+    };
+    await this.storage.save('treatments', updated);
+
+    if (enabled && times.length > 0) {
+      this.notifications.scheduleReminders(treatment.id, treatment.name, times);
+    } else {
+      this.notifications.cancelReminders(treatment.id);
+    }
+
+    this.editingRemindersFor.set(null);
+    await this.loadTreatments();
+    this.snackBar.open('Rappels mis à jour', 'OK', { duration: 2000 });
   }
 
   protected async onToggleActive(treatment: TreatmentEntity, active: boolean): Promise<void> {

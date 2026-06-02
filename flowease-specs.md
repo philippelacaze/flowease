@@ -682,7 +682,7 @@ Conversation à résumer :
 | 3 | Médicaments : intégré au journal ou module séparé | ✅ Saisie dans le journal, configuration dans les paramètres |
 | 4 | Stockage photos : IndexedDB blob ou référence fichier | ✅ Pas de stockage — analyse IA immédiate obligatoire. Bouton photo désactivé hors ligne (fallback vocal/texte suggéré) |
 | 5 | Gist sync : optionnelle dès v1 ou reportée en v2 | ✅ Export/import JSON manuel en v1 — sync Gist automatique en v2 (architecture UUID/timestamp prête) |
-| 6 | Langue de l'interface : français uniquement ou i18n dès le départ | ✅ Français + anglais dès la v1 via `@angular/localize` |
+| 6 | Langue de l'interface : français uniquement ou i18n dès le départ | ✅ Français + anglais dès la v1 via fichiers JSON runtime (`/assets/i18n/fr.json`, `en.json`) — `@angular/localize` non retenu (build par langue incompatible SPA statique GitHub Pages) |
 
 ---
 
@@ -833,7 +833,9 @@ L'utilisateur choisit son mode dans **Paramètres > Coach IA** :
 
 ### 4.3 Contexte injecté dans chaque conversation
 
-L'utilisateur choisit le contexte à inclure **à l'ouverture de chaque nouvelle conversation**, via un panneau de sélection rapide :
+La conversation démarre automatiquement avec le contexte par défaut configuré dans les paramètres (§5.6). L'utilisateur peut modifier ce contexte **à la demande** en appuyant sur le chip affiché en en-tête du chat (bouton "Modifier"), sans être obligé de le resélectionner à chaque ouverture.
+
+**Options de contexte disponibles :**
 
 | Option | Contenu injecté | Coût tokens estimé |
 |---|---|---|

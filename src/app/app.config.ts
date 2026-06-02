@@ -24,10 +24,12 @@ import {
   REPORT_PORT,
   COACH_PORT,
   API_KEY_TEST_PORT,
+  NOTIFICATION_PORT,
 } from './application/tokens';
 import { IndexedDBAdapter } from './infrastructure/storage/indexeddb.adapter';
 import { LocalSettingsAdapter } from './infrastructure/storage/local-settings.adapter';
 import { AnthropicAdapter } from './infrastructure/ai/anthropic/anthropic.adapter';
+import { NotificationService } from './infrastructure/notification/notification.service';
 import { ThemeService } from './presentation/core/theme.service';
 
 /**
@@ -74,6 +76,9 @@ export const appConfig: ApplicationConfig = {
       enabled: !isDevMode(),
       registrationStrategy: 'registerWhenStable:30000',
     }),
+
+    // Port Notification — remappage vers NotificationService
+    { provide: NOTIFICATION_PORT, useExisting: NotificationService },
 
     // Ports IA — AnthropicAdapter gère lui-même le cas "clé absente" (retourne null)
     // La factory statique causait un bug : si la clé était ajoutée après démarrage,

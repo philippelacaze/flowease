@@ -48,6 +48,71 @@
                   <p><strong>Fin :</strong> {{ treatment.endedAt | date:'dd/MM/yyyy' }}</p>
                 }
 
+                <!-- Rappels existants -->
+                <div class="reminder-info" data-testid="reminder-info">
+                  <strong>Rappels :</strong>
+                  @if (treatment.reminder.enabled && treatment.reminder.times.length > 0) {
+                    <span>{{ treatment.reminder.times.join(' · ') }}</span>
+                  } @else {
+                    <span>Désactivés</span>
+                  }
+                  <button mat-button type="button"
+                          (click)="onEditReminders(treatment)"
+                          [attr.aria-label]="'Configurer les rappels de ' + treatment.name"
+                          [attr.data-testid]="'edit-reminders-' + treatment.id">
+                    <mat-icon>edit</mat-icon> Modifier
+                  </button>
+                </div>
+
+                <!-- Formulaire d'édition inline des rappels -->
+                @if (editingRemindersFor() === treatment.id) {
+                  <div class="edit-reminders-form" [attr.data-testid]="'edit-reminders-form-' + treatment.id">
+                    <mat-slide-toggle
+                      [checked]="editReminderEnabled()"
+                      (change)="editReminderEnabled.set($event.checked)"
+                      aria-label="Activer les rappels pour ce traitement"
+                      data-testid="edit-reminder-toggle">
+                      Rappels actifs
+                    </mat-slide-toggle>
+
+                    @if (editReminderEnabled()) {
+                      <div class="reminder-times" data-testid="edit-reminder-times">
+                        @for (time of editReminderTimes(); track $index) {
+                          <div class="reminder-time-row">
+                            <input type="time" [value]="time"
+                                   (change)="updateEditReminderTime($index, $any($event.target).value)"
+                                   [attr.aria-label]="'Heure de rappel ' + ($index + 1)"
+                                   class="time-input" />
+                            <button mat-icon-button type="button"
+                                    (click)="removeEditReminderTime($index)"
+                                    [attr.aria-label]="'Supprimer heure de rappel ' + ($index + 1)">
+                              <mat-icon>close</mat-icon>
+                            </button>
+                          </div>
+                        }
+                        <button mat-stroked-button type="button"
+                                (click)="addEditReminderTime()"
+                                aria-label="Ajouter une heure de rappel"
+                                data-testid="add-edit-reminder-time">
+                          <mat-icon>add</mat-icon> Ajouter une heure
+                        </button>
+                      </div>
+                    }
+
+                    <div class="edit-reminder-actions">
+                      <button mat-stroked-button type="button"
+                              (click)="editingRemindersFor.set(null)"
+                              aria-label="Annuler la modification des rappels">Annuler</button>
+                      <button mat-raised-button color="primary" type="button"
+                              (click)="onSaveReminders(treatment)"
+                              aria-label="Enregistrer les rappels"
+                              [attr.data-testid]="'save-reminders-' + treatment.id">
+                        Enregistrer
+                      </button>
+                    </div>
+                  </div>
+                }
+
                 <div class="treatment-actions">
                   <mat-slide-toggle
                     [checked]="treatment.active"
@@ -244,6 +309,39 @@
               <mat-label>Notes (facultatif)</mat-label>
               <textarea matInput formControlName="notes" rows="2" aria-label="Notes sur le traitement"></textarea>
             </mat-form-field>
+
+            <!-- Section Rappels -->
+            <div class="reminder-section" data-testid="reminder-section">
+              <mat-slide-toggle formControlName="reminderEnabled"
+                                aria-label="Activer les rappels pour ce traitement"
+                                data-testid="reminder-toggle">
+                Rappels
+              </mat-slide-toggle>
+
+              @if (form.value.reminderEnabled) {
+                <div class="reminder-times" data-testid="reminder-times">
+                  @for (time of reminderTimes(); track $index) {
+                    <div class="reminder-time-row">
+                      <input type="time" [value]="time"
+                             (change)="updateReminderTime($index, $any($event.target).value)"
+                             [attr.aria-label]="'Heure de rappel ' + ($index + 1)"
+                             class="time-input" />
+                      <button mat-icon-button type="button"
+                              (click)="removeReminderTime($index)"
+                              [attr.aria-label]="'Supprimer heure de rappel ' + ($index + 1)">
+                        <mat-icon>close</mat-icon>
+                      </button>
+                    </div>
+                  }
+                  <button mat-stroked-button type="button"
+                          (click)="addReminderTime()"
+                          aria-label="Ajouter une heure de rappel"
+                          data-testid="add-reminder-time">
+                    <mat-icon>add</mat-icon> Ajouter une heure
+                  </button>
+                </div>
+              }
+            </div>
 
             <div class="form-actions">
               <button mat-stroked-button type="button" (click)="showForm.set(false)">Annuler</button>
