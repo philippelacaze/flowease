@@ -5,6 +5,8 @@ import { vi } from 'vitest';
 import { JournalHomeComponent } from './journal-home.component';
 import { GetJournalDayUseCase } from '../../../../application/journal/get-journal-day.usecase';
 import { GetActiveCuresUseCase } from '../../../../application/journal/get-active-cures.usecase';
+import { GetAllTreatmentsUseCase } from '../../../../application/journal/get-all-treatments.usecase';
+import type { TreatmentEntity } from '../../../../domain/entities/treatment.entity';
 import { SaveWellbeingScoreUseCase } from '../../../../application/journal/save-wellbeing-score.usecase';
 import { ConfirmNoteTagsUseCase } from '../../../../application/journal/confirm-note-tags.usecase';
 import { GetJournalSuggestionsUseCase } from '../../../../application/journal/get-journal-suggestions.usecase';
@@ -66,6 +68,7 @@ type ComponentProtected = {
   rejectTag(note: NoteEntity, tag: string): void;
   confirmAllTags(note: NoteEntity): void;
   addFreeTag(note: NoteEntity, inputEl: HTMLInputElement): void;
+  treatmentName(id: string): string;
   wellbeingScore: number | null;
   symptoms: JournalEntry[];
   entries: JournalEntry[];
@@ -74,6 +77,7 @@ type ComponentProtected = {
 const DEFAULT_PROVIDERS = [
   provideRouter([]),
   { provide: GetActiveCuresUseCase, useValue: { execute: vi.fn().mockResolvedValue([]) } },
+  { provide: GetAllTreatmentsUseCase, useValue: { execute: vi.fn().mockResolvedValue([]) } },
   { provide: SaveWellbeingScoreUseCase, useValue: { execute: vi.fn().mockResolvedValue('wb-id') } },
   { provide: ConfirmNoteTagsUseCase, useValue: { execute: vi.fn().mockResolvedValue(undefined) } },
   { provide: GetJournalSuggestionsUseCase, useValue: { execute: vi.fn().mockResolvedValue([]) } },
@@ -178,6 +182,86 @@ describe('JournalHomeComponent', () => {
       const fixture = await createComponent();
       const comp = fixture.componentInstance as unknown as { currentDate: Date };
       expect(comp.currentDate.toDateString()).toBe(new Date().toDateString());
+    });
+  });
+
+  describe('treatmentName — résolution id → nom', () => {
+    it('retourne le nom du traitement quand l\'id est dans la map', async () => {
+      const treatment: TreatmentEntity = {
+        id: 'treat-abc',
+        name: 'Rifaximine 550mg',
+        category: 'antibiotic',
+        mode: 'oral',
+        dosage: '550',
+        unit: 'mg',
+        frequency: 2,
+        reminder: { enabled: false, times: [], soundEnabled: false },
+        notes: '',
+        active: true,
+        startedAt: new Date(),
+        createdAt: new Date(),
+      };
+      await TestBed.configureTestingModule({
+        imports: [JournalHomeComponent, NoopAnimationsModule],
+        providers: [
+          ...DEFAULT_PROVIDERS.filter(p => !(p as { provide: unknown }).provide || (p as { provide: unknown }).provide !== GetAllTreatmentsUseCase),
+          { provide: GetAllTreatmentsUseCase, useValue: { execute: vi.fn().mockResolvedValue([treatment]) } },
+          { provide: GetJournalDayUseCase, useValue: { execute: vi.fn().mockResolvedValue([]) } },
+        ],
+      }).compileComponents();
+      const fixture = TestBed.createComponent(JournalHomeComponent);
+      fixture.detectChanges();
+      await fixture.whenStable();
+      const comp = fixture.componentInstance as unknown as ComponentProtected;
+      expect(comp.treatmentName('treat-abc')).toBe('Rifaximine 550mg');
+    });
+
+    it('retourne l\'id comme fallback quand le traitement est inconnu', async () => {
+      const fixture = await createComponent();
+      const comp = fixture.componentInstance as unknown as ComponentProtected;
+      expect(comp.treatmentName('unknown-id')).toBe('unknown-id');
+    });
+
+    it('affiche le nom dans la carte prise en lieu et place de l\'id', async () => {
+      const treatment: TreatmentEntity = {
+        id: 'treat-xyz',
+        name: 'Magnésium',
+        category: 'supplement',
+        mode: 'oral',
+        dosage: '300',
+        unit: 'mg',
+        frequency: 1,
+        reminder: { enabled: false, times: [], soundEnabled: false },
+        notes: '',
+        active: true,
+        startedAt: new Date(),
+        createdAt: new Date(),
+      };
+      const intake: JournalEntry = {
+        kind: 'intake',
+        data: {
+          id: 'intake-1',
+          treatmentId: 'treat-xyz',
+          scheduledAt: new Date(),
+          confirmedAt: new Date(),
+          createdAt: new Date(),
+          status: 'taken',
+        } as IntakeEntity,
+      };
+      await TestBed.configureTestingModule({
+        imports: [JournalHomeComponent, NoopAnimationsModule],
+        providers: [
+          ...DEFAULT_PROVIDERS.filter(p => !(p as { provide: unknown }).provide || (p as { provide: unknown }).provide !== GetAllTreatmentsUseCase),
+          { provide: GetAllTreatmentsUseCase, useValue: { execute: vi.fn().mockResolvedValue([treatment]) } },
+          { provide: GetJournalDayUseCase, useValue: { execute: vi.fn().mockResolvedValue([intake]) } },
+        ],
+      }).compileComponents();
+      const fixture = TestBed.createComponent(JournalHomeComponent);
+      fixture.detectChanges();
+      await fixture.whenStable();
+      fixture.detectChanges();
+      const label = fixture.nativeElement.querySelector('[data-testid="intake-entry"] .entry-label') as HTMLElement;
+      expect(label.textContent?.trim()).toBe('Magnésium');
     });
   });
 

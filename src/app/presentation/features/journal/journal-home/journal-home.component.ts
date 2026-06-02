@@ -11,6 +11,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { GetJournalDayUseCase, JournalEntry } from '../../../../application/journal/get-journal-day.usecase';
 import { GetActiveCuresUseCase, CureProgressVO } from '../../../../application/journal/get-active-cures.usecase';
+import { GetAllTreatmentsUseCase } from '../../../../application/journal/get-all-treatments.usecase';
 import { SaveWellbeingScoreUseCase } from '../../../../application/journal/save-wellbeing-score.usecase';
 import { ConfirmNoteTagsUseCase } from '../../../../application/journal/confirm-note-tags.usecase';
 import { GetJournalSuggestionsUseCase } from '../../../../application/journal/get-journal-suggestions.usecase';
@@ -54,6 +55,7 @@ const MEAL_LABELS: Record<string, string> = {
 export class JournalHomeComponent implements OnInit {
   private readonly getJournalDay = inject(GetJournalDayUseCase);
   private readonly getActiveCures = inject(GetActiveCuresUseCase);
+  private readonly getAllTreatments = inject(GetAllTreatmentsUseCase);
   private readonly saveWellbeingScore = inject(SaveWellbeingScoreUseCase);
   private readonly confirmNoteTagsUseCase = inject(ConfirmNoteTagsUseCase);
   private readonly getJournalSuggestions = inject(GetJournalSuggestionsUseCase);
@@ -63,6 +65,7 @@ export class JournalHomeComponent implements OnInit {
   private readonly cdr = inject(ChangeDetectorRef);
 
   protected currentDate = new Date();
+  private treatmentMap = new Map<string, string>();
   /** true si l'utilisateur a refusé les notifications dans le navigateur */
   protected notifDenied = false;
   protected entries: JournalEntry[] = [];
@@ -102,6 +105,7 @@ export class JournalHomeComponent implements OnInit {
     }
     void this.loadEntries();
     void this.loadActiveCures();
+    void this.loadTreatmentNames();
     this.notifDenied = this.notificationPort.getPermissionStatus() === 'denied';
     void this.scheduleAllReminders.execute();
   }
@@ -190,6 +194,10 @@ export class JournalHomeComponent implements OnInit {
 
   protected mealLabel(type: string): string {
     return MEAL_LABELS[type] ?? type;
+  }
+
+  protected treatmentName(id: string): string {
+    return this.treatmentMap.get(id) ?? id;
   }
 
   protected startVoice(event: Event): void {
@@ -295,5 +303,10 @@ export class JournalHomeComponent implements OnInit {
   private async loadActiveCures(): Promise<void> {
     this.activeCures = await this.getActiveCures.execute();
     this.cdr.markForCheck();
+  }
+
+  private async loadTreatmentNames(): Promise<void> {
+    const treatments = await this.getAllTreatments.execute();
+    this.treatmentMap = new Map(treatments.map(t => [t.id, t.name]));
   }
 }

@@ -269,7 +269,7 @@
             @for (e of intakes; track e) {
               <div class="entry-card" data-testid="intake-entry">
                 <div class="entry-head">
-                  <span class="entry-label">{{ e.data.treatmentId }}</span>
+                  <span class="entry-label">{{ treatmentName(e.data.treatmentId) }}</span>
                   <div class="entry-head-right">
                     <span class="entry-time">{{ e.data.confirmedAt | date:'HH:mm' }}</span>
                     <button class="entry-edit-btn" aria-label="Modifier cette prise"
