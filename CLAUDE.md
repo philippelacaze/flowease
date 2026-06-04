@@ -5,39 +5,54 @@
 - Shell : PowerShell 7
 - Node : V24.13.1
 - Package manager : npm
- 
-## Architecture — 4 couches strictes
-```
-domain/         → interfaces et types purs — ZÉRO import externe
-application/    → use cases — importe uniquement depuis domain/
-infrastructure/ → adapters — implémente les interfaces de domain/
-presentation/   → Angular — importe uniquement depuis application/
-```
 
-La règle de dépendance ne va jamais dans l'autre sens.
+## Architecture — Angular Style Guide
+
+```
+src/app/
+├── core/
+│   ├── models/entities/     → interfaces TypeScript readonly (entités métier)
+│   ├── models/value-objects/ → value objects purs (Bristol, FODMAP, etc.)
+│   ├── services/            → services injectables transversaux
+│   │   ├── ai.service.ts              → appels IA (Anthropic)
+│   │   ├── null-ai.service.ts         → fallback IA (tests + sans clé)
+│   │   ├── storage.service.ts         → IndexedDB (CRUD générique)
+│   │   ├── local-settings.service.ts  → localStorage (préférences)
+│   │   ├── notification.service.ts    → rappels navigateur
+│   │   ├── pdf-report.service.ts      → export PDF
+│   │   ├── theme.service.ts           → thème CSS
+│   │   └── error-notification.service.ts → bannière d'erreur globale
+│   └── guards/
+│       └── api-key.guard.ts           → protection route Coach
+├── features/
+│   ├── journal/             → MealService, SymptomService, NoteService, IntakeService
+│   ├── coach/               → CoachService
+│   ├── analysis/            → AnalysisService
+│   ├── report/              → ReportService
+│   └── settings/            → SettingsService
+└── shared/
+    ├── components/          → composants réutilisables
+    ├── pipes/               → pipes Angular
+    └── layout/              → Shell, BottomNav, SideNav
+```
 
 ## Règles non négociables
 
-### Couche domain/
+### core/models/
 - Zéro import Angular (@Injectable, HttpClient, etc.)
 - Zéro import de librairie externe (idb, jsPDF, etc.)
 - Uniquement des interfaces TypeScript readonly et des fonctions pures
 
-### Couche application/
-- @Injectable({ providedIn: 'root' }) sur chaque use case
-- @Inject(TOKEN) pour chaque port injecté — jamais la classe concrète
-- Retourner un état vide si un port IA retourne null — jamais throw
-- Un use case = une seule responsabilité
-
-### Couche infrastructure/
-- Chaque adapter implémente une interface de domain/repositories/
-- La clé API est lue via LocalSettingsAdapter.getApiKey() à chaque appel
+### core/services/
+- @Injectable({ providedIn: 'root' }) sur chaque service
+- inject() pour toutes les dépendances — jamais de constructeur avec @Inject(TOKEN)
+- Retourner un état vide si un service IA retourne null — jamais throw
+- La clé API est lue via LocalSettingsService.getApiKey() à chaque appel HTTP
 - Jamais logger la clé API (même en dev, même dans les erreurs)
-- Retourner null en cas d'erreur réseau — jamais propager vers le composant
 
-### Couche presentation/
-- Importer uniquement les use cases de application/
-- Jamais importer un adapter de infrastructure/ directement
+### features/
+- Chaque feature expose un service cohésif (MealService, CoachService, etc.)
+- Les composants injectent le service de leur feature ou les services de core/
 - data-testid obligatoire sur les éléments testés en E2E
 - aria-label obligatoire sur tous les éléments interactifs
 - Zones tappables ≥ 44×44px
@@ -63,14 +78,14 @@ La règle de dépendance ne va jamais dans l'autre sens.
 
 ## Mode dégradé IA — pattern obligatoire
 ```typescript
-const result = await this.aiPort.method();
+const result = await this.ai.method();
 return result ?? VALEUR_VIDE; // jamais throw
 ```
 
-## NullAIAdapter
-- Toujours disponible dans infrastructure/ai/null/
+## NullAiService
+- Toujours disponible dans core/services/null-ai.service.ts
 - Utilisé dans les tests ET quand aucune clé API n'est configurée
-- Toute nouvelle méthode ajoutée à un port doit être ajoutée à NullAIAdapter
+- Toute nouvelle méthode ajoutée à AiService doit être ajoutée à NullAiService
 
 ## Tests — règle absolue
 Toute modification de code (nouvelle feature, bug fix, refacto) entraîne obligatoirement
@@ -78,13 +93,14 @@ la création ou la mise à jour des tests unitaires correspondants, **sans qu'il
 de le demander explicitement**. Vérifier `npm test` vert avant de déclarer la tâche terminée.
 
 - Vitest (Angular 21 natif) pour unitaires et composants
-- fake-indexeddb pour les tests IndexedDBAdapter
-- NullAIAdapter injecté dans les tests qui ne testent pas l'IA
+- fake-indexeddb pour les tests StorageService
+- NullAiService injecté dans les tests qui ne testent pas l'IA
 - it() nommé en comportement attendu, jamais en nom de méthode
 
 ## Avant de créer un fichier
-Vérifier la couche cible :
-- domain/ → interface ou type pur uniquement
-- application/ → use case @Injectable + exécute() ou execute()
-- infrastructure/ → adapter qui implements une interface de domain/
-- presentation/ → composant Angular standalone
+Vérifier la cible :
+- core/models/ → interface ou type pur uniquement (zéro import externe)
+- core/services/ → service injectable transversal (@Injectable providedIn root)
+- features/X/services/ → service de feature cohésif
+- features/X/Y/ → composant Angular standalone
+- shared/components/ → composant réutilisable sans logique métier

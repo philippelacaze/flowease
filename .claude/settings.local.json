@@ -32,7 +32,19 @@
       "Bash(python3 -c \"import json,sys; p=json.load\\(sys.stdin\\); print\\(json.dumps\\(p.get\\('scripts', {}\\), indent=2\\)\\)\")",
       "Bash(Get-Content \"C:/angular/flow-ease/package.json\")",
       "Bash(ConvertFrom-Json)",
-      "Bash(Select-Object -ExpandProperty scripts)"
+      "Bash(Select-Object -ExpandProperty scripts)",
+      "Bash(Measure-Object)",
+      "Bash(Select-Object -ExpandProperty Count)",
+      "Bash(Remove-Item \"C:\\\\angular\\\\flow-ease\\\\src\\\\app\\\\domain\\\\repositories\\\\ai\\\\analysis.port.ts\")",
+      "Bash(Remove-Item \"C:\\\\angular\\\\flow-ease\\\\src\\\\app\\\\domain\\\\repositories\\\\ai\\\\api-key-test.port.ts\")",
+      "Bash(Remove-Item \"C:\\\\angular\\\\flow-ease\\\\src\\\\app\\\\domain\\\\repositories\\\\ai\\\\coach.port.ts\")",
+      "Bash(Remove-Item \"C:\\\\angular\\\\flow-ease\\\\src\\\\app\\\\domain\\\\repositories\\\\ai\\\\meal-analysis.port.ts\")",
+      "Bash(Remove-Item \"C:\\\\angular\\\\flow-ease\\\\src\\\\app\\\\domain\\\\repositories\\\\ai\\\\note-tagging.port.ts\")",
+      "Bash(Remove-Item \"C:\\\\angular\\\\flow-ease\\\\src\\\\app\\\\application\\\\coach\\\\build-coach-context.usecase.ts\" -Force)",
+      "Bash(Remove-Item \"C:\\\\angular\\\\flow-ease\\\\src\\\\app\\\\application\\\\coach\\\\build-coach-context.usecase.spec.ts\" -Force)",
+      "Bash(Remove-Item \"C:\\\\angular\\\\flow-ease\\\\src\\\\app\\\\application\\\\coach\\\\send-coach-message.usecase.ts\" -Force)",
+      "Bash(Remove-Item \"C:\\\\angular\\\\flow-ease\\\\src\\\\app\\\\application\\\\coach\\\\send-coach-message.usecase.spec.ts\" -Force)",
+      "Bash(Remove-Item \"C:\\\\angular\\\\flow-ease\\\\src\\\\app\\\\application\\\\coach\\\\start-coach-session.usecase.ts\" -Force)"
     ]
   }
 }

@@ -1,5 +1,5 @@
-import { Routes } from '@angular/router';
-import { apiKeyGuard } from './presentation/core/guards/api-key.guard';
+﻿import { Routes } from '@angular/router';
+import { apiKeyGuard } from './core/guards/api-key.guard';
 
 export const routes: Routes = [
   {
@@ -10,28 +10,28 @@ export const routes: Routes = [
   {
     path: 'journal',
     loadChildren: () =>
-      import('./presentation/features/journal/journal.routes').then(m => m.JOURNAL_ROUTES),
+      import('./features/journal/journal.routes').then(m => m.JOURNAL_ROUTES),
   },
   {
     path: 'analysis',
     loadChildren: () =>
-      import('./presentation/features/analysis/analysis.routes').then(m => m.ANALYSIS_ROUTES),
+      import('./features/analysis/analysis.routes').then(m => m.ANALYSIS_ROUTES),
   },
   {
     path: 'report',
     loadChildren: () =>
-      import('./presentation/features/report/report.routes').then(m => m.REPORT_ROUTES),
+      import('./features/report/report.routes').then(m => m.REPORT_ROUTES),
   },
   {
     path: 'coach',
     canActivate: [apiKeyGuard],
     loadChildren: () =>
-      import('./presentation/features/coach/coach.routes').then(m => m.COACH_ROUTES),
+      import('./features/coach/coach.routes').then(m => m.COACH_ROUTES),
   },
   {
     path: 'settings',
     loadChildren: () =>
-      import('./presentation/features/settings/settings.routes').then(m => m.SETTINGS_ROUTES),
+      import('./features/settings/settings.routes').then(m => m.SETTINGS_ROUTES),
   },
   {
     path: '**',

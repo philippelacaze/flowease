@@ -1,5 +1,5 @@
-import { Component } from '@angular/core';
-import { ShellComponent } from './presentation/layout/shell/shell.component';
+﻿import { Component } from '@angular/core';
+import { ShellComponent } from './shared/layout/shell/shell.component';
 
 /**
  * @author Philippe Lacaze
