@@ -4,7 +4,14 @@ import { LocalSettingsService } from '../../../core/services/local-settings.serv
 import { vi } from 'vitest';
 import { AnalysisHomeComponent } from './analysis-home.component';
 import { AnalysisService } from '../services/analysis.service';
+import { SymptomService } from '../../journal/services/symptom.service';
 import { MatBottomSheet } from '@angular/material/bottom-sheet';
+
+const DEFAULT_MOCK_CONFIGS = [
+  { id: 'abdominal_pain', key: 'abdominal_pain', label: 'Douleur abdominale', order: 0, custom: false },
+  { id: 'bloating',       key: 'bloating',       label: 'Ballonnements',      order: 1, custom: false },
+  { id: 'fatigue',        key: 'fatigue',         label: 'Fatigue',            order: 2, custom: false },
+];
 
 const mockSettings = {
   getLastAnalysisDate: vi.fn().mockReturnValue(null),
@@ -17,8 +24,13 @@ const mockAnalysis = {
   getSymptomTrends: vi.fn().mockResolvedValue([]),
   getAdherenceStats: vi.fn().mockResolvedValue([]),
 };
+
 const mockBottomSheet = {
   open: vi.fn().mockReturnValue({ afterDismissed: () => ({ subscribe: vi.fn() }) }),
+};
+
+const mockSymptomSvc = {
+  getActiveConfigs: vi.fn().mockResolvedValue([...DEFAULT_MOCK_CONFIGS]),
 };
 
 async function createComponent() {
@@ -28,12 +40,14 @@ async function createComponent() {
       { provide: AnalysisService, useValue: mockAnalysis },
       { provide: LocalSettingsService, useValue: mockSettings },
       { provide: MatBottomSheet, useValue: mockBottomSheet },
+      { provide: SymptomService, useValue: mockSymptomSvc },
     ],
   }).compileComponents();
 
   const fixture = TestBed.createComponent(AnalysisHomeComponent);
   fixture.detectChanges();
   await fixture.whenStable();
+  fixture.detectChanges();
   return fixture;
 }
 
@@ -45,6 +59,7 @@ describe('AnalysisHomeComponent', () => {
     mockAnalysis.getInsights.mockResolvedValue([]);
     mockAnalysis.getSymptomTrends.mockResolvedValue([]);
     mockAnalysis.getAdherenceStats.mockResolvedValue([]);
+    mockSymptomSvc.getActiveConfigs.mockResolvedValue([...DEFAULT_MOCK_CONFIGS]);
   });
 
   describe('fenêtre temporelle', () => {
@@ -111,6 +126,28 @@ describe('AnalysisHomeComponent', () => {
       const fixture = await createComponent();
       expect(fixture.nativeElement.querySelector('[data-testid="primary-symptom-select"]')).not.toBeNull();
       expect(fixture.nativeElement.querySelector('[data-testid="secondary-symptom-select"]')).not.toBeNull();
+    });
+
+    it('symptomOptions reflète les configs actives depuis SymptomService', async () => {
+      const fixture = await createComponent();
+      const comp = fixture.componentInstance as unknown as { symptomOptions: { key: string; label: string }[] };
+      expect(comp.symptomOptions).toHaveLength(DEFAULT_MOCK_CONFIGS.length);
+      expect(comp.symptomOptions[0].key).toBe('abdominal_pain');
+      expect(comp.symptomOptions[0].label).toBe('Douleur abdominale');
+    });
+
+    it('les options du select reflètent les labels des configs actives', async () => {
+      const fixture = await createComponent();
+      const options = fixture.nativeElement.querySelectorAll('[data-testid="primary-symptom-select"] option') as NodeListOf<HTMLOptionElement>;
+      const labels = Array.from(options).map(o => o.textContent?.trim());
+      expect(labels).toContain('Douleur abdominale');
+      expect(labels).toContain('Ballonnements');
+      expect(labels).toContain('Fatigue');
+    });
+
+    it('appelle getActiveConfigs lors de l\'initialisation', async () => {
+      await createComponent();
+      expect(mockSymptomSvc.getActiveConfigs).toHaveBeenCalledOnce();
     });
   });
 });

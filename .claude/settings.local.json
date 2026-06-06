@@ -44,7 +44,8 @@
       "Bash(Remove-Item \"C:\\\\angular\\\\flow-ease\\\\src\\\\app\\\\application\\\\coach\\\\build-coach-context.usecase.spec.ts\" -Force)",
       "Bash(Remove-Item \"C:\\\\angular\\\\flow-ease\\\\src\\\\app\\\\application\\\\coach\\\\send-coach-message.usecase.ts\" -Force)",
       "Bash(Remove-Item \"C:\\\\angular\\\\flow-ease\\\\src\\\\app\\\\application\\\\coach\\\\send-coach-message.usecase.spec.ts\" -Force)",
-      "Bash(Remove-Item \"C:\\\\angular\\\\flow-ease\\\\src\\\\app\\\\application\\\\coach\\\\start-coach-session.usecase.ts\" -Force)"
+      "Bash(Remove-Item \"C:\\\\angular\\\\flow-ease\\\\src\\\\app\\\\application\\\\coach\\\\start-coach-session.usecase.ts\" -Force)",
+      "Bash(Select-Object Name)"
     ]
   }
 }

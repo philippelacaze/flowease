@@ -115,49 +115,6 @@
   <input #photoInput type="file" accept="image/*" capture="environment"
     class="hidden-input" aria-hidden="true" (change)="onPhotoChosen($event)" />
 
-  <!-- Widget Bien-être global du jour -->
-  <div class="wb-section">
-    @if (!showWellbeing && wellbeingScore === null) {
-      <div class="card wb-card wb-card--prompt">
-        <div>
-          <div class="wb-card-title">Bien-être global du jour</div>
-          <div class="wb-card-sub">Comment vous sentez-vous ?</div>
-        </div>
-        <button class="wb-btn-open" aria-label="Saisir le bien-être du jour"
-                data-testid="wb-open" (click)="showWellbeing = true">
-          + Saisir
-        </button>
-      </div>
-    }
-
-    @if (showWellbeing && wellbeingScore === null) {
-      <div class="card wb-card wb-card--picker">
-        <div class="wb-picker-title">Comment vous sentez-vous ?</div>
-        <div class="wb-picker-grid">
-          @for (n of wellbeingOptions; track n) {
-            <button class="wb-score-btn"
-                    [class.wb-score-btn--active]="wellbeingScore === n"
-                    [attr.aria-label]="'Bien-être ' + n + ' sur 10'"
-                    (click)="setWellbeing(n)">{{ n }}</button>
-          }
-        </div>
-      </div>
-    }
-
-    @if (wellbeingScore !== null) {
-      <div class="card wb-card wb-card--done">
-        <div>
-          <div class="wb-card-title">Bien-être global du jour</div>
-          <div class="wb-card-sub">Saisi à {{ wellbeingTime }}</div>
-        </div>
-        <div class="wb-score-display">
-          <span class="wb-score-value">{{ wellbeingScore }}</span>
-          <span class="wb-score-denom">/10</span>
-        </div>
-      </div>
-    }
-  </div>
-
   <!-- Cures en cours -->
   <app-cure-progress [cures]="activeCures" />
 

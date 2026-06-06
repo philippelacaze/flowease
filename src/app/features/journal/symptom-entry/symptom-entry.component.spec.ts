@@ -7,25 +7,22 @@ import { SymptomEntryComponent } from './symptom-entry.component';
 import { SymptomService } from '../services/symptom.service';
 import type { ActiveSymptomConfig } from '../services/symptom.service';
 
-type StoolRow = {
+type SymptomRowPartial = {
   key: string; intensity: number; bristolType: unknown; hasBristol: boolean;
+  hasGas: boolean; gasFrequency: unknown; gasOdor: boolean;
+  hasYesNo: boolean; isPresent: boolean | null;
+  hasSleepHours: boolean; sleepHours: number | null;
+  hasDelay: boolean; postmealDelay: number | null;
   category: string; labelFr: string; painZones: unknown[]; painTypes: unknown[];
   stoolBlood: boolean; stoolMucus: boolean; stoolFrequency: number;
 };
 
 type ComponentPrivate = {
   srcMode: string;
-  showAddCustom: boolean;
-  newCustomLabel: string;
-  customSymptoms: unknown[];
-  rows: StoolRow[];
-  avgScore: number;
-  avgSeverityClass: string;
+  rows: SymptomRowPartial[];
   activeCount: number;
   hasAnyRating: boolean;
   showBloodAlert: boolean;
-  addCustomSymptom(): void;
-  cancelCustom(): void;
   submit(): Promise<void>;
 };
 
@@ -41,12 +38,39 @@ const MOCK_WITH_TRANSIT: ActiveSymptomConfig[] = [
   { id: 'transit', key: 'transit', label: 'Transit', order: 4, custom: false },
 ];
 
+const MOCK_WITH_WELLBEING: ActiveSymptomConfig[] = [
+  ...MOCK_ACTIVE_SYMPTOMS,
+  { id: 'wellbeing_score', key: 'wellbeing_score', label: 'Score de bien-être', order: 5, custom: false },
+  { id: 'mood',            key: 'mood',            label: 'Humeur / anxiété',   order: 6, custom: false },
+];
+
+const MOCK_WITH_GAS: ActiveSymptomConfig[] = [
+  { id: 'gas',      key: 'gas',      label: 'Flatulences', order: 0, custom: false },
+  { id: 'belching', key: 'belching', label: 'Éructations', order: 1, custom: false },
+];
+
+const MOCK_WITH_JOINT_PAIN: ActiveSymptomConfig[] = [
+  { id: 'joint_pain', key: 'joint_pain', label: 'Douleurs articulaires', order: 0, custom: false },
+];
+
+const MOCK_WITH_SLEEP: ActiveSymptomConfig[] = [
+  { id: 'sleep_quality', key: 'sleep_quality', label: 'Qualité du sommeil', order: 0, custom: false },
+];
+
+const MOCK_WITH_POSTMEAL: ActiveSymptomConfig[] = [
+  { id: 'postmeal_heaviness', key: 'postmeal_heaviness', label: 'Lourdeur post-repas', order: 0, custom: false },
+];
+
+const MOCK_WITH_EARLY_SATIETY: ActiveSymptomConfig[] = [
+  { id: 'early_satiety', key: 'early_satiety', label: 'Plénitude précoce', order: 0, custom: false },
+];
+
 function makeSymptomServiceMock(configs: ActiveSymptomConfig[] = MOCK_ACTIVE_SYMPTOMS) {
   return {
     add: vi.fn().mockResolvedValue('symptom-id'),
     edit: vi.fn().mockResolvedValue(undefined),
+    upsertDaySymptom: vi.fn().mockResolvedValue('upsert-id'),
     getActiveConfigs: vi.fn().mockResolvedValue(configs),
-    saveWellbeing: vi.fn().mockResolvedValue('wb-id'),
   };
 }
 
@@ -65,6 +89,36 @@ async function createComponent(mode?: string) {
     history.replaceState({ mode }, '');
   }
 
+  const fixture = TestBed.createComponent(SymptomEntryComponent);
+  fixture.detectChanges();
+  await fixture.whenStable();
+  return { fixture, mockService };
+}
+
+async function createComponentWithWellbeing() {
+  const mockService = makeSymptomServiceMock(MOCK_WITH_WELLBEING);
+  await TestBed.configureTestingModule({
+    imports: [SymptomEntryComponent, NoopAnimationsModule],
+    providers: [
+      provideRouter([]),
+      { provide: SymptomService, useValue: mockService },
+    ],
+  }).compileComponents();
+  const fixture = TestBed.createComponent(SymptomEntryComponent);
+  fixture.detectChanges();
+  await fixture.whenStable();
+  return { fixture, mockService };
+}
+
+async function createComponentWith(configs: ActiveSymptomConfig[]) {
+  const mockService = makeSymptomServiceMock(configs);
+  await TestBed.configureTestingModule({
+    imports: [SymptomEntryComponent, NoopAnimationsModule],
+    providers: [
+      provideRouter([]),
+      { provide: SymptomService, useValue: mockService },
+    ],
+  }).compileComponents();
   const fixture = TestBed.createComponent(SymptomEntryComponent);
   fixture.detectChanges();
   await fixture.whenStable();
@@ -110,73 +164,7 @@ describe('SymptomEntryComponent', () => {
     });
   });
 
-  describe('symptôme personnalisé', () => {
-    it('n\'ajoute pas si le champ est vide', async () => {
-      const { fixture } = await createComponent();
-      const comp = fixture.componentInstance as unknown as ComponentPrivate;
-      comp.showAddCustom = true;
-      comp.newCustomLabel = '';
-      comp.addCustomSymptom();
-      expect(comp.customSymptoms).toHaveLength(0);
-    });
-
-    it('ajoute un symptôme personnalisé et réinitialise le champ', async () => {
-      const { fixture } = await createComponent();
-      const comp = fixture.componentInstance as unknown as ComponentPrivate;
-      comp.showAddCustom = true;
-      comp.newCustomLabel = 'Crampes';
-      comp.addCustomSymptom();
-      expect(comp.customSymptoms).toHaveLength(1);
-      expect(comp.newCustomLabel).toBe('');
-      expect(comp.showAddCustom).toBe(false);
-    });
-
-    it('cancelCustom réinitialise le formulaire', async () => {
-      const { fixture } = await createComponent();
-      const comp = fixture.componentInstance as unknown as ComponentPrivate;
-      comp.showAddCustom = true;
-      comp.newCustomLabel = 'Crampes';
-      comp.cancelCustom();
-      expect(comp.showAddCustom).toBe(false);
-      expect(comp.newCustomLabel).toBe('');
-    });
-
-    it('affiche le bouton data-testid="add-custom-symptom"', async () => {
-      const { fixture } = await createComponent();
-      const btn = fixture.debugElement.query(By.css('[data-testid="add-custom-symptom"]'));
-      expect(btn).not.toBeNull();
-    });
-  });
-
-  describe('calculs de score', () => {
-    it('avgScore retourne 0 quand aucune intensité', async () => {
-      const { fixture } = await createComponent();
-      const comp = fixture.componentInstance as unknown as ComponentPrivate;
-      expect(comp.avgScore).toBe(0);
-    });
-
-    it('avgScore calcule la moyenne des intensités > 0', async () => {
-      const { fixture } = await createComponent();
-      const comp = fixture.componentInstance as unknown as ComponentPrivate;
-      comp.rows[0].intensity = 4;
-      comp.rows[1].intensity = 8;
-      expect(comp.avgScore).toBe(6);
-    });
-
-    it('avgSeverityClass retourne score-low pour 1-3', async () => {
-      const { fixture } = await createComponent();
-      const comp = fixture.componentInstance as unknown as ComponentPrivate;
-      comp.rows[0].intensity = 2;
-      expect(comp.avgSeverityClass).toBe('score-low');
-    });
-
-    it('avgSeverityClass retourne score-high pour > 6', async () => {
-      const { fixture } = await createComponent();
-      const comp = fixture.componentInstance as unknown as ComponentPrivate;
-      comp.rows[0].intensity = 8;
-      expect(comp.avgSeverityClass).toBe('score-high');
-    });
-
+  describe('comptage des entrées actives', () => {
     it('activeCount compte les lignes avec intensité > 0', async () => {
       const { fixture } = await createComponent();
       const comp = fixture.componentInstance as unknown as ComponentPrivate;
@@ -184,14 +172,44 @@ describe('SymptomEntryComponent', () => {
       comp.rows[2].intensity = 7;
       expect(comp.activeCount).toBe(2);
     });
+  });
 
-    it('hasAnyRating est vrai si un symptôme personnalisé a une intensité', async () => {
-      const { fixture } = await createComponent();
+  describe('Bloc C — bien-être', () => {
+    it('wellbeingRows contient wellbeing_score quand actif dans la config', async () => {
+      const { fixture } = await createComponentWithWellbeing();
+      const comp = fixture.componentInstance as unknown as { wellbeingRows: SymptomRowPartial[] };
+      expect(comp.wellbeingRows.some(r => r.key === 'wellbeing_score')).toBe(true);
+    });
+
+    it('wellbeingRows contient mood quand actif dans la config', async () => {
+      const { fixture } = await createComponentWithWellbeing();
+      const comp = fixture.componentInstance as unknown as { wellbeingRows: SymptomRowPartial[] };
+      expect(comp.wellbeingRows.some(r => r.key === 'mood')).toBe(true);
+    });
+
+    it('submit appelle upsertDaySymptom pour wellbeing_score', async () => {
+      const { fixture, mockService } = await createComponentWithWellbeing();
       const comp = fixture.componentInstance as unknown as ComponentPrivate;
-      comp.newCustomLabel = 'Crampes';
-      comp.addCustomSymptom();
-      (comp.customSymptoms[0] as { intensity: number }).intensity = 5;
-      expect(comp.hasAnyRating).toBe(true);
+      const wbRow = comp.rows.find(r => r.key === 'wellbeing_score')!;
+      wbRow.intensity = 8;
+      await comp.submit();
+      expect(mockService.upsertDaySymptom).toHaveBeenCalledWith(
+        expect.objectContaining({ symptomKey: 'wellbeing_score', intensity: 8 }),
+      );
+      expect(mockService.add).not.toHaveBeenCalledWith(
+        expect.objectContaining({ symptomKey: 'wellbeing_score' }),
+      );
+    });
+
+    it('submit appelle add (pas upsertDaySymptom) pour les autres symptômes', async () => {
+      const { fixture, mockService } = await createComponentWithWellbeing();
+      const comp = fixture.componentInstance as unknown as ComponentPrivate;
+      comp.rows[0].intensity = 5; // abdominal_pain
+      await comp.submit();
+      expect(mockService.add).toHaveBeenCalledWith(
+        expect.objectContaining({ symptomKey: 'abdominal_pain' }),
+      );
+      expect(mockService.upsertDaySymptom).not.toHaveBeenCalled();
     });
   });
 
@@ -354,6 +372,226 @@ describe('SymptomEntryComponent', () => {
       expect(callArg.stool.blood).toBe(true);
       expect(callArg.stool.mucus).toBe(true);
       expect(callArg.stool.frequency).toBe(3);
+    });
+  });
+
+  describe('gaz — flatulences et éructations (§1.4.2 Bloc A)', () => {
+    it('hasAnyRating est vrai quand gasFrequency est sélectionné', async () => {
+      const { fixture } = await createComponentWith(MOCK_WITH_GAS);
+      const comp = fixture.componentInstance as unknown as ComponentPrivate;
+      comp.rows[0].gasFrequency = 'frequent';
+      expect(comp.hasAnyRating).toBe(true);
+    });
+
+    it('hasAnyRating est faux si aucune fréquence sélectionnée', async () => {
+      const { fixture } = await createComponentWith(MOCK_WITH_GAS);
+      const comp = fixture.componentInstance as unknown as ComponentPrivate;
+      expect(comp.hasAnyRating).toBe(false);
+    });
+
+    it('les boutons de fréquence sont rendus pour gas', async () => {
+      const { fixture } = await createComponentWith(MOCK_WITH_GAS);
+      fixture.detectChanges();
+      const btn = fixture.nativeElement.querySelector('[data-testid="gas-freq-frequent-gas"]');
+      expect(btn).not.toBeNull();
+    });
+
+    it('le toggle odeur est visible pour gas quand fréquence sélectionnée', async () => {
+      const { fixture } = await createComponentWith(MOCK_WITH_GAS);
+      const comp = fixture.componentInstance as unknown as ComponentPrivate;
+      comp.rows.find(r => r.key === 'gas')!.gasFrequency = 'frequent';
+      fixture.detectChanges();
+      const odor = fixture.nativeElement.querySelector('[data-testid="gas-odor-gas"]');
+      expect(odor).not.toBeNull();
+    });
+
+    it('le toggle odeur n\'est pas rendu pour belching (pas d\'odeur)', async () => {
+      const { fixture } = await createComponentWith(MOCK_WITH_GAS);
+      const comp = fixture.componentInstance as unknown as ComponentPrivate;
+      comp.rows.find(r => r.key === 'belching')!.gasFrequency = 'rare';
+      fixture.detectChanges();
+      const odor = fixture.nativeElement.querySelector('[data-testid="gas-odor-belching"]');
+      expect(odor).toBeNull();
+    });
+
+    it('submit envoie gas.frequency et gas.odor pour flatulences', async () => {
+      const { fixture, mockService } = await createComponentWith(MOCK_WITH_GAS);
+      const comp = fixture.componentInstance as unknown as ComponentPrivate;
+      const gasRow = comp.rows.find(r => r.key === 'gas')!;
+      gasRow.gasFrequency = 'frequent';
+      gasRow.gasOdor = true;
+      await comp.submit();
+      expect(mockService.add).toHaveBeenCalledWith(
+        expect.objectContaining({ gas: { frequency: 'frequent', odor: true } }),
+      );
+    });
+
+    it('submit envoie gas.frequency sans odor pour éructations', async () => {
+      const { fixture, mockService } = await createComponentWith(MOCK_WITH_GAS);
+      const comp = fixture.componentInstance as unknown as ComponentPrivate;
+      comp.rows.find(r => r.key === 'belching')!.gasFrequency = 'rare';
+      await comp.submit();
+      expect(mockService.add).toHaveBeenCalledWith(
+        expect.objectContaining({ symptomKey: 'belching', gas: { frequency: 'rare' } }),
+      );
+    });
+  });
+
+  describe('douleurs articulaires — présence oui/non (§1.4.2 Bloc B)', () => {
+    it('hasAnyRating est faux si isPresent est null', async () => {
+      const { fixture } = await createComponentWith(MOCK_WITH_JOINT_PAIN);
+      const comp = fixture.componentInstance as unknown as ComponentPrivate;
+      expect(comp.hasAnyRating).toBe(false);
+    });
+
+    it('hasAnyRating est faux si isPresent === false', async () => {
+      const { fixture } = await createComponentWith(MOCK_WITH_JOINT_PAIN);
+      const comp = fixture.componentInstance as unknown as ComponentPrivate;
+      comp.rows[0].isPresent = false;
+      expect(comp.hasAnyRating).toBe(false);
+    });
+
+    it('hasAnyRating est vrai si isPresent === true et intensity > 0', async () => {
+      const { fixture } = await createComponentWith(MOCK_WITH_JOINT_PAIN);
+      const comp = fixture.componentInstance as unknown as ComponentPrivate;
+      comp.rows[0].isPresent = true;
+      comp.rows[0].intensity = 4;
+      expect(comp.hasAnyRating).toBe(true);
+    });
+
+    it('bouton Oui est rendu pour joint_pain', async () => {
+      const { fixture } = await createComponentWith(MOCK_WITH_JOINT_PAIN);
+      fixture.detectChanges();
+      const btn = fixture.nativeElement.querySelector('[data-testid="yesno-yes-joint_pain"]');
+      expect(btn).not.toBeNull();
+    });
+
+    it('submit n\'appelle pas add quand isPresent === false', async () => {
+      const { fixture, mockService } = await createComponentWith(MOCK_WITH_JOINT_PAIN);
+      const comp = fixture.componentInstance as unknown as ComponentPrivate;
+      comp.rows[0].isPresent = false;
+      await comp.submit();
+      expect(mockService.add).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('troubles du sommeil — heures dormies (§1.4.2 Bloc B)', () => {
+    it('input sleep-hours est rendu pour sleep_quality', async () => {
+      const { fixture } = await createComponentWith(MOCK_WITH_SLEEP);
+      fixture.detectChanges();
+      const input = fixture.nativeElement.querySelector('[data-testid="sleep-hours-sleep_quality"]');
+      expect(input).not.toBeNull();
+    });
+
+    it('submit envoie sleepHours dans l\'entrée sleep_quality', async () => {
+      const { fixture, mockService } = await createComponentWith(MOCK_WITH_SLEEP);
+      const comp = fixture.componentInstance as unknown as ComponentPrivate;
+      comp.rows[0].intensity = 7;
+      comp.rows[0].sleepHours = 6.5;
+      await comp.submit();
+      expect(mockService.add).toHaveBeenCalledWith(
+        expect.objectContaining({ symptomKey: 'sleep_quality', sleepHours: 6.5 }),
+      );
+    });
+  });
+
+  describe('lourdeur post-repas — délai (§1.4.2 Bloc A)', () => {
+    it('input délai est rendu quand intensity > 0', async () => {
+      const { fixture } = await createComponentWith(MOCK_WITH_POSTMEAL);
+      const comp = fixture.componentInstance as unknown as ComponentPrivate;
+      comp.rows[0].intensity = 5;
+      fixture.detectChanges();
+      const input = fixture.nativeElement.querySelector('[data-testid="postmeal-delay-postmeal_heaviness"]');
+      expect(input).not.toBeNull();
+    });
+
+    it('input délai est masqué quand intensity = 0', async () => {
+      const { fixture } = await createComponentWith(MOCK_WITH_POSTMEAL);
+      fixture.detectChanges();
+      const input = fixture.nativeElement.querySelector('[data-testid="postmeal-delay-postmeal_heaviness"]');
+      expect(input).toBeNull();
+    });
+
+    it('submit envoie le délai dans notes', async () => {
+      const { fixture, mockService } = await createComponentWith(MOCK_WITH_POSTMEAL);
+      const comp = fixture.componentInstance as unknown as ComponentPrivate;
+      comp.rows[0].intensity = 5;
+      comp.rows[0].postmealDelay = 1.5;
+      await comp.submit();
+      expect(mockService.add).toHaveBeenCalledWith(
+        expect.objectContaining({ symptomKey: 'postmeal_heaviness', notes: '1.5h après repas' }),
+      );
+    });
+
+    it('submit sans délai renseigné n\'envoie pas notes', async () => {
+      const { fixture, mockService } = await createComponentWith(MOCK_WITH_POSTMEAL);
+      const comp = fixture.componentInstance as unknown as ComponentPrivate;
+      comp.rows[0].intensity = 4;
+      comp.rows[0].postmealDelay = null;
+      await comp.submit();
+      const callArg = mockService.add.mock.calls[0][0] as { notes?: string };
+      expect(callArg.notes).toBeUndefined();
+    });
+  });
+
+  describe('plénitude précoce — marqueur gastroparésie (§1.4.2 Bloc A)', () => {
+    it('early_satiety apparaît dans les rows digestifs', async () => {
+      const { fixture } = await createComponentWith(MOCK_WITH_EARLY_SATIETY);
+      const comp = fixture.componentInstance as unknown as ComponentPrivate;
+      expect(comp.rows.some(r => r.key === 'early_satiety')).toBe(true);
+      expect(comp.rows.find(r => r.key === 'early_satiety')?.category).toBe('digestive');
+    });
+
+    it('early_satiety utilise un slider standard (pas de mode gaz ni yesno)', async () => {
+      const { fixture } = await createComponentWith(MOCK_WITH_EARLY_SATIETY);
+      const comp = fixture.componentInstance as unknown as ComponentPrivate;
+      const row = comp.rows.find(r => r.key === 'early_satiety')!;
+      expect(row.hasGas).toBe(false);
+      expect(row.hasYesNo).toBe(false);
+      expect(row.hasBristol).toBe(false);
+    });
+
+    it('submit envoie intensity pour early_satiety', async () => {
+      const { fixture, mockService } = await createComponentWith(MOCK_WITH_EARLY_SATIETY);
+      const comp = fixture.componentInstance as unknown as ComponentPrivate;
+      comp.rows[0].intensity = 6;
+      await comp.submit();
+      expect(mockService.add).toHaveBeenCalledWith(
+        expect.objectContaining({ symptomKey: 'early_satiety', intensity: 6 }),
+      );
+    });
+  });
+
+  describe('note libre du jour — Bloc C (§1.4.2)', () => {
+    it('le textarea wellbeing-note est rendu dans la section bien-être', async () => {
+      const { fixture } = await createComponentWithWellbeing();
+      fixture.detectChanges();
+      const ta = fixture.nativeElement.querySelector('[data-testid="wellbeing-note"]');
+      expect(ta).not.toBeNull();
+    });
+
+    it('submit attache la note à l\'entrée wellbeing_score via upsertDaySymptom', async () => {
+      const { fixture, mockService } = await createComponentWithWellbeing();
+      const comp = fixture.componentInstance as unknown as ComponentPrivate & { wellbeingNote: string };
+      comp.rows.find(r => r.key === 'wellbeing_score')!.intensity = 8;
+      comp.wellbeingNote = 'Bonne journée malgré les ballonnements';
+      await comp.submit();
+      expect(mockService.upsertDaySymptom).toHaveBeenCalledWith(
+        expect.objectContaining({
+          symptomKey: 'wellbeing_score',
+          notes: 'Bonne journée malgré les ballonnements',
+        }),
+      );
+    });
+
+    it('submit n\'envoie pas notes si wellbeingNote est vide', async () => {
+      const { fixture, mockService } = await createComponentWithWellbeing();
+      const comp = fixture.componentInstance as unknown as ComponentPrivate & { wellbeingNote: string };
+      comp.rows.find(r => r.key === 'wellbeing_score')!.intensity = 7;
+      comp.wellbeingNote = '';
+      await comp.submit();
+      const callArg = mockService.upsertDaySymptom.mock.calls[0][0] as { notes?: string };
+      expect(callArg.notes).toBeUndefined();
     });
   });
 });

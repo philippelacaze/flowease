@@ -11,7 +11,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { IntakeService, JournalEntry, CureProgressVO } from '../services/intake.service';
 import { NoteService } from '../services/note.service';
-import { SymptomService } from '../services/symptom.service';
+
 import { SettingsService } from '../../settings/services/settings.service';
 import { NotificationService } from '../../../core/services/notification.service';
 import type { CoachSuggestionVO } from '../../../core/models/entities/coach-suggestion.vo';
@@ -51,7 +51,6 @@ const MEAL_LABELS: Record<string, string> = {
 export class JournalHomeComponent implements OnInit {
               private readonly intake = inject(IntakeService);
   private readonly notesSvc = inject(NoteService);
-  private readonly symptomsSvc = inject(SymptomService);
   private readonly settingsService = inject(SettingsService);
   private readonly notificationPort = inject(NotificationService);
   private readonly router = inject(Router);
@@ -66,18 +65,12 @@ export class JournalHomeComponent implements OnInit {
   protected coachSuggestions: CoachSuggestionVO[] = [];
   protected loading = true;
 
-  protected showWellbeing = false;
-  protected wellbeingScore: number | null = null;
-  protected wellbeingTime = '';
-  protected readonly wellbeingOptions = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
-
   protected get meals() {
     return this.entries.filter((e): e is Extract<JournalEntry, { kind: 'meal' }> => e.kind === 'meal');
   }
   protected get symptoms() {
     return this.entries.filter(
-      (e): e is Extract<JournalEntry, { kind: 'symptom' }> =>
-        e.kind === 'symptom' && e.data.category !== 'wellbeing',
+      (e): e is Extract<JournalEntry, { kind: 'symptom' }> => e.kind === 'symptom',
     );
   }
   protected get intakes() {
@@ -123,14 +116,6 @@ export class JournalHomeComponent implements OnInit {
       ...(mode ? { queryParams: { mode } } : {}),
       state: { journalDate: this.currentDate.toISOString() },
     });
-  }
-
-  protected setWellbeing(n: number): void {
-    this.wellbeingScore = n;
-    this.wellbeingTime = new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
-    this.showWellbeing = false;
-    this.cdr.markForCheck();
-    void this.symptomsSvc.saveWellbeing({ date: this.currentDate, score: n });
   }
 
   protected hasFodmapHigh(items: ReadonlyArray<FoodItemVO>): boolean {
@@ -268,29 +253,13 @@ export class JournalHomeComponent implements OnInit {
 
   private async loadEntries(): Promise<void> {
     this.loading = true;
-    this.wellbeingScore = null;
-    this.showWellbeing = false;
     this.coachSuggestions = [];
     this.cdr.markForCheck();
     this.entries = await this.intake.getJournalDay(this.currentDate);
-    this.prefillWellbeing();
     this.loading = false;
     this.cdr.markForCheck();
     this.coachSuggestions = await this.intake.getSuggestions(this.currentDate, this.entries);
     this.cdr.markForCheck();
-  }
-
-  private prefillWellbeing(): void {
-    const entry = this.entries.find(
-      (e): e is Extract<JournalEntry, { kind: 'symptom' }> =>
-        e.kind === 'symptom' && e.data.symptomKey === 'wellbeing_score',
-    );
-    if (!entry) return;
-    this.wellbeingScore = entry.data.intensity;
-    this.wellbeingTime = new Date(entry.data.occurredAt).toLocaleTimeString('fr-FR', {
-      hour: '2-digit',
-      minute: '2-digit',
-    });
   }
 
   private async loadActiveCures(): Promise<void> {

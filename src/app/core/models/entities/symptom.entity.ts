@@ -26,15 +26,19 @@ export interface StoolEntry {
   readonly frequency?: number;
 }
 
+/** Fréquence d'un événement gazeux, conforme §1.4.2 Bloc A. */
+export type GasFrequency = 'rare' | 'frequent' | 'constant';
+
 /**
  * Événement gazeux consigné lors d'une saisie de symptômes.
  *
  * @remarks
- * Value object imbriqué dans SymptomEntity pour suivi des flatulences.
+ * Value object imbriqué dans SymptomEntity. Utilisé pour flatulences (gas) et éructations (belching).
+ * odor n'est pertinent que pour les flatulences (gasHasOdor=true dans SYMPTOM_METADATA).
  */
 export interface GasEvent {
-  readonly intensity: number;
-  readonly notes?: string;
+  readonly frequency: GasFrequency;
+  readonly odor?: boolean;
 }
 
 /**
@@ -70,5 +74,6 @@ export interface SymptomEntity {
   readonly stool?: StoolEntry;
   readonly gas?: GasEvent;
   readonly notes?: string;
+  readonly sleepHours?: number;
   readonly editedAt?: Date;
 }

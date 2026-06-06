@@ -58,13 +58,25 @@
       },
       "keys": {
         "abdominal_pain": "Douleur abdominale",
-        "bloating": "Ballonnement",
-        "nausea": "Nausée",
-        "gas": "Gaz",
-        "constipation": "Constipation",
-        "diarrhea": "Diarrhée",
+        "bloating": "Ballonnements",
+        "nausea": "Nausées",
+        "heartburn": "Brûlures d'estomac",
+        "transit": "Transit",
+        "gas": "Flatulences",
+        "belching": "Éructations",
+        "early_satiety": "Plénitude précoce",
+        "postmeal_heaviness": "Lourdeur post-repas",
         "fatigue": "Fatigue",
-        "wellbeing_score": "Bien-être"
+        "headache": "Maux de tête",
+        "brain_fog": "Brouillard mental",
+        "joint_pain": "Douleurs articulaires",
+        "sleep_quality": "Qualité du sommeil",
+        "wellbeing_score": "Score de bien-être",
+        "mood": "Humeur / anxiété",
+        "energy": "Énergie globale",
+        "stress": "Stress",
+        "constipation": "Constipation",
+        "diarrhea": "Diarrhée"
       }
     },
     "intake": {

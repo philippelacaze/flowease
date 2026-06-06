@@ -1,99 +1,209 @@
-    <div class="symptoms-config-page">
-      <header class="page-header">
-        <a mat-icon-button routerLink=".." aria-label="Retour aux paramètres">
-          <mat-icon>arrow_back</mat-icon>
-        </a>
-        <h1>Symptômes suivis</h1>
-      </header>
+<div class="symptoms-config-page">
+  <header class="page-header">
+    <a mat-icon-button routerLink=".." aria-label="Retour aux paramètres">
+      <mat-icon>arrow_back</mat-icon>
+    </a>
+    <h1>Symptômes suivis</h1>
+  </header>
 
-      <p class="hint">Faites glisser pour réordonner. Appuyez sur l'icône pour activer/désactiver.</p>
+  <p class="hint">Glissez pour réordonner (par bloc). Crayon pour renommer. Œil pour activer/désactiver.</p>
 
-      <!-- Liste drag-drop -->
-      <div
-        cdkDropList
-        [cdkDropListData]="symptoms()"
-        (cdkDropListDropped)="onDrop($event)"
-        class="symptom-list"
-        aria-label="Liste des symptômes, glissez pour réordonner">
+  <!-- Bloc A — Digestifs -->
+  <section class="bloc-section" data-testid="bloc-digestive">
+    <h2 class="bloc-title">Bloc A — Digestifs</h2>
+    <div
+      cdkDropList
+      [cdkDropListData]="digestiveItems()"
+      (cdkDropListDropped)="onDrop($event, 'digestive')"
+      class="symptom-list"
+      aria-label="Symptômes digestifs, glissez pour réordonner">
+      @for (item of digestiveItems(); track item.id) {
+        <ng-container *ngTemplateOutlet="itemTpl; context: { item: item }" />
+      }
+    </div>
+  </section>
 
-        @for (symptom of symptoms(); track symptom.id) {
-          <div
-            cdkDrag
-            class="symptom-item"
-            [class.inactive]="!symptom.active"
-            [attr.data-testid]="'symptom-' + symptom.id"
-            [attr.aria-label]="symptom.label + (symptom.active ? '' : ' (désactivé)')">
+  <!-- Bloc B — Systémiques -->
+  <section class="bloc-section" data-testid="bloc-systemic">
+    <h2 class="bloc-title">Bloc B — Systémiques</h2>
+    <div
+      cdkDropList
+      [cdkDropListData]="systemicItems()"
+      (cdkDropListDropped)="onDrop($event, 'systemic')"
+      class="symptom-list"
+      aria-label="Symptômes systémiques, glissez pour réordonner">
+      @for (item of systemicItems(); track item.id) {
+        <ng-container *ngTemplateOutlet="itemTpl; context: { item: item }" />
+      }
+    </div>
+  </section>
 
-            <mat-icon cdkDragHandle class="drag-handle" aria-label="Déplacer">drag_indicator</mat-icon>
+  <!-- Bloc C — Bien-être -->
+  <section class="bloc-section" data-testid="bloc-wellbeing">
+    <h2 class="bloc-title">Bloc C — Bien-être</h2>
+    <div
+      cdkDropList
+      [cdkDropListData]="wellbeingItems()"
+      (cdkDropListDropped)="onDrop($event, 'wellbeing')"
+      class="symptom-list"
+      aria-label="Symptômes bien-être, glissez pour réordonner">
+      @for (item of wellbeingItems(); track item.id) {
+        <ng-container *ngTemplateOutlet="itemTpl; context: { item: item }" />
+      }
+    </div>
+  </section>
 
-            <span class="symptom-label">{{ symptom.label }}</span>
+  <mat-divider />
 
-            @if (symptom.custom) {
-              <mat-icon class="custom-badge" aria-label="Symptôme personnalisé">star</mat-icon>
-            }
+  <!-- Ajout d'un symptôme personnalisé -->
+  <div class="add-section">
+    <button
+      mat-stroked-button
+      (click)="showAddForm = !showAddForm"
+      aria-label="Ajouter un symptôme personnalisé"
+      data-testid="toggle-add-form">
+      <mat-icon>{{ showAddForm ? 'remove' : 'add' }}</mat-icon>
+      Ajouter un symptôme personnalisé
+    </button>
 
-            <button
-              mat-icon-button
-              (click)="onToggle(symptom)"
-              [attr.aria-label]="(symptom.active ? 'Désactiver ' : 'Activer ') + symptom.label"
-              [attr.data-testid]="'toggle-' + symptom.id">
-              <mat-icon>{{ symptom.active ? 'visibility' : 'visibility_off' }}</mat-icon>
-            </button>
+    @if (showAddForm) {
+      <div class="add-form" data-testid="add-form">
+        <mat-form-field appearance="outline" class="add-field">
+          <mat-label>Nom du symptôme</mat-label>
+          <input
+            matInput
+            [(ngModel)]="newLabel"
+            data-testid="new-symptom-label"
+            aria-label="Nom du nouveau symptôme personnalisé"
+            (keyup.enter)="onAddCustom()" />
+        </mat-form-field>
 
-            @if (symptom.custom) {
-              <button
-                mat-icon-button
-                color="warn"
-                (click)="onDelete(symptom)"
-                [attr.aria-label]="'Supprimer ' + symptom.label"
-                [attr.data-testid]="'delete-' + symptom.id">
-                <mat-icon>delete</mat-icon>
-              </button>
-            }
-          </div>
-        }
-      </div>
+        <mat-form-field appearance="outline">
+          <mat-label>Catégorie</mat-label>
+          <mat-select
+            [(ngModel)]="newCategory"
+            aria-label="Catégorie du symptôme"
+            data-testid="new-symptom-category">
+            <mat-option value="digestive">Digestif (Bloc A)</mat-option>
+            <mat-option value="systemic">Systémique (Bloc B)</mat-option>
+            <mat-option value="wellbeing">Bien-être (Bloc C)</mat-option>
+          </mat-select>
+        </mat-form-field>
 
-      <mat-divider />
+        <mat-form-field appearance="outline">
+          <mat-label>Mode de saisie</mat-label>
+          <mat-select
+            [(ngModel)]="newInputMode"
+            aria-label="Mode de saisie du symptôme"
+            data-testid="new-symptom-input-mode">
+            <mat-option value="intensity">Intensité (1-10)</mat-option>
+            <mat-option value="frequency">Fréquence</mat-option>
+            <mat-option value="boolean">Oui / Non</mat-option>
+          </mat-select>
+        </mat-form-field>
 
-      <!-- Ajout personnalisé -->
-      <div class="add-section">
-        <h2 class="section-title">Ajouter un symptôme personnalisé</h2>
-        <div class="add-row">
-          <mat-form-field appearance="outline" class="add-field">
-            <mat-label>Nom du symptôme</mat-label>
-            <input
-              matInput
-              [(ngModel)]="newSymptomLabel"
-              aria-label="Nom du nouveau symptôme"
-              data-testid="new-symptom-input"
-              (keyup.enter)="onAddCustom()" />
-          </mat-form-field>
+        <div class="add-actions">
           <button
             mat-raised-button
             color="primary"
             (click)="onAddCustom()"
-            [disabled]="!newSymptomLabel.trim()"
+            [disabled]="!newLabel.trim()"
             aria-label="Ajouter le symptôme personnalisé"
-            data-testid="add-custom-btn"
-            class="add-btn">
-            <mat-icon>add</mat-icon>
+            data-testid="add-custom-btn">
             Ajouter
+          </button>
+          <button
+            mat-button
+            (click)="showAddForm = false"
+            aria-label="Annuler l'ajout">
+            Annuler
           </button>
         </div>
       </div>
+    }
+  </div>
 
-      <div class="save-actions">
+  <!-- Réinitialiser -->
+  <div class="reset-section">
+    <button
+      mat-stroked-button
+      color="warn"
+      (click)="onReset()"
+      aria-label="Réinitialiser la liste à la configuration par défaut"
+      data-testid="reset-btn">
+      <mat-icon>restart_alt</mat-icon>
+      Réinitialiser à la liste par défaut
+    </button>
+  </div>
+</div>
+
+<!-- Template partagé pour un item de symptôme -->
+<ng-template #itemTpl let-item="item">
+  <div
+    cdkDrag
+    class="symptom-item"
+    [class.inactive]="!item.active"
+    [attr.data-testid]="'symptom-' + item.id"
+    [attr.aria-label]="item.label + (item.active ? '' : ' (désactivé)')">
+
+    <mat-icon cdkDragHandle class="drag-handle" aria-label="Déplacer">drag_indicator</mat-icon>
+
+    @if (item.editing) {
+      <input
+        class="edit-input"
+        [id]="'edit-label-' + item.id"
+        [(ngModel)]="item.editLabel"
+        [attr.data-testid]="'edit-label-' + item.id"
+        aria-label="Modifier le nom du symptôme"
+        (keyup.enter)="confirmEdit(item)"
+        (keyup.escape)="cancelEdit(item)" />
+      <button
+        mat-icon-button
+        (click)="confirmEdit(item)"
+        [attr.aria-label]="'Confirmer renommage de ' + item.label"
+        [attr.data-testid]="'confirm-edit-' + item.id">
+        <mat-icon>check</mat-icon>
+      </button>
+      <button
+        mat-icon-button
+        (click)="cancelEdit(item)"
+        [attr.aria-label]="'Annuler renommage de ' + item.label"
+        [attr.data-testid]="'cancel-edit-' + item.id">
+        <mat-icon>close</mat-icon>
+      </button>
+    } @else {
+      <span class="symptom-label">{{ item.label }}</span>
+
+      @if (item.custom) {
+        <mat-icon class="custom-badge" aria-label="Symptôme personnalisé">star</mat-icon>
+      }
+
+      <button
+        mat-icon-button
+        (click)="startEdit(item)"
+        [attr.aria-label]="'Renommer ' + item.label"
+        [attr.data-testid]="'edit-' + item.id">
+        <mat-icon>edit</mat-icon>
+      </button>
+
+      <button
+        mat-icon-button
+        (click)="onToggle(item)"
+        [attr.aria-label]="(item.active ? 'Désactiver ' : 'Activer ') + item.label"
+        [attr.data-testid]="'toggle-' + item.id">
+        <mat-icon>{{ item.active ? 'visibility' : 'visibility_off' }}</mat-icon>
+      </button>
+
+      @if (item.custom) {
         <button
-          mat-raised-button
-          color="primary"
-          (click)="onSave()"
-          aria-label="Enregistrer l'ordre des symptômes"
-          data-testid="save-symptoms-btn"
-          class="save-btn">
-          <mat-icon>save</mat-icon>
-          Enregistrer l'ordre
+          mat-icon-button
+          color="warn"
+          (click)="onDeleteCustom(item)"
+          [attr.aria-label]="'Supprimer ' + item.label"
+          [attr.data-testid]="'delete-' + item.id">
+          <mat-icon>delete</mat-icon>
         </button>
-      </div>
-    </div>
-  
+      }
+    }
+  </div>
+</ng-template>

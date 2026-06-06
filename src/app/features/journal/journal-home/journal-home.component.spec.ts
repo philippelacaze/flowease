@@ -15,7 +15,7 @@ import type { NoteEntity } from '../../../core/models/entities/note.entity';
 import type { IntakeEntity } from '../../../core/models/entities/intake.entity';
 import { IntakeService } from '../services/intake.service';
 import { NoteService } from '../services/note.service';
-import { SymptomService } from '../services/symptom.service';
+
 
 const LOW_ITEMS: FoodItemVO[] = [
   { name: 'Riz', fodmap: { level: 'low' }, confirmed: true },
@@ -67,7 +67,6 @@ type ComponentProtected = {
   confirmAllTags(note: NoteEntity): void;
   addFreeTag(note: NoteEntity, inputEl: HTMLInputElement): void;
   treatmentName(id: string): string;
-  wellbeingScore: number | null;
   symptoms: JournalEntry[];
   entries: JournalEntry[];
 };
@@ -91,7 +90,7 @@ async function createComponent(journalEntries: JournalEntry[] = [], treatments: 
       provideRouter([]),
       { provide: IntakeService, useValue: makeIntakeMock(journalEntries, treatments) },
       { provide: NoteService, useValue: { confirmTags: vi.fn().mockResolvedValue(undefined) } },
-      { provide: SymptomService, useValue: { saveWellbeing: vi.fn().mockResolvedValue('wb-id') } },
+
       { provide: SettingsService, useValue: { scheduleReminders: vi.fn().mockResolvedValue(undefined) } },
       { provide: NotificationService, useValue: { getPermissionStatus: () => 'default', scheduleReminders: vi.fn(), cancelReminders: vi.fn(), requestPermission: vi.fn() } },
       { provide: LocalSettingsService, useValue: { getLanguage: () => 'fr', getApiKey: () => null } },
@@ -319,19 +318,6 @@ describe('JournalHomeComponent', () => {
     });
   });
 
-  describe('pré-remplissage du score de bien-être', () => {
-    it('pré-remplit wellbeingScore depuis les entrées du jour', async () => {
-      const fixture = await createComponent([makeWellbeingEntry(8)]);
-      const comp = fixture.componentInstance as unknown as ComponentProtected;
-      expect(comp.wellbeingScore).toBe(8);
-    });
-
-    it('wellbeingScore reste null si aucune entrée de bien-être', async () => {
-      const fixture = await createComponent([]);
-      const comp = fixture.componentInstance as unknown as ComponentProtected;
-      expect(comp.wellbeingScore).toBeNull();
-    });
-  });
 
   describe('alertes FODMAP IA dans les cartes repas', () => {
     it('affiche une alerte danger quand aiFodmapFlags contient un élément severity danger', async () => {
@@ -426,16 +412,18 @@ describe('JournalHomeComponent', () => {
   });
 
   describe('getter symptoms', () => {
-    it('exclut les entrées wellbeing du bloc Symptômes', async () => {
+    it('inclut les entrées wellbeing dans le bloc Symptômes', async () => {
       const fixture = await createComponent([makeWellbeingEntry(7), makeRegularSymptomEntry()]);
       const comp = fixture.componentInstance as unknown as ComponentProtected;
-      expect(comp.symptoms.every(e => e.kind === 'symptom' && (e as Extract<JournalEntry, { kind: 'symptom' }>).data.category !== 'wellbeing')).toBe(true);
+      expect(comp.symptoms).toHaveLength(2);
     });
 
-    it('inclut les symptômes non-wellbeing', async () => {
+    it('inclut tous les symptômes quelle que soit leur catégorie', async () => {
       const fixture = await createComponent([makeWellbeingEntry(7), makeRegularSymptomEntry()]);
       const comp = fixture.componentInstance as unknown as ComponentProtected;
-      expect(comp.symptoms).toHaveLength(1);
+      const categories = comp.symptoms.map(e => (e as Extract<JournalEntry, { kind: 'symptom' }>).data.category);
+      expect(categories).toContain('wellbeing');
+      expect(categories).toContain('digestive');
     });
   });
 

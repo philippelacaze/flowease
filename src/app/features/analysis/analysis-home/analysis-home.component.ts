@@ -10,22 +10,12 @@ import { FormsModule } from '@angular/forms';
 import { MatBottomSheet } from '@angular/material/bottom-sheet';
 import { LocalSettingsService } from '../../../core/services/local-settings.service';
 import { AnalysisService } from '../services/analysis.service';
+import { SymptomService } from '../../journal/services/symptom.service';
 import { SymptomChartComponent } from '../symptom-chart/symptom-chart.component';
 import { AdherenceCalendarComponent } from '../adherence-calendar/adherence-calendar.component';
 import { WellbeingHeatmapComponent } from '../wellbeing-heatmap/wellbeing-heatmap.component';
 import { AiInsightsComponent } from '../ai-insights/ai-insights.component';
 import { RunAnalysisSheetComponent } from './run-analysis-sheet.component';
-
-export const SYMPTOM_OPTIONS = [
-  { key: 'abdominal_pain',  label: 'Douleur abdominale' },
-  { key: 'bloating',        label: 'Ballonnement' },
-  { key: 'nausea',          label: 'Nausée' },
-  { key: 'gas',             label: 'Gaz' },
-  { key: 'constipation',    label: 'Constipation' },
-  { key: 'diarrhea',        label: 'Diarrhée' },
-  { key: 'fatigue',         label: 'Fatigue' },
-  { key: 'wellbeing_score', label: 'Bien-être' },
-] as const;
 
 /**
  * Page principale du module Analyse.
@@ -54,6 +44,7 @@ export const SYMPTOM_OPTIONS = [
 export class AnalysisHomeComponent implements OnInit {
   private readonly analysis = inject(AnalysisService);
   private readonly settings = inject(LocalSettingsService);
+  private readonly symptomSvc = inject(SymptomService);
   private readonly bottomSheet = inject(MatBottomSheet);
   private readonly cdr = inject(ChangeDetectorRef);
 
@@ -63,7 +54,7 @@ export class AnalysisHomeComponent implements OnInit {
   protected insightsRefreshKey = 0;
   protected primarySymptom = 'abdominal_pain';
   protected secondarySymptom: string | null = null;
-  protected readonly symptomOptions = SYMPTOM_OPTIONS;
+  protected symptomOptions: { key: string; label: string }[] = [];
 
   protected get lastAnalysisDaysAgo(): string {
     if (!this.lastAnalysisDate) return '';
@@ -73,8 +64,14 @@ export class AnalysisHomeComponent implements OnInit {
     return `il y a ${days} jour${days > 1 ? 's' : ''}`;
   }
 
-  ngOnInit(): void {
+  async ngOnInit(): Promise<void> {
     this.lastAnalysisDate = this.settings.getLastAnalysisDate();
+    const configs = await this.symptomSvc.getActiveConfigs();
+    this.symptomOptions = configs.map(c => ({ key: c.key, label: c.label }));
+    if (this.symptomOptions.length > 0 && !this.symptomOptions.some(o => o.key === this.primarySymptom)) {
+      this.primarySymptom = this.symptomOptions[0].key;
+    }
+    this.cdr.markForCheck();
   }
 
   protected onWindowChange(value: number): void {

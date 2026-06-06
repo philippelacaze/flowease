@@ -1,85 +1,139 @@
-    .symptoms-config-page {
-      max-width: 640px;
-      margin: 0 auto;
-      padding: 16px;
-    }
-    .page-header {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      margin-bottom: 8px;
-    }
-    .page-header h1 {
-      font-size: 1.4rem;
-      margin: 0;
-    }
-    .hint {
-      font-size: 0.85rem;
-      color: var(--mat-sys-on-surface-variant);
-      margin-bottom: 16px;
-    }
-    .symptom-list {
-      display: flex;
-      flex-direction: column;
-      gap: 4px;
-      min-height: 60px;
-    }
-    .symptom-item {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      padding: 8px 4px;
-      background: var(--mat-sys-surface-container);
-      border-radius: 8px;
-      min-height: 52px;
-      cursor: default;
-    }
-    .symptom-item.inactive {
-      opacity: 0.5;
-    }
-    .symptom-item.cdk-drag-preview {
-      box-shadow: 0 4px 12px rgba(0,0,0,0.2);
-    }
-    .drag-handle {
-      cursor: grab;
-      color: var(--mat-sys-on-surface-variant);
-    }
-    .symptom-label {
-      flex: 1;
-      font-size: 0.95rem;
-    }
-    .custom-badge {
-      font-size: 16px;
-      width: 16px;
-      height: 16px;
-      color: var(--mat-sys-tertiary);
-    }
-    .section-title {
-      font-size: 1rem;
-      font-weight: 500;
-      color: var(--mat-sys-on-surface-variant);
-      margin: 16px 0 8px;
-    }
-    .add-row {
-      display: flex;
-      gap: 12px;
-      align-items: flex-start;
-      flex-wrap: wrap;
-    }
-    .add-field {
-      flex: 1;
-      min-width: 200px;
-    }
-    .add-btn {
-      min-height: 44px;
-      margin-top: 4px;
-    }
-    .save-actions {
-      display: flex;
-      justify-content: flex-end;
-      margin-top: 16px;
-    }
-    .save-btn {
-      min-height: 44px;
-    }
-  
+.symptoms-config-page {
+  max-width: 640px;
+  margin: 0 auto;
+  padding: 16px;
+}
+
+.page-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+
+  h1 {
+    font-size: 1.4rem;
+    margin: 0;
+  }
+}
+
+.hint {
+  font-size: 0.85rem;
+  color: var(--mat-sys-on-surface-variant);
+  margin-bottom: 16px;
+}
+
+.bloc-section {
+  margin-bottom: 24px;
+}
+
+.bloc-title {
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--mat-sys-primary);
+  margin: 0 0 8px;
+  padding: 4px 0;
+  border-bottom: 1px solid var(--mat-sys-outline-variant);
+}
+
+.symptom-list {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-height: 52px;
+}
+
+.symptom-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 4px;
+  background: var(--mat-sys-surface-container);
+  border-radius: 8px;
+  min-height: 52px;
+  cursor: default;
+
+  &.inactive {
+    opacity: 0.5;
+  }
+
+  &.cdk-drag-preview {
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+  }
+
+  &.cdk-drag-placeholder {
+    background: var(--mat-sys-surface-container-highest);
+    border: 2px dashed var(--mat-sys-outline-variant);
+  }
+}
+
+.drag-handle {
+  cursor: grab;
+  color: var(--mat-sys-on-surface-variant);
+  flex-shrink: 0;
+}
+
+.symptom-label {
+  flex: 1;
+  font-size: 0.95rem;
+}
+
+.custom-badge {
+  font-size: 16px;
+  width: 16px;
+  height: 16px;
+  color: var(--mat-sys-tertiary);
+  flex-shrink: 0;
+}
+
+.edit-input {
+  flex: 1;
+  border: 1px solid var(--mat-sys-primary);
+  border-radius: 4px;
+  padding: 4px 8px;
+  font-size: 0.95rem;
+  background: var(--mat-sys-surface);
+  color: var(--mat-sys-on-surface);
+  outline: none;
+  min-width: 0;
+}
+
+mat-divider {
+  margin: 8px 0 24px;
+}
+
+.add-section {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.add-form {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 16px;
+  background: var(--mat-sys-surface-container-low);
+  border-radius: 8px;
+  border: 1px solid var(--mat-sys-outline-variant);
+}
+
+.add-field {
+  width: 100%;
+}
+
+.add-actions {
+  display: flex;
+  gap: 8px;
+  justify-content: flex-end;
+}
+
+.reset-section {
+  display: flex;
+  justify-content: flex-start;
+  margin-top: 8px;
+
+  button {
+    min-height: 44px;
+  }
+}

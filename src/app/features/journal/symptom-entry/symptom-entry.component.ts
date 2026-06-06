@@ -12,7 +12,7 @@ import { SymptomService } from '../services/symptom.service';
 import { IntensitySliderComponent } from '../../../shared/components/intensity-slider/intensity-slider.component';
 import { AbdominalMapComponent } from '../../../shared/components/abdominal-map/abdominal-map.component';
 import { BristolScaleComponent } from '../../../shared/components/bristol-scale/bristol-scale.component';
-import type { SymptomCategory, SymptomEntity } from '../../../core/models/entities/symptom.entity';
+import type { SymptomCategory, SymptomEntity, GasFrequency } from '../../../core/models/entities/symptom.entity';
 import type { AbdominalZone } from '../../../core/models/value-objects/pain-location.vo';
 import type { PainType } from '../../../core/models/value-objects/pain-type.vo';
 import type { BristolType } from '../../../core/models/value-objects/bristol-type.vo';
@@ -25,6 +25,11 @@ interface SymptomRow {
   readonly hasMap: boolean;
   readonly hasPainTypes: boolean;
   readonly hasBristol: boolean;
+  readonly hasGas: boolean;
+  readonly gasHasOdor: boolean;
+  readonly hasYesNo: boolean;
+  readonly hasSleepHours: boolean;
+  readonly hasDelay: boolean;
   intensity: number;
   painZones: AbdominalZone[];
   painTypes: PainType[];
@@ -32,35 +37,56 @@ interface SymptomRow {
   stoolBlood: boolean;
   stoolMucus: boolean;
   stoolFrequency: number;
+  gasFrequency: GasFrequency | null;
+  gasOdor: boolean;
+  isPresent: boolean | null;
+  sleepHours: number | null;
+  postmealDelay: number | null;
 }
 
-type SymptomMeta = Pick<SymptomRow, 'category' | 'hasMap' | 'hasPainTypes' | 'hasBristol'>;
+type SymptomMeta = Pick<SymptomRow,
+  'category' | 'hasMap' | 'hasPainTypes' | 'hasBristol' |
+  'hasGas' | 'gasHasOdor' | 'hasYesNo' | 'hasSleepHours' | 'hasDelay'
+>;
 
+const F = false, T = true;
 const SYMPTOM_METADATA: Readonly<Record<string, SymptomMeta>> = {
-  abdominal_pain: { category: 'digestive', hasMap: true,  hasPainTypes: true,  hasBristol: false },
-  bloating:       { category: 'digestive', hasMap: false, hasPainTypes: false, hasBristol: false },
-  nausea:         { category: 'digestive', hasMap: false, hasPainTypes: false, hasBristol: false },
-  heartburn:      { category: 'digestive', hasMap: false, hasPainTypes: false, hasBristol: false },
-  transit:        { category: 'digestive', hasMap: false, hasPainTypes: false, hasBristol: true  },
-  gas:            { category: 'digestive', hasMap: false, hasPainTypes: false, hasBristol: false },
-  fatigue:        { category: 'systemic',  hasMap: false, hasPainTypes: false, hasBristol: false },
-  headache:       { category: 'systemic',  hasMap: false, hasPainTypes: false, hasBristol: false },
-  brain_fog:      { category: 'systemic',  hasMap: false, hasPainTypes: false, hasBristol: false },
-  joint_pain:     { category: 'systemic',  hasMap: false, hasPainTypes: false, hasBristol: false },
-  energy:         { category: 'wellbeing', hasMap: false, hasPainTypes: false, hasBristol: false },
-  sleep_quality:  { category: 'wellbeing', hasMap: false, hasPainTypes: false, hasBristol: false },
-  mood:           { category: 'wellbeing', hasMap: false, hasPainTypes: false, hasBristol: false },
-  stress:         { category: 'wellbeing', hasMap: false, hasPainTypes: false, hasBristol: false },
+  // Bloc A — Digestifs
+  abdominal_pain:     { category: 'digestive', hasMap: T, hasPainTypes: T, hasBristol: F, hasGas: F, gasHasOdor: F, hasYesNo: F, hasSleepHours: F, hasDelay: F },
+  bloating:           { category: 'digestive', hasMap: F, hasPainTypes: F, hasBristol: F, hasGas: F, gasHasOdor: F, hasYesNo: F, hasSleepHours: F, hasDelay: F },
+  nausea:             { category: 'digestive', hasMap: F, hasPainTypes: F, hasBristol: F, hasGas: F, gasHasOdor: F, hasYesNo: F, hasSleepHours: F, hasDelay: F },
+  heartburn:          { category: 'digestive', hasMap: F, hasPainTypes: F, hasBristol: F, hasGas: F, gasHasOdor: F, hasYesNo: F, hasSleepHours: F, hasDelay: F },
+  transit:            { category: 'digestive', hasMap: F, hasPainTypes: F, hasBristol: T, hasGas: F, gasHasOdor: F, hasYesNo: F, hasSleepHours: F, hasDelay: F },
+  gas:                { category: 'digestive', hasMap: F, hasPainTypes: F, hasBristol: F, hasGas: T, gasHasOdor: T, hasYesNo: F, hasSleepHours: F, hasDelay: F },
+  belching:           { category: 'digestive', hasMap: F, hasPainTypes: F, hasBristol: F, hasGas: T, gasHasOdor: F, hasYesNo: F, hasSleepHours: F, hasDelay: F },
+  early_satiety:      { category: 'digestive', hasMap: F, hasPainTypes: F, hasBristol: F, hasGas: F, gasHasOdor: F, hasYesNo: F, hasSleepHours: F, hasDelay: F },
+  postmeal_heaviness: { category: 'digestive', hasMap: F, hasPainTypes: F, hasBristol: F, hasGas: F, gasHasOdor: F, hasYesNo: F, hasSleepHours: F, hasDelay: T },
+  // Bloc B — Systémiques
+  fatigue:            { category: 'systemic',  hasMap: F, hasPainTypes: F, hasBristol: F, hasGas: F, gasHasOdor: F, hasYesNo: F, hasSleepHours: F, hasDelay: F },
+  headache:           { category: 'systemic',  hasMap: F, hasPainTypes: F, hasBristol: F, hasGas: F, gasHasOdor: F, hasYesNo: F, hasSleepHours: F, hasDelay: F },
+  brain_fog:          { category: 'systemic',  hasMap: F, hasPainTypes: F, hasBristol: F, hasGas: F, gasHasOdor: F, hasYesNo: F, hasSleepHours: F, hasDelay: F },
+  joint_pain:         { category: 'systemic',  hasMap: F, hasPainTypes: F, hasBristol: F, hasGas: F, gasHasOdor: F, hasYesNo: T, hasSleepHours: F, hasDelay: F },
+  sleep_quality:      { category: 'systemic',  hasMap: F, hasPainTypes: F, hasBristol: F, hasGas: F, gasHasOdor: F, hasYesNo: F, hasSleepHours: T, hasDelay: F },
+  // Bloc C — Bien-être
+  wellbeing_score:    { category: 'wellbeing', hasMap: F, hasPainTypes: F, hasBristol: F, hasGas: F, gasHasOdor: F, hasYesNo: F, hasSleepHours: F, hasDelay: F },
+  mood:               { category: 'wellbeing', hasMap: F, hasPainTypes: F, hasBristol: F, hasGas: F, gasHasOdor: F, hasYesNo: F, hasSleepHours: F, hasDelay: F },
+  // Archivés hors-specs — conservés pour l'historique existant
+  energy:             { category: 'wellbeing', hasMap: F, hasPainTypes: F, hasBristol: F, hasGas: F, gasHasOdor: F, hasYesNo: F, hasSleepHours: F, hasDelay: F },
+  stress:             { category: 'wellbeing', hasMap: F, hasPainTypes: F, hasBristol: F, hasGas: F, gasHasOdor: F, hasYesNo: F, hasSleepHours: F, hasDelay: F },
 };
 
-const FALLBACK_META: SymptomMeta = { category: 'systemic', hasMap: false, hasPainTypes: false, hasBristol: false };
+const FALLBACK_META: SymptomMeta = {
+  category: 'systemic', hasMap: F, hasPainTypes: F, hasBristol: F,
+  hasGas: F, gasHasOdor: F, hasYesNo: F, hasSleepHours: F, hasDelay: F,
+};
 
 /**
- * Page de saisie des symptômes — header contextuel (voice/form), ajout personnalisé, confirmation.
+ * Page de saisie des symptômes — 3 blocs (digestifs, systémiques, bien-être), confirmation.
  *
  * @remarks
  * srcMode lu depuis queryParams.mode : 'voice' → dictée préanalysée, 'form' → saisie manuelle.
- * Les symptômes personnalisés s'ajoutent à customSymptoms et sont sauvegardés comme les autres.
+ * Chaque symptôme est rendu selon ses flags (hasGas, hasYesNo, hasSleepHours, hasDelay, hasBristol).
+ * wellbeing_score utilise upsertDaySymptom() pour garantir l'unicité par jour (§1.4.2 Bloc C).
  * submit() navigue vers /journal/symptom/confirm avec les données enregistrées dans history.state.
  */
 @Component({
@@ -91,19 +117,17 @@ export class SymptomEntryComponent implements OnInit {
   }
 
   protected readonly painTypes = PAIN_TYPES;
+  protected readonly gasFrequencyOptions: ReadonlyArray<{ value: GasFrequency; label: string }> = [
+    { value: 'rare',     label: 'Rares' },
+    { value: 'frequent', label: 'Fréquentes' },
+    { value: 'constant', label: 'Constantes' },
+  ];
   protected saving = false;
 
   protected srcMode: 'voice' | 'form' = 'form';
-  protected showAddCustom = false;
-  protected newCustomLabel = '';
-  protected customSymptoms: SymptomRow[] = [];
-
+  protected wellbeingNote = '';
   protected rows: SymptomRow[] = [];
   private editingEntry: SymptomEntity | null = null;
-
-  protected get allRows(): SymptomRow[] {
-    return [...this.rows, ...this.customSymptoms];
-  }
 
   protected get digestiveRows(): SymptomRow[] {
     return this.rows.filter(r => r.category === 'digestive');
@@ -116,32 +140,22 @@ export class SymptomEntryComponent implements OnInit {
   }
 
   protected get hasAnyRating(): boolean {
-    return this.allRows.some(r => r.intensity > 0 || this.hasStoolData(r));
+    return this.rows.some(r => this.hasData(r));
   }
 
   protected get showBloodAlert(): boolean {
     return this.rows.some(r => r.hasBristol && r.stoolBlood);
   }
 
-  private hasStoolData(row: SymptomRow): boolean {
-    return row.hasBristol && (row.bristolType !== null || row.stoolBlood || row.stoolMucus || row.stoolFrequency > 0);
-  }
-
-  protected get avgScore(): number {
-    const active = this.allRows.filter(r => r.intensity > 0);
-    if (active.length === 0) return 0;
-    return Math.round(active.reduce((acc, r) => acc + r.intensity, 0) / active.length);
-  }
-
-  protected get avgSeverityClass(): string {
-    const s = this.avgScore;
-    if (s <= 3) return 'score-low';
-    if (s <= 6) return 'score-medium';
-    return 'score-high';
+  private hasData(row: SymptomRow): boolean {
+    if (row.hasGas)   return row.gasFrequency !== null;
+    if (row.hasYesNo) return row.isPresent === true && row.intensity > 0;
+    if (row.hasBristol) return row.bristolType !== null || row.stoolBlood || row.stoolMucus || row.stoolFrequency > 0 || row.intensity > 0;
+    return row.intensity > 0;
   }
 
   protected get activeCount(): number {
-    return this.allRows.filter(r => r.intensity > 0 || this.hasStoolData(r)).length;
+    return this.rows.filter(r => this.hasData(r)).length;
   }
 
   async ngOnInit(): Promise<void> {
@@ -165,9 +179,18 @@ export class SymptomEntryComponent implements OnInit {
         stoolBlood: entry.stool?.blood ?? false,
         stoolMucus: entry.stool?.mucus ?? false,
         stoolFrequency: entry.stool?.frequency ?? 0,
+        gasFrequency: entry.gas?.frequency ?? null,
+        gasOdor: entry.gas?.odor ?? false,
+        isPresent: meta.hasYesNo ? entry.intensity > 0 : null,
+        sleepHours: entry.sleepHours ?? null,
+        postmealDelay: meta.hasDelay && entry.notes
+          ? (parseFloat(entry.notes) || null)
+          : null,
       };
       this.rows = [editRow];
-      this.customSymptoms = [];
+      if (entry.symptomKey === 'wellbeing_score') {
+        this.wellbeingNote = entry.notes ?? '';
+      }
       this.cdr.markForCheck();
       return;
     }
@@ -176,12 +199,9 @@ export class SymptomEntryComponent implements OnInit {
     this.srcMode = mode === 'voice' ? 'voice' : 'form';
 
     const active = await this.symptoms.getActiveConfigs();
-    const standard: SymptomRow[] = [];
-    const fromConfig: SymptomRow[] = [];
-
-    for (const cfg of active) {
+    this.rows = active.map(cfg => {
       const meta = SYMPTOM_METADATA[cfg.key] ?? FALLBACK_META;
-      const row: SymptomRow = {
+      return {
         ...meta,
         key: cfg.key,
         labelFr: cfg.label,
@@ -192,16 +212,13 @@ export class SymptomEntryComponent implements OnInit {
         stoolBlood: false,
         stoolMucus: false,
         stoolFrequency: 0,
+        gasFrequency: null,
+        gasOdor: false,
+        isPresent: null,
+        sleepHours: null,
+        postmealDelay: null,
       };
-      if (cfg.custom) {
-        fromConfig.push(row);
-      } else {
-        standard.push(row);
-      }
-    }
-
-    this.rows = standard;
-    this.customSymptoms = fromConfig;
+    });
     this.cdr.markForCheck();
   }
 
@@ -219,45 +236,13 @@ export class SymptomEntryComponent implements OnInit {
     this.cdr.markForCheck();
   }
 
-  protected addCustomSymptom(): void {
-    const label = this.newCustomLabel.trim();
-    if (!label) return;
-    this.customSymptoms = [
-      ...this.customSymptoms,
-      {
-        category: 'systemic',
-        key: `custom_${Date.now()}`,
-        labelFr: label,
-        hasMap: false,
-        hasPainTypes: false,
-        hasBristol: false,
-        intensity: 0,
-        painZones: [],
-        painTypes: [],
-        bristolType: null,
-        stoolBlood: false,
-        stoolMucus: false,
-        stoolFrequency: 0,
-      },
-    ];
-    this.cancelCustom();
-    this.cdr.markForCheck();
-  }
-
-  protected cancelCustom(): void {
-    this.showAddCustom = false;
-    this.newCustomLabel = '';
-  }
-
   protected async submit(): Promise<void> {
     if (!this.hasAnyRating || this.saving) return;
     this.saving = true;
     this.cdr.markForCheck();
 
     const now = new Date(this.journalDate);
-    const rowsToSave = this.allRows.filter(
-      r => r.intensity > 0 || this.hasStoolData(r),
-    );
+    const rowsToSave = this.rows.filter(r => this.hasData(r));
 
     if (this.editingEntry) {
       const row = rowsToSave[0];
@@ -267,10 +252,10 @@ export class SymptomEntryComponent implements OnInit {
           occurredAt: this.editingEntry.occurredAt,
           category: row.category,
           symptomKey: row.key,
-          intensity: row.intensity || 5,
+          intensity: row.hasGas ? 0 : row.intensity || 5,
           ...(row.painZones.length > 0 && { painZones: row.painZones }),
           ...(row.painTypes.length > 0 && { painTypes: row.painTypes }),
-          ...(this.hasStoolData(row) && {
+          ...(row.hasBristol && this.hasData(row) && {
             stool: {
               bristolType: row.bristolType,
               ...(row.stoolFrequency > 0 && { frequency: row.stoolFrequency }),
@@ -278,6 +263,13 @@ export class SymptomEntryComponent implements OnInit {
               ...(row.stoolMucus && { mucus: true }),
             },
           }),
+          ...(row.hasGas && row.gasFrequency && { gas: {
+            frequency: row.gasFrequency,
+            ...(row.gasHasOdor && { odor: row.gasOdor }),
+          }}),
+          ...(row.hasSleepHours && row.sleepHours !== null && { sleepHours: row.sleepHours }),
+          ...(row.hasDelay && row.postmealDelay !== null && { notes: `${row.postmealDelay}h après repas` }),
+          ...(row.key === 'wellbeing_score' && this.wellbeingNote.trim() && { notes: this.wellbeingNote.trim() }),
         });
       }
       void this.router.navigate(['/journal'], {
@@ -292,10 +284,10 @@ export class SymptomEntryComponent implements OnInit {
           occurredAt: now,
           category: row.category,
           symptomKey: row.key,
-          intensity: row.intensity || 5,
+          intensity: row.hasGas ? 0 : row.intensity || 5,
           ...(row.painZones.length > 0 && { painZones: row.painZones }),
           ...(row.painTypes.length > 0 && { painTypes: row.painTypes }),
-          ...(this.hasStoolData(row) && {
+          ...(row.hasBristol && this.hasData(row) && {
             stool: {
               bristolType: row.bristolType,
               ...(row.stoolFrequency > 0 && { frequency: row.stoolFrequency }),
@@ -303,7 +295,18 @@ export class SymptomEntryComponent implements OnInit {
               ...(row.stoolMucus && { mucus: true }),
             },
           }),
+          ...(row.hasGas && row.gasFrequency && { gas: {
+            frequency: row.gasFrequency,
+            ...(row.gasHasOdor && { odor: row.gasOdor }),
+          }}),
+          ...(row.hasSleepHours && row.sleepHours !== null && { sleepHours: row.sleepHours }),
+          ...(row.hasDelay && row.postmealDelay !== null && { notes: `${row.postmealDelay}h après repas` }),
+          ...(row.key === 'wellbeing_score' && this.wellbeingNote.trim() && { notes: this.wellbeingNote.trim() }),
         };
+        // wellbeing_score : 1 seul par jour calendaire (§1.4.2 Bloc C)
+        if (row.key === 'wellbeing_score') {
+          return this.symptoms.upsertDaySymptom(input);
+        }
         return this.symptoms.add(input);
       }),
     );

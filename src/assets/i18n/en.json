@@ -60,11 +60,23 @@
         "abdominal_pain": "Abdominal pain",
         "bloating": "Bloating",
         "nausea": "Nausea",
-        "gas": "Gas",
-        "constipation": "Constipation",
-        "diarrhea": "Diarrhea",
+        "heartburn": "Heartburn",
+        "transit": "Bowel transit",
+        "gas": "Flatulence",
+        "belching": "Belching",
+        "early_satiety": "Early satiety",
+        "postmeal_heaviness": "Post-meal heaviness",
         "fatigue": "Fatigue",
-        "wellbeing_score": "Wellbeing score"
+        "headache": "Headache",
+        "brain_fog": "Brain fog",
+        "joint_pain": "Joint pain",
+        "sleep_quality": "Sleep quality",
+        "wellbeing_score": "Wellbeing score",
+        "mood": "Mood / anxiety",
+        "energy": "Energy level",
+        "stress": "Stress",
+        "constipation": "Constipation",
+        "diarrhea": "Diarrhea"
       }
     },
     "intake": {

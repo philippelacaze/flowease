@@ -17,12 +17,6 @@
         {{ srcMode === 'voice' ? 'Dictée analysée · ajustez si besoin' : 'Faites glisser les curseurs' }}
       </div>
     </div>
-    @if (avgScore > 0) {
-      <div class="sym-score-badge" [class]="avgSeverityClass"
-           [attr.aria-label]="'Score moyen ' + avgScore + ' sur 10'">
-        {{ avgScore }}/10
-      </div>
-    }
   </div>
 
   @if (srcMode === 'voice') {
@@ -93,6 +87,30 @@
                 </label>
               </div>
             </div>
+          } @else if (row.hasGas) {
+            <!-- Flatulences / Éructations : fréquence + odeur optionnelle (§1.4.2 Bloc A) -->
+            <p class="gas-label">{{ row.labelFr }} :</p>
+            <div class="gas-freq-group" role="group"
+                 [attr.aria-label]="row.labelFr + ' — fréquence'">
+              @for (opt of gasFrequencyOptions; track opt.value) {
+                <button class="gas-freq-btn"
+                  [class.gas-freq-btn--active]="row.gasFrequency === opt.value"
+                  [attr.aria-label]="opt.label"
+                  [attr.aria-pressed]="row.gasFrequency === opt.value"
+                  [attr.data-testid]="'gas-freq-' + opt.value + '-' + row.key"
+                  (click)="row.gasFrequency = opt.value; markDirty()">
+                  {{ opt.label }}
+                </button>
+              }
+            </div>
+            @if (row.gasHasOdor && row.gasFrequency) {
+              <label class="gas-odor-label" [attr.data-testid]="'gas-odor-' + row.key">
+                <input type="checkbox" [checked]="row.gasOdor"
+                  aria-label="Odeur présente"
+                  (change)="row.gasOdor = $any($event.target).checked; markDirty()" />
+                Odeur présente
+              </label>
+            }
           } @else {
             <app-intensity-slider
               [label]="row.labelFr"
@@ -121,6 +139,20 @@
                 </div>
               </div>
             }
+            @if (row.hasDelay && row.intensity > 0) {
+              <!-- Lourdeur post-repas : délai après le repas (§1.4.2 Bloc A) -->
+              <div class="delay-row">
+                <label class="delay-label" [for]="'delay-' + row.key">
+                  Délai après repas (heures) :
+                </label>
+                <input type="number" [id]="'delay-' + row.key" class="delay-input"
+                  min="0" max="6" step="0.5"
+                  [value]="row.postmealDelay ?? ''"
+                  aria-label="Délai en heures après le repas"
+                  [attr.data-testid]="'postmeal-delay-' + row.key"
+                  (input)="row.postmealDelay = +($any($event.target).value) || null; markDirty()" />
+              </div>
+            }
           }
         </div>
       }
@@ -131,10 +163,53 @@
       <h2 class="section-title"><span aria-hidden="true">👤</span>Systémiques</h2>
       @for (row of systemicRows; track row) {
         <div class="symptom-row" [attr.data-testid]="'symptom-' + row.key">
-          <app-intensity-slider
-            [label]="row.labelFr"
-            [value]="row.intensity"
-            (valueChange)="row.intensity = $event; markDirty()" />
+          @if (row.hasYesNo) {
+            <!-- Douleurs articulaires : présence oui/non + intensité si oui (§1.4.2 Bloc B) -->
+            <p class="yesno-label">{{ row.labelFr }} :</p>
+            <div class="yesno-group" role="group"
+                 [attr.aria-label]="row.labelFr + ' — présence'">
+              <button class="yesno-btn yesno-btn--yes"
+                [class.yesno-btn--active]="row.isPresent === true"
+                aria-label="Oui, présent"
+                [attr.aria-pressed]="row.isPresent === true"
+                [attr.data-testid]="'yesno-yes-' + row.key"
+                (click)="row.isPresent = true; markDirty()">Oui</button>
+              <button class="yesno-btn yesno-btn--no"
+                [class.yesno-btn--active]="row.isPresent === false"
+                aria-label="Non, absent"
+                [attr.aria-pressed]="row.isPresent === false"
+                [attr.data-testid]="'yesno-no-' + row.key"
+                (click)="row.isPresent = false; row.intensity = 0; markDirty()">Non</button>
+            </div>
+            @if (row.isPresent === true) {
+              <app-intensity-slider
+                [label]="'Intensité'"
+                [value]="row.intensity"
+                (valueChange)="row.intensity = $event; markDirty()" />
+            }
+          } @else if (row.hasSleepHours) {
+            <!-- Troubles du sommeil : qualité 1-10 + heures dormies (§1.4.2 Bloc B) -->
+            <app-intensity-slider
+              [label]="row.labelFr"
+              [value]="row.intensity"
+              (valueChange)="row.intensity = $event; markDirty()" />
+            <div class="sleep-hours-row">
+              <label class="sleep-hours-label" [for]="'sleep-h-' + row.key">
+                Heures dormies :
+              </label>
+              <input type="number" [id]="'sleep-h-' + row.key" class="sleep-hours-input"
+                min="0" max="24" step="0.5"
+                [value]="row.sleepHours ?? ''"
+                aria-label="Nombre d'heures dormies"
+                [attr.data-testid]="'sleep-hours-' + row.key"
+                (input)="row.sleepHours = +($any($event.target).value) || null; markDirty()" />
+            </div>
+          } @else {
+            <app-intensity-slider
+              [label]="row.labelFr"
+              [value]="row.intensity"
+              (valueChange)="row.intensity = $event; markDirty()" />
+          }
         </div>
       }
     </section>
@@ -150,43 +225,19 @@
             (valueChange)="row.intensity = $event; markDirty()" />
         </div>
       }
+      <!-- Note libre du jour (§1.4.2 Bloc C) -->
+      <div class="wellbeing-note-row">
+        <label class="wellbeing-note-label" for="wellbeing-note">
+          Note libre du jour :
+        </label>
+        <textarea id="wellbeing-note" class="wellbeing-note-input" rows="3"
+          [(ngModel)]="wellbeingNote" maxlength="500"
+          placeholder="Comment s'est passée votre journée ? (optionnel)"
+          aria-label="Note libre du jour"
+          data-testid="wellbeing-note"></textarea>
+      </div>
     </section>
 
-    <!-- Symptômes personnalisés -->
-    @if (customSymptoms.length > 0) {
-      <section class="symptom-section" aria-label="Symptômes personnalisés">
-        <h2 class="section-title"><span aria-hidden="true">＋</span>Autres</h2>
-        @for (row of customSymptoms; track row) {
-          <div class="symptom-row" [attr.data-testid]="'symptom-' + row.key">
-            <app-intensity-slider
-              [label]="row.labelFr"
-              [value]="row.intensity"
-              (valueChange)="row.intensity = $event; markDirty()" />
-          </div>
-        }
-      </section>
-    }
-  </div>
-
-  <!-- Ajout de symptôme personnalisé -->
-  <div class="sym-add-section">
-    @if (!showAddCustom) {
-      <button class="sym-add-btn" aria-label="Ajouter un symptôme personnalisé"
-              data-testid="add-custom-symptom" (click)="showAddCustom = true">
-        ＋ Ajouter un symptôme
-      </button>
-    }
-    @if (showAddCustom) {
-      <div class="sym-add-row">
-        <input class="sym-add-input" [(ngModel)]="newCustomLabel"
-               placeholder="Ex : maux de tête…"
-               aria-label="Nom du symptôme personnalisé"
-               data-testid="custom-symptom-input"
-               (keydown.enter)="addCustomSymptom()" />
-        <button class="sym-add-confirm" aria-label="Confirmer" (click)="addCustomSymptom()">+</button>
-        <button class="sym-add-cancel" aria-label="Annuler" (click)="cancelCustom()">×</button>
-      </div>
-    }
   </div>
 
   <!-- Footer CTA -->

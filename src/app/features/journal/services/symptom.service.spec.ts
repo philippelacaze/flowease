@@ -87,22 +87,22 @@ describe('SymptomService', () => {
     });
   });
 
-  describe('saveWellbeing', () => {
-    it('crée une nouvelle entrée wellbeing si aucune n\'existe', async () => {
+  describe('upsertDaySymptom', () => {
+    it('crée une nouvelle entrée si aucune ne correspond pour ce jour', async () => {
       const storage = makeStorageMock();
       storage.getRange.mockResolvedValue([]);
       TestBed.configureTestingModule({
         providers: [SymptomService, { provide: StorageService, useValue: storage }],
       });
       const svc = TestBed.inject(SymptomService);
-      await svc.saveWellbeing({ date: new Date(), score: 8 });
+      await svc.upsertDaySymptom({ occurredAt: new Date(), category: 'wellbeing', symptomKey: 'wellbeing_score', intensity: 8 });
       expect(storage.save).toHaveBeenCalledWith('symptoms', expect.objectContaining({
         symptomKey: 'wellbeing_score',
         intensity: 8,
       }));
     });
 
-    it('met à jour l\'entrée existante si déjà saisie aujourd\'hui', async () => {
+    it('remplace l\'entrée existante du même symptomKey pour le même jour', async () => {
       const existing = { id: 'wb-1', symptomKey: 'wellbeing_score', intensity: 5, occurredAt: new Date(), createdAt: new Date(), category: 'wellbeing' };
       const storage = makeStorageMock();
       storage.getRange.mockResolvedValue([existing]);
@@ -110,8 +110,170 @@ describe('SymptomService', () => {
         providers: [SymptomService, { provide: StorageService, useValue: storage }],
       });
       const svc = TestBed.inject(SymptomService);
-      await svc.saveWellbeing({ date: new Date(), score: 9 });
+      await svc.upsertDaySymptom({ occurredAt: new Date(), category: 'wellbeing', symptomKey: 'wellbeing_score', intensity: 9 });
       expect(storage.save).toHaveBeenCalledWith('symptoms', expect.objectContaining({ id: 'wb-1', intensity: 9 }));
+    });
+
+    it('ne remplace pas une entrée d\'un autre symptomKey le même jour', async () => {
+      const other = { id: 'other-1', symptomKey: 'mood', intensity: 7, occurredAt: new Date(), createdAt: new Date(), category: 'wellbeing' };
+      const storage = makeStorageMock();
+      storage.getRange.mockResolvedValue([other]);
+      TestBed.configureTestingModule({
+        providers: [SymptomService, { provide: StorageService, useValue: storage }],
+      });
+      const svc = TestBed.inject(SymptomService);
+      await svc.upsertDaySymptom({ occurredAt: new Date(), category: 'wellbeing', symptomKey: 'wellbeing_score', intensity: 6 });
+      const savedArg = storage.save.mock.calls[0][1] as { id: string; symptomKey: string };
+      expect(savedArg.symptomKey).toBe('wellbeing_score');
+      expect(savedArg.id).not.toBe('other-1');
+    });
+  });
+
+  describe('getAllConfigs', () => {
+    it('retourne DEFAULT_CONFIGS si aucune config sauvegardée', async () => {
+      const storage = makeStorageMock();
+      storage.getAll.mockResolvedValue([]);
+      TestBed.configureTestingModule({
+        providers: [SymptomService, { provide: StorageService, useValue: storage }],
+      });
+      const svc = TestBed.inject(SymptomService);
+      const result = await svc.getAllConfigs();
+      expect(result.length).toBeGreaterThan(0);
+      expect(result[0].category).toBeDefined();
+    });
+
+    it('inclut les configs inactives (energy, stress)', async () => {
+      const storage = makeStorageMock();
+      storage.getAll.mockResolvedValue([]);
+      TestBed.configureTestingModule({
+        providers: [SymptomService, { provide: StorageService, useValue: storage }],
+      });
+      const svc = TestBed.inject(SymptomService);
+      const result = await svc.getAllConfigs();
+      expect(result.some(c => c.key === 'energy' && !c.active)).toBe(true);
+      expect(result.some(c => c.key === 'stress' && !c.active)).toBe(true);
+    });
+
+    it('migre les configs legacy sans category vers la catégorie par défaut', async () => {
+      const legacy = [
+        { id: 'abdominal_pain', key: 'abdominal_pain', label: 'Douleur', order: 0, custom: false, active: true },
+      ];
+      const storage = makeStorageMock();
+      storage.getAll.mockResolvedValue(legacy);
+      TestBed.configureTestingModule({
+        providers: [SymptomService, { provide: StorageService, useValue: storage }],
+      });
+      const svc = TestBed.inject(SymptomService);
+      const result = await svc.getAllConfigs();
+      expect(result[0].category).toBe('digestive');
+    });
+
+    it('utilise "digestive" pour les clés inconnues (symptômes custom)', async () => {
+      const custom = [
+        { id: 'custom-1', key: 'mon_symptome_custom', label: 'Custom', order: 0, custom: true, active: true },
+      ];
+      const storage = makeStorageMock();
+      storage.getAll.mockResolvedValue(custom);
+      TestBed.configureTestingModule({
+        providers: [SymptomService, { provide: StorageService, useValue: storage }],
+      });
+      const svc = TestBed.inject(SymptomService);
+      const result = await svc.getAllConfigs();
+      expect(result[0].category).toBe('digestive');
+    });
+
+    it('trie par order', async () => {
+      const configs = [
+        { id: 'b', key: 'b', label: 'B', order: 1, custom: false, active: true, category: 'systemic' as const },
+        { id: 'a', key: 'a', label: 'A', order: 0, custom: false, active: true, category: 'digestive' as const },
+      ];
+      const storage = makeStorageMock();
+      storage.getAll.mockResolvedValue(configs);
+      TestBed.configureTestingModule({
+        providers: [SymptomService, { provide: StorageService, useValue: storage }],
+      });
+      const svc = TestBed.inject(SymptomService);
+      const result = await svc.getAllConfigs();
+      expect(result[0].key).toBe('a');
+      expect(result[1].key).toBe('b');
+    });
+  });
+
+  describe('saveConfigs', () => {
+    it('efface le store puis sauvegarde chaque config', async () => {
+      const storage = makeStorageMock();
+      TestBed.configureTestingModule({
+        providers: [SymptomService, { provide: StorageService, useValue: storage }],
+      });
+      const svc = TestBed.inject(SymptomService);
+      const configs = [
+        { id: 'x', key: 'x', label: 'X', order: 0, custom: false, active: true, category: 'digestive' as const },
+      ];
+      await svc.saveConfigs(configs);
+      expect(storage.clear).toHaveBeenCalledWith('symptom-config');
+      expect(storage.save).toHaveBeenCalledWith('symptom-config', configs[0]);
+    });
+  });
+
+  describe('resetToDefault', () => {
+    it('efface le store symptom-config', async () => {
+      const storage = makeStorageMock();
+      TestBed.configureTestingModule({
+        providers: [SymptomService, { provide: StorageService, useValue: storage }],
+      });
+      const svc = TestBed.inject(SymptomService);
+      await svc.resetToDefault();
+      expect(storage.clear).toHaveBeenCalledWith('symptom-config');
+    });
+
+    it('après reset, getActiveConfigs retourne la liste par défaut', async () => {
+      const storage = makeStorageMock();
+      storage.getAll.mockResolvedValue([]);
+      TestBed.configureTestingModule({
+        providers: [SymptomService, { provide: StorageService, useValue: storage }],
+      });
+      const svc = TestBed.inject(SymptomService);
+      await svc.resetToDefault();
+      const result = await svc.getActiveConfigs();
+      expect(result.some(c => c.key === 'abdominal_pain')).toBe(true);
+    });
+  });
+
+  describe('DEFAULT_CONFIGS via getActiveConfigs', () => {
+    it('inclut wellbeing_score comme symptôme actif par défaut', async () => {
+      const storage = makeStorageMock();
+      storage.getAll.mockResolvedValue([]);
+      TestBed.configureTestingModule({
+        providers: [SymptomService, { provide: StorageService, useValue: storage }],
+      });
+      const svc = TestBed.inject(SymptomService);
+      const result = await svc.getActiveConfigs();
+      expect(result.some(c => c.key === 'wellbeing_score')).toBe(true);
+    });
+
+    it('n\'inclut pas energy ni stress dans les configs actives par défaut', async () => {
+      const storage = makeStorageMock();
+      storage.getAll.mockResolvedValue([]);
+      TestBed.configureTestingModule({
+        providers: [SymptomService, { provide: StorageService, useValue: storage }],
+      });
+      const svc = TestBed.inject(SymptomService);
+      const result = await svc.getActiveConfigs();
+      expect(result.some(c => c.key === 'energy')).toBe(false);
+      expect(result.some(c => c.key === 'stress')).toBe(false);
+    });
+
+    it('inclut les 3 nouveaux symptômes digestifs par défaut', async () => {
+      const storage = makeStorageMock();
+      storage.getAll.mockResolvedValue([]);
+      TestBed.configureTestingModule({
+        providers: [SymptomService, { provide: StorageService, useValue: storage }],
+      });
+      const svc = TestBed.inject(SymptomService);
+      const result = await svc.getActiveConfigs();
+      expect(result.some(c => c.key === 'belching')).toBe(true);
+      expect(result.some(c => c.key === 'early_satiety')).toBe(true);
+      expect(result.some(c => c.key === 'postmeal_heaviness')).toBe(true);
     });
   });
 });
