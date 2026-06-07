@@ -27,7 +27,7 @@ export class PdfReportService {
    * @param aiSummary - Synthèse IA optionnelle (null si non demandée)
    */
   generate(report: ReportEntity, aiSummary: string | null): void {
-    const doc = new jsPDF('p', 'mm', 'a4');
+    const doc = this.createDoc();
     let y = MARGIN;
 
     y = this.addHeader(doc, report, y);
@@ -48,10 +48,12 @@ export class PdfReportService {
     this.save(doc, `FlowEase_rapport_${date}.pdf`);
   }
 
-  /**
-   * Séparé pour permettre le test sans déclencher de téléchargement.
-   * @internal
-   */
+  /** @internal Séparé pour permettre l'injection d'un doc mock en test. */
+  protected createDoc(): jsPDF {
+    return new jsPDF('p', 'mm', 'a4');
+  }
+
+  /** @internal Séparé pour permettre le test sans déclencher de téléchargement. */
   protected save(doc: jsPDF, filename: string): void {
     doc.save(filename);
   }
