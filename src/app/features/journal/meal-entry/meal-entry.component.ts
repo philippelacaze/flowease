@@ -65,7 +65,7 @@ export class MealEntryComponent implements OnInit, OnDestroy {
   protected processingStep = 0;
   private processingTimers: ReturnType<typeof setTimeout>[] = [];
 
-  protected mealType: MealType = 'lunch';
+  protected mealType: MealType = this.defaultMealType();
   protected mealTime = this.nowTime();
   protected textInput = '';
   protected newItemName = '';
@@ -315,5 +315,13 @@ export class MealEntryComponent implements OnInit, OnDestroy {
   private toTimeString(date: Date): string {
     const d = new Date(date);
     return `${d.getHours().toString().padStart(2, '0')}:${d.getMinutes().toString().padStart(2, '0')}`;
+  }
+
+  private defaultMealType(now = new Date()): MealType {
+    const m = now.getHours() * 60 + now.getMinutes();
+    if (m >= 360 && m < 540)  return 'breakfast'; // 06:00–08:59
+    if (m >= 705 && m < 900)  return 'lunch';     // 11:45–14:59
+    if (m >= 1140 && m < 1260) return 'dinner';   // 19:00–20:59
+    return 'snack';
   }
 }
