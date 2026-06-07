@@ -12,7 +12,7 @@ import { SymptomService } from '../services/symptom.service';
 import { IntensitySliderComponent } from '../../../shared/components/intensity-slider/intensity-slider.component';
 import { AbdominalMapComponent } from '../../../shared/components/abdominal-map/abdominal-map.component';
 import { BristolScaleComponent } from '../../../shared/components/bristol-scale/bristol-scale.component';
-import type { SymptomCategory, SymptomEntity, GasFrequency } from '../../../core/models/entities/symptom.entity';
+import type { SymptomCategory, SymptomEntity } from '../../../core/models/entities/symptom.entity';
 import type { AbdominalZone } from '../../../core/models/value-objects/pain-location.vo';
 import type { PainType } from '../../../core/models/value-objects/pain-type.vo';
 import type { BristolType } from '../../../core/models/value-objects/bristol-type.vo';
@@ -37,9 +37,6 @@ interface SymptomRow {
   stoolBlood: boolean;
   stoolMucus: boolean;
   stoolFrequency: number;
-  gasFrequency: GasFrequency | null;
-  gasOdor: boolean;
-  isPresent: boolean | null;
   sleepHours: number | null;
   postmealDelay: number | null;
 }
@@ -117,11 +114,6 @@ export class SymptomEntryComponent implements OnInit {
   }
 
   protected readonly painTypes = PAIN_TYPES;
-  protected readonly gasFrequencyOptions: ReadonlyArray<{ value: GasFrequency; label: string }> = [
-    { value: 'rare',     label: 'Rares' },
-    { value: 'frequent', label: 'Fréquentes' },
-    { value: 'constant', label: 'Constantes' },
-  ];
   protected saving = false;
 
   protected srcMode: 'voice' | 'form' = 'form';
@@ -148,8 +140,6 @@ export class SymptomEntryComponent implements OnInit {
   }
 
   private hasData(row: SymptomRow): boolean {
-    if (row.hasGas)   return row.gasFrequency !== null;
-    if (row.hasYesNo) return row.isPresent === true && row.intensity > 0;
     if (row.hasBristol) return row.bristolType !== null || row.stoolBlood || row.stoolMucus || row.stoolFrequency > 0 || row.intensity > 0;
     return row.intensity > 0;
   }
@@ -179,9 +169,6 @@ export class SymptomEntryComponent implements OnInit {
         stoolBlood: entry.stool?.blood ?? false,
         stoolMucus: entry.stool?.mucus ?? false,
         stoolFrequency: entry.stool?.frequency ?? 0,
-        gasFrequency: entry.gas?.frequency ?? null,
-        gasOdor: entry.gas?.odor ?? false,
-        isPresent: meta.hasYesNo ? entry.intensity > 0 : null,
         sleepHours: entry.sleepHours ?? null,
         postmealDelay: meta.hasDelay && entry.notes
           ? (parseFloat(entry.notes) || null)
@@ -212,9 +199,6 @@ export class SymptomEntryComponent implements OnInit {
         stoolBlood: false,
         stoolMucus: false,
         stoolFrequency: 0,
-        gasFrequency: null,
-        gasOdor: false,
-        isPresent: null,
         sleepHours: null,
         postmealDelay: null,
       };
@@ -252,7 +236,7 @@ export class SymptomEntryComponent implements OnInit {
           occurredAt: this.editingEntry.occurredAt,
           category: row.category,
           symptomKey: row.key,
-          intensity: row.hasGas ? 0 : row.intensity || 5,
+          intensity: row.intensity || 5,
           ...(row.painZones.length > 0 && { painZones: row.painZones }),
           ...(row.painTypes.length > 0 && { painTypes: row.painTypes }),
           ...(row.hasBristol && this.hasData(row) && {
@@ -263,10 +247,6 @@ export class SymptomEntryComponent implements OnInit {
               ...(row.stoolMucus && { mucus: true }),
             },
           }),
-          ...(row.hasGas && row.gasFrequency && { gas: {
-            frequency: row.gasFrequency,
-            ...(row.gasHasOdor && { odor: row.gasOdor }),
-          }}),
           ...(row.hasSleepHours && row.sleepHours !== null && { sleepHours: row.sleepHours }),
           ...(row.hasDelay && row.postmealDelay !== null && { notes: `${row.postmealDelay}h après repas` }),
           ...(row.key === 'wellbeing_score' && this.wellbeingNote.trim() && { notes: this.wellbeingNote.trim() }),
@@ -284,7 +264,7 @@ export class SymptomEntryComponent implements OnInit {
           occurredAt: now,
           category: row.category,
           symptomKey: row.key,
-          intensity: row.hasGas ? 0 : row.intensity || 5,
+          intensity: row.intensity || 5,
           ...(row.painZones.length > 0 && { painZones: row.painZones }),
           ...(row.painTypes.length > 0 && { painTypes: row.painTypes }),
           ...(row.hasBristol && this.hasData(row) && {
@@ -295,10 +275,6 @@ export class SymptomEntryComponent implements OnInit {
               ...(row.stoolMucus && { mucus: true }),
             },
           }),
-          ...(row.hasGas && row.gasFrequency && { gas: {
-            frequency: row.gasFrequency,
-            ...(row.gasHasOdor && { odor: row.gasOdor }),
-          }}),
           ...(row.hasSleepHours && row.sleepHours !== null && { sleepHours: row.sleepHours }),
           ...(row.hasDelay && row.postmealDelay !== null && { notes: `${row.postmealDelay}h après repas` }),
           ...(row.key === 'wellbeing_score' && this.wellbeingNote.trim() && { notes: this.wellbeingNote.trim() }),

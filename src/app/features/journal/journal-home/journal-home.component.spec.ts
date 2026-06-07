@@ -15,6 +15,7 @@ import type { NoteEntity } from '../../../core/models/entities/note.entity';
 import type { IntakeEntity } from '../../../core/models/entities/intake.entity';
 import { IntakeService } from '../services/intake.service';
 import { NoteService } from '../services/note.service';
+import { SymptomService } from '../services/symptom.service';
 
 
 const LOW_ITEMS: FoodItemVO[] = [
@@ -90,6 +91,11 @@ async function createComponent(journalEntries: JournalEntry[] = [], treatments: 
       provideRouter([]),
       { provide: IntakeService, useValue: makeIntakeMock(journalEntries, treatments) },
       { provide: NoteService, useValue: { confirmTags: vi.fn().mockResolvedValue(undefined) } },
+      { provide: SymptomService, useValue: { getAllConfigs: vi.fn().mockResolvedValue([
+        { key: 'bloating',           label: 'Ballonnements' },
+        { key: 'wellbeing_score',    label: 'Score de bien-être' },
+        { key: 'abdominal_pain',     label: 'Douleur abdominale' },
+      ]) } },
 
       { provide: SettingsService, useValue: { scheduleReminders: vi.fn().mockResolvedValue(undefined) } },
       { provide: NotificationService, useValue: { getPermissionStatus: () => 'default', scheduleReminders: vi.fn(), cancelReminders: vi.fn(), requestPermission: vi.fn() } },

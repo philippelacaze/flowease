@@ -9,8 +9,8 @@ import type { ActiveSymptomConfig } from '../services/symptom.service';
 
 type SymptomRowPartial = {
   key: string; intensity: number; bristolType: unknown; hasBristol: boolean;
-  hasGas: boolean; gasFrequency: unknown; gasOdor: boolean;
-  hasYesNo: boolean; isPresent: boolean | null;
+  hasGas: boolean;
+  hasYesNo: boolean;
   hasSleepHours: boolean; sleepHours: number | null;
   hasDelay: boolean; postmealDelay: number | null;
   category: string; labelFr: string; painZones: unknown[]; painTypes: unknown[];
@@ -376,100 +376,83 @@ describe('SymptomEntryComponent', () => {
   });
 
   describe('gaz — flatulences et éructations (§1.4.2 Bloc A)', () => {
-    it('hasAnyRating est vrai quand gasFrequency est sélectionné', async () => {
+    it('hasAnyRating est vrai quand intensity > 0 pour gas', async () => {
       const { fixture } = await createComponentWith(MOCK_WITH_GAS);
       const comp = fixture.componentInstance as unknown as ComponentPrivate;
-      comp.rows[0].gasFrequency = 'frequent';
+      comp.rows.find(r => r.key === 'gas')!.intensity = 5;
       expect(comp.hasAnyRating).toBe(true);
     });
 
-    it('hasAnyRating est faux si aucune fréquence sélectionnée', async () => {
+    it('hasAnyRating est faux si intensity = 0 pour les deux lignes gaz', async () => {
       const { fixture } = await createComponentWith(MOCK_WITH_GAS);
       const comp = fixture.componentInstance as unknown as ComponentPrivate;
       expect(comp.hasAnyRating).toBe(false);
     });
 
-    it('les boutons de fréquence sont rendus pour gas', async () => {
-      const { fixture } = await createComponentWith(MOCK_WITH_GAS);
-      fixture.detectChanges();
-      const btn = fixture.nativeElement.querySelector('[data-testid="gas-freq-frequent-gas"]');
-      expect(btn).not.toBeNull();
-    });
-
-    it('le toggle odeur est visible pour gas quand fréquence sélectionnée', async () => {
+    it('hasAnyRating est vrai quand intensity > 0 pour belching', async () => {
       const { fixture } = await createComponentWith(MOCK_WITH_GAS);
       const comp = fixture.componentInstance as unknown as ComponentPrivate;
-      comp.rows.find(r => r.key === 'gas')!.gasFrequency = 'frequent';
-      fixture.detectChanges();
-      const odor = fixture.nativeElement.querySelector('[data-testid="gas-odor-gas"]');
-      expect(odor).not.toBeNull();
+      comp.rows.find(r => r.key === 'belching')!.intensity = 3;
+      expect(comp.hasAnyRating).toBe(true);
     });
 
-    it('le toggle odeur n\'est pas rendu pour belching (pas d\'odeur)', async () => {
-      const { fixture } = await createComponentWith(MOCK_WITH_GAS);
-      const comp = fixture.componentInstance as unknown as ComponentPrivate;
-      comp.rows.find(r => r.key === 'belching')!.gasFrequency = 'rare';
-      fixture.detectChanges();
-      const odor = fixture.nativeElement.querySelector('[data-testid="gas-odor-belching"]');
-      expect(odor).toBeNull();
-    });
-
-    it('submit envoie gas.frequency et gas.odor pour flatulences', async () => {
+    it('submit envoie l\'intensity pour flatulences', async () => {
       const { fixture, mockService } = await createComponentWith(MOCK_WITH_GAS);
       const comp = fixture.componentInstance as unknown as ComponentPrivate;
-      const gasRow = comp.rows.find(r => r.key === 'gas')!;
-      gasRow.gasFrequency = 'frequent';
-      gasRow.gasOdor = true;
+      comp.rows.find(r => r.key === 'gas')!.intensity = 7;
       await comp.submit();
       expect(mockService.add).toHaveBeenCalledWith(
-        expect.objectContaining({ gas: { frequency: 'frequent', odor: true } }),
+        expect.objectContaining({ symptomKey: 'gas', intensity: 7 }),
       );
     });
 
-    it('submit envoie gas.frequency sans odor pour éructations', async () => {
+    it('submit envoie l\'intensity pour éructations', async () => {
       const { fixture, mockService } = await createComponentWith(MOCK_WITH_GAS);
       const comp = fixture.componentInstance as unknown as ComponentPrivate;
-      comp.rows.find(r => r.key === 'belching')!.gasFrequency = 'rare';
+      comp.rows.find(r => r.key === 'belching')!.intensity = 4;
       await comp.submit();
       expect(mockService.add).toHaveBeenCalledWith(
-        expect.objectContaining({ symptomKey: 'belching', gas: { frequency: 'rare' } }),
+        expect.objectContaining({ symptomKey: 'belching', intensity: 4 }),
       );
+    });
+
+    it('submit n\'envoie pas de champ gas pour flatulences', async () => {
+      const { fixture, mockService } = await createComponentWith(MOCK_WITH_GAS);
+      const comp = fixture.componentInstance as unknown as ComponentPrivate;
+      comp.rows.find(r => r.key === 'gas')!.intensity = 6;
+      await comp.submit();
+      const callArg = mockService.add.mock.calls[0][0] as { gas?: unknown };
+      expect(callArg.gas).toBeUndefined();
     });
   });
 
-  describe('douleurs articulaires — présence oui/non (§1.4.2 Bloc B)', () => {
-    it('hasAnyRating est faux si isPresent est null', async () => {
+  describe('douleurs articulaires — slider standard (§1.4.2 Bloc B)', () => {
+    it('hasAnyRating est faux si intensity = 0', async () => {
       const { fixture } = await createComponentWith(MOCK_WITH_JOINT_PAIN);
       const comp = fixture.componentInstance as unknown as ComponentPrivate;
       expect(comp.hasAnyRating).toBe(false);
     });
 
-    it('hasAnyRating est faux si isPresent === false', async () => {
+    it('hasAnyRating est vrai si intensity > 0', async () => {
       const { fixture } = await createComponentWith(MOCK_WITH_JOINT_PAIN);
       const comp = fixture.componentInstance as unknown as ComponentPrivate;
-      comp.rows[0].isPresent = false;
-      expect(comp.hasAnyRating).toBe(false);
-    });
-
-    it('hasAnyRating est vrai si isPresent === true et intensity > 0', async () => {
-      const { fixture } = await createComponentWith(MOCK_WITH_JOINT_PAIN);
-      const comp = fixture.componentInstance as unknown as ComponentPrivate;
-      comp.rows[0].isPresent = true;
       comp.rows[0].intensity = 4;
       expect(comp.hasAnyRating).toBe(true);
     });
 
-    it('bouton Oui est rendu pour joint_pain', async () => {
-      const { fixture } = await createComponentWith(MOCK_WITH_JOINT_PAIN);
-      fixture.detectChanges();
-      const btn = fixture.nativeElement.querySelector('[data-testid="yesno-yes-joint_pain"]');
-      expect(btn).not.toBeNull();
-    });
-
-    it('submit n\'appelle pas add quand isPresent === false', async () => {
+    it('submit envoie l\'intensity pour joint_pain', async () => {
       const { fixture, mockService } = await createComponentWith(MOCK_WITH_JOINT_PAIN);
       const comp = fixture.componentInstance as unknown as ComponentPrivate;
-      comp.rows[0].isPresent = false;
+      comp.rows[0].intensity = 6;
+      await comp.submit();
+      expect(mockService.add).toHaveBeenCalledWith(
+        expect.objectContaining({ symptomKey: 'joint_pain', intensity: 6 }),
+      );
+    });
+
+    it('submit n\'appelle pas add si intensity = 0', async () => {
+      const { fixture, mockService } = await createComponentWith(MOCK_WITH_JOINT_PAIN);
+      const comp = fixture.componentInstance as unknown as ComponentPrivate;
       await comp.submit();
       expect(mockService.add).not.toHaveBeenCalled();
     });

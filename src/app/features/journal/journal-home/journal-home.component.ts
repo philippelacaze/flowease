@@ -11,6 +11,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { IntakeService, JournalEntry, CureProgressVO } from '../services/intake.service';
 import { NoteService } from '../services/note.service';
+import { SymptomService } from '../services/symptom.service';
 
 import { SettingsService } from '../../settings/services/settings.service';
 import { NotificationService } from '../../../core/services/notification.service';
@@ -51,6 +52,7 @@ const MEAL_LABELS: Record<string, string> = {
 export class JournalHomeComponent implements OnInit {
               private readonly intake = inject(IntakeService);
   private readonly notesSvc = inject(NoteService);
+  private readonly symptomSvc = inject(SymptomService);
   private readonly settingsService = inject(SettingsService);
   private readonly notificationPort = inject(NotificationService);
   private readonly router = inject(Router);
@@ -58,6 +60,7 @@ export class JournalHomeComponent implements OnInit {
 
   protected currentDate = new Date();
   private treatmentMap = new Map<string, string>();
+  private symptomLabelMap = new Map<string, string>();
   /** true si l'utilisateur a refusé les notifications dans le navigateur */
   protected notifDenied = false;
   protected entries: JournalEntry[] = [];
@@ -92,6 +95,7 @@ export class JournalHomeComponent implements OnInit {
     void this.loadEntries();
     void this.loadActiveCures();
     void this.loadTreatmentNames();
+    void this.loadSymptomLabels();
     this.notifDenied = this.notificationPort.getPermissionStatus() === 'denied';
     void this.settingsService.scheduleReminders();
   }
@@ -172,6 +176,10 @@ export class JournalHomeComponent implements OnInit {
 
   protected mealLabel(type: string): string {
     return MEAL_LABELS[type] ?? type;
+  }
+
+  protected symptomLabel(key: string): string {
+    return this.symptomLabelMap.get(key) ?? key;
   }
 
   protected treatmentName(id: string): string {
@@ -270,5 +278,11 @@ export class JournalHomeComponent implements OnInit {
   private async loadTreatmentNames(): Promise<void> {
     const treatments = await this.intake.getAllTreatments();
     this.treatmentMap = new Map(treatments.map(t => [t.id, t.name]));
+  }
+
+  private async loadSymptomLabels(): Promise<void> {
+    const configs = await this.symptomSvc.getAllConfigs();
+    this.symptomLabelMap = new Map(configs.map(c => [c.key, c.label]));
+    this.cdr.markForCheck();
   }
 }

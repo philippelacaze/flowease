@@ -191,7 +191,7 @@
             @for (e of symptoms; track e) {
               <div class="entry-card" data-testid="symptom-entry">
                 <div class="entry-head">
-                  <span class="entry-label">{{ e.data.symptomKey }}</span>
+                  <span class="entry-label">{{ symptomLabel(e.data.symptomKey) }}</span>
                   <div class="entry-head-right">
                     <span class="entry-time">{{ e.data.occurredAt | date:'HH:mm' }}</span>
                     <button class="entry-edit-btn" aria-label="Modifier ce symptôme"
