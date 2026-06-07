@@ -220,6 +220,35 @@ describe('MealEntryComponent', () => {
     });
   });
 
+  describe('type de repas par défaut selon l\'heure', () => {
+    type CompWithDefault = { defaultMealType(now: Date): string };
+
+    function at(h: number, min = 0): Date {
+      const d = new Date();
+      d.setHours(h, min, 0, 0);
+      return d;
+    }
+
+    let comp: CompWithDefault;
+    beforeEach(async () => {
+      const { fixture } = await createComponent();
+      comp = fixture.componentInstance as unknown as CompWithDefault;
+    });
+
+    it('retourne "breakfast" à 6h00', () => expect(comp.defaultMealType(at(6, 0))).toBe('breakfast'));
+    it('retourne "breakfast" à 8h59', () => expect(comp.defaultMealType(at(8, 59))).toBe('breakfast'));
+    it('retourne "snack" à 9h00 (juste après breakfast)', () => expect(comp.defaultMealType(at(9, 0))).toBe('snack'));
+    it('retourne "snack" à 5h59 (avant breakfast)', () => expect(comp.defaultMealType(at(5, 59))).toBe('snack'));
+    it('retourne "lunch" à 11h45', () => expect(comp.defaultMealType(at(11, 45))).toBe('lunch'));
+    it('retourne "lunch" à 14h59', () => expect(comp.defaultMealType(at(14, 59))).toBe('lunch'));
+    it('retourne "snack" à 11h44 (juste avant lunch)', () => expect(comp.defaultMealType(at(11, 44))).toBe('snack'));
+    it('retourne "snack" à 15h00 (juste après lunch)', () => expect(comp.defaultMealType(at(15, 0))).toBe('snack'));
+    it('retourne "dinner" à 19h00', () => expect(comp.defaultMealType(at(19, 0))).toBe('dinner'));
+    it('retourne "dinner" à 20h59', () => expect(comp.defaultMealType(at(20, 59))).toBe('dinner'));
+    it('retourne "snack" à 21h00 (après dinner)', () => expect(comp.defaultMealType(at(21, 0))).toBe('snack'));
+    it('retourne "snack" à 10h00 (entre breakfast et lunch)', () => expect(comp.defaultMealType(at(10, 0))).toBe('snack'));
+  });
+
   describe('mode texte — analyse IA sur validation', () => {
     afterEach(() => history.replaceState({}, ''));
 
