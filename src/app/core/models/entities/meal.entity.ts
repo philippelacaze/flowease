@@ -33,6 +33,17 @@ export interface FodmapFlagVO {
  * @remarks
  * Value object immuable. confirmed = false indique une suggestion IA non encore validée.
  * L'interface ISP garantit que ce VO est utilisable indépendamment de MealEntity.
+ *
+ * analyzed distingue « validé par l'utilisateur » (confirmed) de « passé par l'analyse IA » :
+ * un aliment peut être analyzed = true tout en gardant fodmap.level 'unknown' si l'IA
+ * n'a pas su le classer. Absent (legacy) → on retombe sur fodmap.level pour décider.
+ *
+ * @param name - Nom de l'aliment normalisé
+ * @param quantity - Quantité mentionnée ou estimée (optionnel)
+ * @param unit - Unité associée à la quantité (optionnel)
+ * @param fodmap - Niveau FODMAP de l'aliment
+ * @param confirmed - true une fois validé par l'utilisateur
+ * @param analyzed - true si l'aliment a déjà été soumis à l'analyse IA (quel qu'en soit le résultat)
  */
 export interface FoodItemVO {
   readonly name: string;
@@ -40,6 +51,7 @@ export interface FoodItemVO {
   readonly unit?: string;
   readonly fodmap: FodmapFlagVO;
   readonly confirmed: boolean;
+  readonly analyzed?: boolean;
 }
 
 /**

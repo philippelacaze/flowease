@@ -5,6 +5,7 @@ import { Router, provideRouter } from '@angular/router';
 import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 import { MealEntryComponent } from './meal-entry.component';
 import { MealService } from '../services/meal.service';
+import { LocalSettingsService } from '../../../core/services/local-settings.service';
 import { ErrorNotificationService } from '../../../core/services/error-notification.service';
 import type { AiFodmapAlert, FoodItemVO } from '../../../core/models/entities/meal.entity';
 import type { MealAnalysisResult } from '../../../core/services/ai.service';
@@ -25,13 +26,17 @@ const emptyResult: MealAnalysisResult = { items: [], aiFodmapFlags: [] };
 type ComponentPrivate = {
   onPhotoSelected(event: PhotoSelectedEvent): Promise<void>;
   onTranscript(text: string): Promise<void>;
-  analyzeTextInput(): void;
+  analyzeAll(): Promise<void>;
+  addManualItem(): void;
+  submit(): Promise<void>;
   setMode(mode: string): void;
   phase: string;
   srcMode: string;
   proposedItems: FoodItemVO[];
   pendingAiFodmapFlags: AiFodmapAlert[];
   textInput: string;
+  newItemName: string;
+  showAnalyzeAction: boolean;
 };
 
 function makeMealServiceMock(
@@ -47,12 +52,17 @@ function makeMealServiceMock(
   };
 }
 
-async function createComponent(mockService = makeMealServiceMock()) {
+/**
+ * @param withKey - simule la présence (true) ou non (false) d'une clé API Anthropic.
+ *                  Sans clé, l'app bascule en mode dégradé (bouton Enregistrer direct).
+ */
+async function createComponent(mockService = makeMealServiceMock(), withKey = true) {
   await TestBed.configureTestingModule({
     imports: [MealEntryComponent, NoopAnimationsModule],
     providers: [
       provideRouter([]),
       { provide: MealService, useValue: mockService },
+      { provide: LocalSettingsService, useValue: { hasApiKey: () => withKey, getApiKey: () => (withKey ? 'sk-test' : null) } },
     ],
   }).compileComponents();
 
@@ -62,9 +72,117 @@ async function createComponent(mockService = makeMealServiceMock()) {
   return { fixture, mockService };
 }
 
+function analyzeBtn(fixture: ComponentFixture<MealEntryComponent>) {
+  return fixture.debugElement.query(By.css('[data-testid="analyze-meal"]'));
+}
+function submitBtn(fixture: ComponentFixture<MealEntryComponent>) {
+  return fixture.debugElement.query(By.css('[data-testid="submit-meal"]'));
+}
+
 describe('MealEntryComponent', () => {
 
-  // ── Mode texte — flux complet ───────────────────────────────────────────
+  // ── Bouton unique : Analyse IA tant qu'un aliment n'est pas analysé ───────
+
+  describe('bouton unique selon l\'état d\'analyse des aliments', () => {
+    afterEach(() => history.replaceState({}, ''));
+
+    it('affiche uniquement "Analyse IA" (pas Enregistrer) quand un aliment n\'est pas analysé', async () => {
+      const { fixture } = await createComponent();
+      const comp = fixture.componentInstance as unknown as ComponentPrivate;
+      comp.newItemName = 'Brocoli';
+      comp.addManualItem();
+      fixture.detectChanges();
+
+      expect(analyzeBtn(fixture)).not.toBeNull();
+      expect(submitBtn(fixture)).toBeNull();
+    });
+
+    it('affiche "Enregistrer le repas" quand tous les aliments sont analysés', async () => {
+      const { fixture } = await createComponent();
+      const comp = fixture.componentInstance as unknown as ComponentPrivate;
+      comp.proposedItems = [{ name: 'Riz', fodmap: { level: 'low' }, confirmed: true }];
+      fixture.detectChanges();
+
+      expect(submitBtn(fixture)).not.toBeNull();
+      expect(analyzeBtn(fixture)).toBeNull();
+    });
+
+    it('repasse en "Analyse IA" dès qu\'on ajoute un aliment non analysé à une liste analysée', async () => {
+      const { fixture } = await createComponent();
+      const comp = fixture.componentInstance as unknown as ComponentPrivate;
+      comp.proposedItems = [{ name: 'Riz', fodmap: { level: 'low' }, confirmed: true }];
+      comp.newItemName = 'Oignon';
+      comp.addManualItem();
+      fixture.detectChanges();
+
+      expect(analyzeBtn(fixture)).not.toBeNull();
+      expect(submitBtn(fixture)).toBeNull();
+    });
+
+    it('analyzeAll() envoie les noms des aliments non analysés à l\'IA et conserve les analysés', async () => {
+      const textResult: MealAnalysisResult = {
+        items: [{ name: 'Oignon', fodmap: { level: 'high' }, confirmed: false }],
+        aiFodmapFlags: [],
+      };
+      const mockService = makeMealServiceMock(mockResult, textResult);
+      const { fixture } = await createComponent(mockService);
+      const comp = fixture.componentInstance as unknown as ComponentPrivate;
+      comp.proposedItems = [
+        { name: 'Riz', fodmap: { level: 'low' }, confirmed: true },
+        { name: 'Oignon', fodmap: { level: 'unknown' }, confirmed: true },
+      ];
+
+      await comp.analyzeAll();
+      await fixture.whenStable();
+
+      expect(mockService.extractFromText).toHaveBeenCalledWith('Oignon');
+      // Riz (déjà analysé) conservé + Oignon analysé renvoyé par l'IA
+      expect(comp.proposedItems.map(i => i.name)).toEqual(['Riz', 'Oignon']);
+      expect(comp.proposedItems.every(i => i.fodmap.level !== 'unknown')).toBe(true);
+    });
+
+    it('un aliment analysé mais resté de niveau "unknown" ne redéclenche pas l\'analyse', async () => {
+      // L'IA renvoie un aliment qu'elle n'a pas su classer, mais marqué analyzed:true
+      const textResult: MealAnalysisResult = {
+        items: [{ name: 'Aliment exotique', fodmap: { level: 'unknown' }, confirmed: false, analyzed: true }],
+        aiFodmapFlags: [],
+      };
+      const mockService = makeMealServiceMock(mockResult, textResult);
+      const { fixture } = await createComponent(mockService);
+      const comp = fixture.componentInstance as unknown as ComponentPrivate;
+      comp.textInput = 'aliment exotique';
+
+      await comp.analyzeAll();
+      await fixture.whenStable();
+      fixture.detectChanges();
+
+      // Bien que le chip reste gris (unknown), l'aliment est considéré analysé → Enregistrer
+      expect(comp.showAnalyzeAction).toBe(false);
+      expect(submitBtn(fixture)).not.toBeNull();
+      expect(analyzeBtn(fixture)).toBeNull();
+    });
+
+    it('après analyse de tous les aliments, le bouton devient "Enregistrer le repas"', async () => {
+      const textResult: MealAnalysisResult = {
+        items: [{ name: 'Oignon', fodmap: { level: 'high' }, confirmed: false }],
+        aiFodmapFlags: [],
+      };
+      const mockService = makeMealServiceMock(mockResult, textResult);
+      const { fixture } = await createComponent(mockService);
+      const comp = fixture.componentInstance as unknown as ComponentPrivate;
+      comp.proposedItems = [{ name: 'Oignon', fodmap: { level: 'unknown' }, confirmed: true }];
+
+      await comp.analyzeAll();
+      await fixture.whenStable();
+      fixture.detectChanges();
+
+      expect(comp.showAnalyzeAction).toBe(false);
+      expect(submitBtn(fixture)).not.toBeNull();
+      expect(analyzeBtn(fixture)).toBeNull();
+    });
+  });
+
+  // ── Mode texte — saisie et analyse ───────────────────────────────────────
 
   describe('mode texte — saisie et analyse', () => {
     afterEach(() => history.replaceState({}, ''));
@@ -76,57 +194,56 @@ describe('MealEntryComponent', () => {
       expect(textarea).not.toBeNull();
     });
 
-    it('affiche le bouton "Analyser" dès que la textarea n\'est pas vide', async () => {
+    it('affiche le bouton "Analyse IA" dès que la textarea n\'est pas vide (clé présente)', async () => {
       const { fixture } = await createComponent();
-      const comp = fixture.componentInstance as unknown as ComponentPrivate;
       const textarea = fixture.debugElement.query(By.css('[data-testid="meal-text-input"]'));
       (textarea.nativeElement as HTMLTextAreaElement).value = 'Poulet riz';
       (textarea.nativeElement as HTMLTextAreaElement).dispatchEvent(new Event('input'));
       fixture.detectChanges();
 
-      const analyzeBtn = fixture.debugElement.query(By.css('[data-testid="analyze-meal"]'));
-      expect(analyzeBtn).not.toBeNull();
-      expect((analyzeBtn.nativeElement as HTMLButtonElement).getAttribute('aria-label'))
+      const btn = analyzeBtn(fixture);
+      expect(btn).not.toBeNull();
+      expect((btn.nativeElement as HTMLButtonElement).getAttribute('aria-label'))
         .toBe('Analyser les aliments par IA');
-      void comp; // satisfy linter
     });
 
-    it('analyzeTextInput() appelle extractFromText avec le contenu de textInput', async () => {
+    it('analyzeAll() appelle extractFromText avec le contenu de textInput', async () => {
       const textResult: MealAnalysisResult = { items: mockItems, aiFodmapFlags: [] };
       const mockService = makeMealServiceMock(mockResult, textResult);
       const { fixture } = await createComponent(mockService);
       const comp = fixture.componentInstance as unknown as ComponentPrivate;
       comp.textInput = 'Riz blanc et poulet';
 
-      comp.analyzeTextInput();
+      await comp.analyzeAll();
       await fixture.whenStable();
 
       expect(mockService.extractFromText).toHaveBeenCalledWith('Riz blanc et poulet');
     });
 
-    it('passe en phase "validation" avec les aliments IA après analyzeTextInput()', async () => {
+    it('passe en phase "validation" avec les aliments IA après analyzeAll()', async () => {
       const textResult: MealAnalysisResult = { items: mockItems, aiFodmapFlags: [] };
       const mockService = makeMealServiceMock(mockResult, textResult);
       const { fixture } = await createComponent(mockService);
       const comp = fixture.componentInstance as unknown as ComponentPrivate;
       comp.textInput = 'Riz blanc et poulet';
 
-      comp.analyzeTextInput();
+      await comp.analyzeAll();
       await fixture.whenStable();
       fixture.detectChanges();
 
       expect(comp.phase).toBe('validation');
       expect(comp.proposedItems).toHaveLength(mockItems.length);
+      expect(comp.textInput).toBe('');
     });
 
-    it('affiche les alertes FODMAP dans la phase validation après analyzeTextInput()', async () => {
+    it('affiche les alertes FODMAP dans la phase validation après analyzeAll()', async () => {
       const textResult: MealAnalysisResult = { items: mockItems, aiFodmapFlags: mockFlags };
       const mockService = makeMealServiceMock(mockResult, textResult);
       const { fixture } = await createComponent(mockService);
       const comp = fixture.componentInstance as unknown as ComponentPrivate;
       comp.textInput = 'Pâtes à l\'ail';
 
-      comp.analyzeTextInput();
+      await comp.analyzeAll();
       await fixture.whenStable();
       fixture.detectChanges();
 
@@ -142,7 +259,7 @@ describe('MealEntryComponent', () => {
       const comp = fixture.componentInstance as unknown as ComponentPrivate;
       comp.textInput = 'xyzabc';
 
-      comp.analyzeTextInput();
+      await comp.analyzeAll();
       await fixture.whenStable();
       fixture.detectChanges();
 
@@ -155,7 +272,7 @@ describe('MealEntryComponent', () => {
       const comp = fixture.componentInstance as unknown as ComponentPrivate;
       comp.textInput = 'Poulet rôti';
 
-      await (fixture.componentInstance as unknown as { submit(): Promise<void> }).submit();
+      await comp.submit();
 
       expect(mockService.extractFromText).not.toHaveBeenCalled();
     });
@@ -166,10 +283,37 @@ describe('MealEntryComponent', () => {
       const comp = fixture.componentInstance as unknown as ComponentPrivate;
       comp.textInput = 'Poulet rôti';
 
-      await (fixture.componentInstance as unknown as { submit(): Promise<void> }).submit();
+      await comp.submit();
 
       const callArg = mockService.add.mock.calls[0][0] as { items: FoodItemVO[] };
       expect(callArg.items[0].name).toBe('Poulet rôti');
+    });
+  });
+
+  // ── Mode dégradé — sans clé API ──────────────────────────────────────────
+
+  describe('mode dégradé — aucune clé API configurée', () => {
+    afterEach(() => history.replaceState({}, ''));
+
+    it('affiche directement "Enregistrer le repas" même avec des aliments non analysés', async () => {
+      const { fixture } = await createComponent(makeMealServiceMock(), false);
+      const comp = fixture.componentInstance as unknown as ComponentPrivate;
+      comp.newItemName = 'Brocoli';
+      comp.addManualItem();
+      fixture.detectChanges();
+
+      expect(submitBtn(fixture)).not.toBeNull();
+      expect(analyzeBtn(fixture)).toBeNull();
+    });
+
+    it('n\'affiche pas "Analyse IA" pour du texte libre sans clé', async () => {
+      const { fixture } = await createComponent(makeMealServiceMock(), false);
+      const comp = fixture.componentInstance as unknown as ComponentPrivate;
+      comp.textInput = 'Poulet riz';
+      fixture.detectChanges();
+
+      expect(analyzeBtn(fixture)).toBeNull();
+      expect(submitBtn(fixture)).not.toBeNull();
     });
   });
 
@@ -327,7 +471,7 @@ describe('MealEntryComponent', () => {
       comp.setMode('photo');
       await comp.onPhotoSelected({ base64: 'abc123==', mediaType: 'image/jpeg' });
       mockService.extractFromText.mockClear();
-      await (fixture.componentInstance as unknown as { submit(): Promise<void> }).submit();
+      await comp.submit();
       expect(mockService.extractFromText).not.toHaveBeenCalled();
     });
   });
@@ -335,7 +479,7 @@ describe('MealEntryComponent', () => {
   // ── Phase validation — bouton confirm ───────────────────────────────────
 
   describe('phase validation — bouton confirmer', () => {
-    it('le bouton submit porte l\'aria-label "Confirmer et enregistrer le repas"', async () => {
+    it('le bouton submit porte l\'aria-label "Confirmer et enregistrer le repas" quand tout est analysé', async () => {
       const { fixture } = await createComponent(makeMealServiceMock(mockResult));
       const comp = fixture.componentInstance as unknown as ComponentPrivate;
       comp.setMode('photo');
@@ -344,10 +488,26 @@ describe('MealEntryComponent', () => {
       await comp.onPhotoSelected({ base64: 'abc', mediaType: 'image/jpeg' });
       fixture.detectChanges();
 
-      const btn = fixture.debugElement.query(By.css('[data-testid="submit-meal"]'));
+      const btn = submitBtn(fixture);
       expect(btn).not.toBeNull();
       expect((btn.nativeElement as HTMLButtonElement).getAttribute('aria-label'))
         .toBe('Confirmer et enregistrer le repas');
+    });
+
+    it('affiche "Analyse IA" en validation si on ajoute un aliment non analysé', async () => {
+      const { fixture } = await createComponent(makeMealServiceMock(mockResult));
+      const comp = fixture.componentInstance as unknown as ComponentPrivate;
+      comp.setMode('photo');
+      fixture.detectChanges();
+      await comp.onPhotoSelected({ base64: 'abc', mediaType: 'image/jpeg' });
+      fixture.detectChanges();
+
+      comp.newItemName = 'Pomme non analysée';
+      comp.addManualItem();
+      fixture.detectChanges();
+
+      expect(analyzeBtn(fixture)).not.toBeNull();
+      expect(submitBtn(fixture)).toBeNull();
     });
   });
 
@@ -486,6 +646,16 @@ describe('MealEntryComponent', () => {
       expect(photoInput).not.toBeNull();
       const btn = photoInput.query(By.css('button'));
       expect((btn.nativeElement as HTMLButtonElement).disabled).toBe(true);
+    });
+
+    it('hors-ligne avec aliments non analysés : bouton Enregistrer (pas Analyse IA)', () => {
+      const comp = fixture.componentInstance as unknown as ComponentPrivate;
+      comp.newItemName = 'Brocoli';
+      comp.addManualItem();
+      fixture.detectChanges();
+
+      expect(analyzeBtn(fixture)).toBeNull();
+      expect(submitBtn(fixture)).not.toBeNull();
     });
   });
 });

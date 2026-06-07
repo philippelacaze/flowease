@@ -11,6 +11,7 @@ import { FormsModule } from '@angular/forms';
 import { Router, ActivatedRoute } from '@angular/router';
 import { MealService } from '../services/meal.service';
 import { ErrorNotificationService } from '../../../core/services/error-notification.service';
+import { LocalSettingsService } from '../../../core/services/local-settings.service';
 import { VoiceInputComponent } from '../../../shared/components/voice-input/voice-input.component';
 import {
   PhotoInputComponent,
@@ -51,6 +52,7 @@ export class MealEntryComponent implements OnInit, OnDestroy {
   private readonly route = inject(ActivatedRoute);
   private readonly cdr = inject(ChangeDetectorRef);
   private readonly errorNotification = inject(ErrorNotificationService);
+  private readonly settings = inject(LocalSettingsService);
 
   protected journalDate: Date = new Date();
   protected get isRetrospective(): boolean {
@@ -87,6 +89,50 @@ export class MealEntryComponent implements OnInit, OnDestroy {
 
   protected get isOnline(): boolean {
     return navigator.onLine;
+  }
+
+  /**
+   * Indique si un aliment a déjà été soumis à l'analyse IA.
+   *
+   * @remarks
+   * Le flag `analyzed` fait foi (un aliment peut être analysé mais rester de niveau
+   * 'unknown' si l'IA n'a pas su le classer). Pour les données antérieures au flag,
+   * on retombe sur le niveau FODMAP : un niveau connu implique un aliment déjà analysé.
+   */
+  private isAnalyzed(item: FoodItemVO): boolean {
+    return item.analyzed === true || item.fodmap.level !== 'unknown';
+  }
+
+  /** Aliments encore non analysés par l'IA. */
+  protected get unanalyzedItems(): FoodItemVO[] {
+    return this.proposedItems.filter(i => !this.isAnalyzed(i));
+  }
+
+  /**
+   * Vrai s'il reste quelque chose à analyser : un aliment non analysé,
+   * ou du texte libre saisi mais pas encore extrait.
+   */
+  protected get hasPendingAnalysis(): boolean {
+    return this.unanalyzedItems.length > 0
+      || (this.srcMode === 'text' && this.textInput.trim().length > 0);
+  }
+
+  /** L'analyse IA est possible : clé API configurée et connexion disponible. */
+  protected get aiAvailable(): boolean {
+    return this.isOnline && this.settings.hasApiKey();
+  }
+
+  /**
+   * Vrai si l'action principale doit être « Analyse IA » plutôt qu'« Enregistrer ».
+   *
+   * @remarks
+   * Tant qu'au moins un aliment n'est pas analysé, le bouton unique reste « Analyse IA ».
+   * Il devient « Enregistrer le repas » uniquement quand tous les aliments ont un niveau
+   * FODMAP connu. En mode dégradé (sans clé ou hors ligne), on bascule directement sur
+   * l'enregistrement manuel pour ne jamais bloquer l'utilisateur.
+   */
+  protected get showAnalyzeAction(): boolean {
+    return this.hasPendingAnalysis && this.aiAvailable;
   }
 
   ngOnInit(): void {
@@ -229,11 +275,49 @@ export class MealEntryComponent implements OnInit, OnDestroy {
     this.cdr.markForCheck();
   }
 
-  /** Déclenche l'analyse IA du texte saisi sans enregistrer le repas. */
-  protected analyzeTextInput(): void {
+  /**
+   * Lance l'analyse IA de tous les aliments non encore analysés, en une seule passe.
+   *
+   * @remarks
+   * Combine le texte libre éventuel et les noms des aliments au niveau FODMAP 'unknown',
+   * envoie le tout à l'IA, puis fusionne le résultat avec les aliments déjà analysés.
+   * Les aliments déjà colorés (low/medium/high) sont préservés tels quels.
+   * En cas d'échec IA, les aliments existants sont restaurés et l'écran dégradé s'affiche
+   * pour permettre l'ajout/enregistrement manuel.
+   */
+  protected async analyzeAll(): Promise<void> {
+    if (this.saving) return;
+
+    const parts: string[] = [];
     const text = this.textInput.trim();
-    if (!text) return;
-    void this.onTranscript(text);
+    if (text) parts.push(text);
+    const unanalyzed = this.unanalyzedItems;
+    for (const item of unanalyzed) parts.push(item.name);
+    if (parts.length === 0) return;
+
+    const keptItems = this.proposedItems.filter(i => this.isAnalyzed(i));
+    const previousItems = this.proposedItems;
+
+    this.aiUnavailableReason = null;
+    this.phase = 'processing';
+    this.startAnalyzing();
+    this.cdr.markForCheck();
+
+    const result = await this.meals.extractFromText(parts.join(', '));
+    this.clearProcessingTimers();
+
+    if (result.items.length === 0) {
+      this.proposedItems = previousItems;
+      this.aiUnavailableReason = this.errorNotification.current()?.message
+        ?? 'Analyse IA indisponible — ajoutez les aliments manuellement';
+      this.phase = !navigator.onLine ? 'network' : 'empty';
+    } else {
+      this.proposedItems = [...keptItems, ...result.items];
+      this.pendingAiFodmapFlags = this.mergeFlags(this.pendingAiFodmapFlags, result.aiFodmapFlags);
+      this.textInput = '';
+      this.phase = 'validation';
+    }
+    this.cdr.markForCheck();
   }
 
   protected async submit(): Promise<void> {
@@ -293,9 +377,34 @@ export class MealEntryComponent implements OnInit, OnDestroy {
     ];
   }
 
+  /**
+   * Démarre l'animation d'analyse sans l'étape de capture (vocal/photo).
+   *
+   * @remarks
+   * Utilisé par analyzeAll() : on est déjà au stade « Analyse IA en cours »,
+   * donc on saute directement à l'étape ✨ (processingStep = 1).
+   */
+  private startAnalyzing(): void {
+    this.processingStep = 1;
+    this.processingTimers = [
+      setTimeout(() => { this.processingStep = 2; this.cdr.markForCheck(); }, 1500),
+    ];
+  }
+
   private clearProcessingTimers(): void {
     this.processingTimers.forEach(t => clearTimeout(t));
     this.processingTimers = [];
+  }
+
+  /** Fusionne deux listes d'alertes FODMAP en dédupliquant par nom d'aliment. */
+  private mergeFlags(
+    existing: AiFodmapAlert[],
+    incoming: ReadonlyArray<AiFodmapAlert>,
+  ): AiFodmapAlert[] {
+    const byItem = new Map<string, AiFodmapAlert>();
+    for (const flag of existing) byItem.set(flag.item, flag);
+    for (const flag of incoming) byItem.set(flag.item, flag);
+    return Array.from(byItem.values());
   }
 
   private async loadFrequentFoods(): Promise<void> {

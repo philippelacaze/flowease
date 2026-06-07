@@ -83,3 +83,100 @@ test.describe('Saisie d\'un repas', () => {
   });
 
 });
+
+// Avec une clé API configurée + l'API Anthropic mockée : on teste le bouton unique
+// « Analyse IA » qui se mue en « Enregistrer le repas » une fois tous les aliments analysés.
+const FAKE_API_KEY_ENTRY = ['flowease_api_key', 'test-api-key-playwright'] as const;
+
+/** Réponse Anthropic mockée : un aliment analysé au niveau FODMAP donné (+ alerte si élevé). */
+function mockAnthropicMealResponse(name: string, level: 'low' | 'medium' | 'high' | 'unknown' = 'high') {
+  const body = {
+    items: [
+      { name, quantity: '100g', fodmap: { level }, confirmed: false },
+    ],
+    fodmapAlerts: level === 'high'
+      ? [{ item: name, reason: 'Riche en fructanes, risque de fermentation (SIBO)', severity: 'danger' }]
+      : [],
+  };
+  return {
+    status: 200,
+    contentType: 'application/json',
+    body: JSON.stringify({ content: [{ type: 'text', text: JSON.stringify(body) }] }),
+  };
+}
+
+test.describe('Saisie d\'un repas — bouton unique Analyse IA', () => {
+  test.describe.configure({ mode: 'serial' });
+
+  test.beforeEach(async ({ page }) => {
+    // Clé API injectée avant le chargement Angular → l'analyse IA devient disponible
+    await page.addInitScript(([key, value]) => {
+      localStorage.setItem(key, value);
+    }, FAKE_API_KEY_ENTRY);
+  });
+
+  test('aliment non analysé → seul le bouton "Analyse IA" est présent', async ({ page }) => {
+    await page.goto('/journal/meal');
+
+    await page.locator('[data-testid="add-item-input"]').fill('Brocoli');
+    await page.getByRole('button', { name: 'Ajouter l\'aliment' }).click();
+
+    // Un seul bouton : Analyse IA — pas d'Enregistrer tant qu'un aliment n'est pas analysé
+    await expect(page.locator('[data-testid="analyze-meal"]')).toBeVisible();
+    await expect(page.locator('[data-testid="submit-meal"]')).toHaveCount(0);
+  });
+
+  test('Analyse IA → couleur/alerte visibles → bouton devient "Enregistrer le repas"', async ({ page }) => {
+    await page.route('https://api.anthropic.com/v1/messages', (route) =>
+      route.fulfill(mockAnthropicMealResponse('Brocoli')),
+    );
+
+    await page.goto('/journal/meal');
+    await page.locator('[data-testid="add-item-input"]').fill('Brocoli');
+    await page.getByRole('button', { name: 'Ajouter l\'aliment' }).click();
+
+    await page.locator('[data-testid="analyze-meal"]').click();
+
+    // L'aliment est désormais analysé : chip coloré (FODMAP élevé) + alerte visible
+    await expect(page.locator('.food-chip--high')).toBeVisible();
+    await expect(page.locator('[data-testid="fodmap-alert"]')).toBeVisible();
+
+    // Tous les aliments analysés → le bouton se mue en Enregistrer
+    await expect(page.locator('[data-testid="submit-meal"]')).toBeVisible();
+    await expect(page.locator('[data-testid="analyze-meal"]')).toHaveCount(0);
+  });
+
+  test('aliment analysé mais resté de niveau inconnu → bouton Enregistrer (flag analyzed)', async ({ page }) => {
+    await page.route('https://api.anthropic.com/v1/messages', (route) =>
+      route.fulfill(mockAnthropicMealResponse('Aliment exotique', 'unknown')),
+    );
+
+    await page.goto('/journal/meal');
+    await page.locator('[data-testid="add-item-input"]').fill('Aliment exotique');
+    await page.getByRole('button', { name: 'Ajouter l\'aliment' }).click();
+
+    await page.locator('[data-testid="analyze-meal"]').click();
+
+    // Le chip reste gris (unknown) mais l'aliment est marqué analysé → plus de bouton Analyse IA
+    await expect(page.locator('.food-chip--unknown')).toBeVisible();
+    await expect(page.locator('[data-testid="submit-meal"]')).toBeVisible();
+    await expect(page.locator('[data-testid="analyze-meal"]')).toHaveCount(0);
+  });
+
+  test('flux complet : Analyse IA puis Enregistrer → repas visible dans le journal', async ({ page }) => {
+    await page.route('https://api.anthropic.com/v1/messages', (route) =>
+      route.fulfill(mockAnthropicMealResponse('Brocoli')),
+    );
+
+    await page.goto('/journal/meal');
+    await page.locator('[data-testid="add-item-input"]').fill('Brocoli');
+    await page.getByRole('button', { name: 'Ajouter l\'aliment' }).click();
+
+    await page.locator('[data-testid="analyze-meal"]').click();
+    await page.locator('[data-testid="submit-meal"]').click();
+
+    await page.getByRole('button', { name: /Retour au journal/ }).click();
+    await page.waitForURL('**/journal');
+    await expect(page.locator('[data-testid="meal-entry"]').first()).toBeVisible();
+  });
+});

@@ -68,12 +68,32 @@ export class MealService {
 
   async analyzePhoto(input: AnalyzeMealPhotoInput): Promise<MealAnalysisResult> {
     const ctx = await this.loadProfileContext();
-    return (await this.ai.analyzeMealPhoto(input.base64Image, input.mediaType, ctx)) ?? EMPTY_MEAL_RESULT;
+    const result = await this.ai.analyzeMealPhoto(input.base64Image, input.mediaType, ctx);
+    return this.markAnalyzed(result);
   }
 
   async extractFromText(text: string): Promise<MealAnalysisResult> {
     const ctx = await this.loadProfileContext();
-    return (await this.ai.extractMealFromText(text, ctx)) ?? EMPTY_MEAL_RESULT;
+    const result = await this.ai.extractMealFromText(text, ctx);
+    return this.markAnalyzed(result);
+  }
+
+  /**
+   * Marque comme analysés tous les aliments issus de l'IA.
+   *
+   * @remarks
+   * Tout aliment renvoyé par l'analyse a, par définition, été soumis à l'IA — même si
+   * son niveau FODMAP reste 'unknown'. Le flag analyzed évite de le re-proposer à l'analyse.
+   *
+   * @param result - Résultat IA, ou null si l'IA est indisponible
+   * @returns Résultat avec items marqués analyzed:true, ou résultat vide si null
+   */
+  private markAnalyzed(result: MealAnalysisResult | null): MealAnalysisResult {
+    if (!result) return EMPTY_MEAL_RESULT;
+    return {
+      items: result.items.map(item => ({ ...item, analyzed: true })),
+      aiFodmapFlags: result.aiFodmapFlags,
+    };
   }
 
   private async loadProfileContext(): Promise<MealProfileContext> {

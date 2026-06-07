@@ -91,6 +91,23 @@
              (keydown.enter)="addManualItem()" />
       <button class="add-item-btn" aria-label="Ajouter l'aliment" (click)="addManualItem()">＋</button>
     </div>
+    @if (proposedItems.length > 0) {
+      <div class="chips-row">
+        @for (item of proposedItems; track item; let i = $index) {
+          <app-food-chip [item]="item" [removable]="true" (remove)="removeItem(i)" />
+        }
+      </div>
+    }
+    @if (canSubmit) {
+      <div class="submit-footer">
+        <button class="primary-btn" data-testid="submit-meal"
+                aria-label="Enregistrer le repas"
+                [disabled]="saving"
+                (click)="submit()">
+          {{ saving ? '…' : '✓ Enregistrer le repas' }}
+        </button>
+      </div>
+    }
   </div>
 }
 
@@ -166,11 +183,12 @@
     }
   </div>
   <div class="submit-footer">
-    @if (srcMode === 'text' && textInput.trim()) {
+    @if (showAnalyzeAction) {
       <button class="primary-btn"
               data-testid="analyze-meal"
               aria-label="Analyser les aliments par IA"
-              (click)="analyzeTextInput()">✨ Analyser les aliments par IA</button>
+              [disabled]="saving"
+              (click)="analyzeAll()">{{ saving ? '…' : '✨ Analyse IA' }}</button>
     } @else {
       <button class="primary-btn" data-testid="submit-meal"
               aria-label="Enregistrer le repas"
@@ -245,10 +263,18 @@
     </div>
   </div>
   <div class="submit-footer">
-    <button class="primary-btn" data-testid="submit-meal"
-            aria-label="Confirmer et enregistrer le repas"
-            [disabled]="!canSubmit || saving"
-            (click)="submit()">{{ saving ? '…' : '✓ Confirmer le repas' }}</button>
+    @if (showAnalyzeAction) {
+      <button class="primary-btn"
+              data-testid="analyze-meal"
+              aria-label="Analyser les aliments par IA"
+              [disabled]="saving"
+              (click)="analyzeAll()">{{ saving ? '…' : '✨ Analyse IA' }}</button>
+    } @else {
+      <button class="primary-btn" data-testid="submit-meal"
+              aria-label="Confirmer et enregistrer le repas"
+              [disabled]="!canSubmit || saving"
+              (click)="submit()">{{ saving ? '…' : '✓ Confirmer le repas' }}</button>
+    }
   </div>
 }
 

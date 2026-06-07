@@ -120,6 +120,54 @@ describe('MealService', () => {
       const result = await svc.analyzePhoto({ base64Image: 'abc', mediaType: 'image/jpeg' });
       expect(result.items).toHaveLength(1);
     });
+
+    it('marque analyzed:true les aliments issus de l\'analyse photo', async () => {
+      const mockAi = { analyzeMealPhoto: vi.fn().mockResolvedValue(mockResult) };
+      TestBed.configureTestingModule({
+        providers: [
+          MealService,
+          { provide: StorageService, useValue: makeStorageMock() },
+          { provide: AiService, useValue: mockAi },
+        ],
+      });
+      const svc = TestBed.inject(MealService);
+      const result = await svc.analyzePhoto({ base64Image: 'abc', mediaType: 'image/jpeg' });
+      expect(result.items[0].analyzed).toBe(true);
+    });
+  });
+
+  describe('extractFromText — flag analyzed', () => {
+    it('marque analyzed:true même un aliment resté de niveau FODMAP inconnu', async () => {
+      const unknownItem: MealAnalysisResult = {
+        items: [{ name: 'Aliment exotique', fodmap: { level: 'unknown' }, confirmed: false }],
+        aiFodmapFlags: [],
+      };
+      const mockAi = { extractMealFromText: vi.fn().mockResolvedValue(unknownItem) };
+      TestBed.configureTestingModule({
+        providers: [
+          MealService,
+          { provide: StorageService, useValue: makeStorageMock() },
+          { provide: AiService, useValue: mockAi },
+        ],
+      });
+      const svc = TestBed.inject(MealService);
+      const result = await svc.extractFromText('aliment exotique');
+      expect(result.items[0].fodmap.level).toBe('unknown');
+      expect(result.items[0].analyzed).toBe(true);
+    });
+
+    it('retourne un résultat vide (sans crash) si AiService indisponible', async () => {
+      TestBed.configureTestingModule({
+        providers: [
+          MealService,
+          { provide: StorageService, useValue: makeStorageMock() },
+          { provide: AiService, useClass: NullAiService },
+        ],
+      });
+      const svc = TestBed.inject(MealService);
+      const result = await svc.extractFromText('riz');
+      expect(result.items).toEqual([]);
+    });
   });
 
   describe('getFrequent', () => {
