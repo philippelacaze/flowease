@@ -8,14 +8,17 @@ import type { ReportSection } from '../../core/models/entities/report.entity';
 import { LocalSettingsService } from '../../core/services/local-settings.service';
 import { ErrorNotificationService } from './error-notification.service';
 import { AnthropicClient } from '../../core/services/ai/anthropic/anthropic.client';
-import { MEAL_PHOTO_PROMPT } from '../../core/services/ai/anthropic/prompts/meal-photo.prompt';
-import { MEAL_TEXT_PROMPT } from '../../core/services/ai/anthropic/prompts/meal-text.prompt';
+import { buildMealPhotoPrompt } from '../../core/services/ai/anthropic/prompts/meal-photo.prompt';
+import { buildMealTextPrompt } from '../../core/services/ai/anthropic/prompts/meal-text.prompt';
+import type { MealProfileContext } from '../../core/models/entities/user-profile.entity';
 import { NOTE_TAGGING_PROMPT } from '../../core/services/ai/anthropic/prompts/note-tagging.prompt';
 import { ANALYSIS_PROMPT } from '../../core/services/ai/anthropic/prompts/analysis.prompt';
 import { REPORT_SUMMARY_PROMPT } from '../../core/services/ai/anthropic/prompts/report-summary.prompt';
 import { COACH_SYSTEM_PROMPT } from '../../core/services/ai/anthropic/prompts/coach-system.prompt';
 
 // --- Types (anciennement dans les fichiers de ports) ---
+
+export type { MealProfileContext };
 
 export interface MealAnalysisResult {
   readonly items: ReadonlyArray<FoodItemVO>;
@@ -89,6 +92,8 @@ export interface CoachContext {
 
 // --- Service ---
 
+const EMPTY_PROFILE_CTX: MealProfileContext = { conditions: [], protocol: 'none' };
+
 const ANTHROPIC_API_URL = 'https://api.anthropic.com/v1/messages';
 const ANTHROPIC_VERSION = '2023-06-01';
 
@@ -109,7 +114,7 @@ export class AiService {
     this.client = new AnthropicClient(http);
   }
 
-  async analyzeMealPhoto(base64Image: string, mediaType: string): Promise<MealAnalysisResult | null> {
+  async analyzeMealPhoto(base64Image: string, mediaType: string, ctx: MealProfileContext = EMPTY_PROFILE_CTX): Promise<MealAnalysisResult | null> {
     const apiKey = this.requireApiKey();
     if (!apiKey) return null;
 
@@ -124,7 +129,7 @@ export class AiService {
               type: 'image',
               source: { type: 'base64', media_type: mediaType, data: base64Image },
             },
-            { type: 'text', text: MEAL_PHOTO_PROMPT },
+            { type: 'text', text: buildMealPhotoPrompt(ctx) },
           ],
         },
       ],
@@ -159,11 +164,11 @@ export class AiService {
     }
   }
 
-  async extractMealFromText(text: string): Promise<MealAnalysisResult | null> {
+  async extractMealFromText(text: string, ctx: MealProfileContext = EMPTY_PROFILE_CTX): Promise<MealAnalysisResult | null> {
     const apiKey = this.requireApiKey();
     if (!apiKey) return null;
 
-    const prompt = MEAL_TEXT_PROMPT.replace('{{MEAL_TEXT}}', text);
+    const prompt = buildMealTextPrompt(ctx, text);
     const response = await this.callApi(MODEL_FAST, prompt, apiKey);
     if (response === null) return null;
 

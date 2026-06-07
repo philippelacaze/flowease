@@ -3,6 +3,7 @@ import { StorageService } from '../../../core/services/storage.service';
 import { AiService } from '../../../core/services/ai.service';
 import type { MealEntity, MealType, MealInputMode, FoodItemVO, AiFodmapAlert } from '../../../core/models/entities/meal.entity';
 import type { MealAnalysisResult } from '../../../core/services/ai.service';
+import type { UserProfileEntity, MealProfileContext } from '../../../core/models/entities/user-profile.entity';
 
 export interface AddMealInput {
   readonly occurredAt: Date;
@@ -66,11 +67,24 @@ export class MealService {
   }
 
   async analyzePhoto(input: AnalyzeMealPhotoInput): Promise<MealAnalysisResult> {
-    return (await this.ai.analyzeMealPhoto(input.base64Image, input.mediaType)) ?? EMPTY_MEAL_RESULT;
+    const ctx = await this.loadProfileContext();
+    return (await this.ai.analyzeMealPhoto(input.base64Image, input.mediaType, ctx)) ?? EMPTY_MEAL_RESULT;
   }
 
   async extractFromText(text: string): Promise<MealAnalysisResult> {
-    return (await this.ai.extractMealFromText(text)) ?? EMPTY_MEAL_RESULT;
+    const ctx = await this.loadProfileContext();
+    return (await this.ai.extractMealFromText(text, ctx)) ?? EMPTY_MEAL_RESULT;
+  }
+
+  private async loadProfileContext(): Promise<MealProfileContext> {
+    const profile = await this.storage.get<UserProfileEntity>('user-profile', 'singleton');
+    return {
+      conditions: profile?.conditions ?? [],
+      protocol: profile?.protocol ?? 'none',
+      allergies: profile?.allergies,
+      dietaryRestrictions: profile?.dietaryRestrictions,
+      otherConditions: profile?.otherConditions,
+    };
   }
 
   async getFrequent(limit = 20): Promise<FoodItemVO[]> {

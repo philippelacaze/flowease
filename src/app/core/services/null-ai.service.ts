@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
 import type {
   MealAnalysisResult,
+  MealProfileContext,
   NoteTaggingResult,
   AnalysisContext,
   AnalysisResult,
@@ -20,11 +21,11 @@ import type {
 @Injectable()
 export class NullAiService {
 
-  async analyzeMealPhoto(_base64Image: string, _mediaType: string): Promise<MealAnalysisResult | null> {
+  async analyzeMealPhoto(_base64Image: string, _mediaType: string, _ctx?: MealProfileContext): Promise<MealAnalysisResult | null> {
     return null;
   }
 
-  async extractMealFromText(_text: string): Promise<MealAnalysisResult | null> {
+  async extractMealFromText(_text: string, _ctx?: MealProfileContext): Promise<MealAnalysisResult | null> {
     return null;
   }
 

@@ -160,12 +160,17 @@
     }
   </div>
   <div class="submit-footer">
-    <button class="primary-btn" data-testid="submit-meal"
-            [attr.aria-label]="srcMode === 'text' ? 'Analyser par IA et enregistrer le repas' : 'Enregistrer le repas'"
-            [disabled]="!canSubmit || saving"
-            (click)="submit()">
-      {{ saving ? '…' : (srcMode === 'text' ? '✨ Analyser par IA et enregistrer le repas' : '✓ Enregistrer le repas') }}
-    </button>
+    @if (srcMode === 'text' && textInput.trim()) {
+      <button class="primary-btn"
+              data-testid="analyze-meal"
+              aria-label="Analyser les aliments par IA"
+              (click)="analyzeTextInput()">✨ Analyser les aliments par IA</button>
+    } @else {
+      <button class="primary-btn" data-testid="submit-meal"
+              aria-label="Enregistrer le repas"
+              [disabled]="!canSubmit || saving"
+              (click)="submit()">{{ saving ? '…' : '✓ Enregistrer le repas' }}</button>
+    }
   </div>
 }
 
@@ -204,6 +209,26 @@
       </div>
     </div>
 
+    @if (pendingAiFodmapFlags.length > 0) {
+      <div class="fodmap-alerts" role="alert" aria-label="Alertes FODMAP">
+        <div class="alerts-title">Alertes FODMAP</div>
+        @for (flag of pendingAiFodmapFlags; track flag.item) {
+          <div class="fodmap-alert"
+               [class.fodmap-alert--warning]="flag.severity === 'warning'"
+               [class.fodmap-alert--danger]="flag.severity === 'danger'"
+               data-testid="fodmap-alert">
+            <div class="alert-header">
+              <span class="alert-item">{{ flag.item }}</span>
+              <span class="alert-badge alert-badge--{{ flag.severity }}">
+                {{ flag.severity === 'danger' ? 'Élevé' : 'Modéré' }}
+              </span>
+            </div>
+            <div class="alert-reason">{{ flag.reason }}</div>
+          </div>
+        }
+      </div>
+    }
+
     <div class="add-item-row">
       <input class="add-item-input" [(ngModel)]="newItemName"
              placeholder="Ajouter un aliment manquant…"
@@ -215,11 +240,9 @@
   </div>
   <div class="submit-footer">
     <button class="primary-btn" data-testid="submit-meal"
-            [attr.aria-label]="srcMode === 'text' ? 'Analyser par IA et enregistrer le repas' : 'Confirmer et enregistrer le repas'"
+            aria-label="Confirmer et enregistrer le repas"
             [disabled]="!canSubmit || saving"
-            (click)="submit()">
-      {{ saving ? '…' : (srcMode === 'text' ? '✨ Analyser par IA et enregistrer le repas' : '✓ Confirmer le repas') }}
-    </button>
+            (click)="submit()">{{ saving ? '…' : '✓ Confirmer le repas' }}</button>
   </div>
 }
 

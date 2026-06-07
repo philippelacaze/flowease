@@ -1,4 +1,4 @@
-﻿import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { By } from '@angular/platform-browser';
 import { vi } from 'vitest';
 import { Router, provideRouter } from '@angular/router';
@@ -6,7 +6,7 @@ import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 import { MealEntryComponent } from './meal-entry.component';
 import { MealService } from '../services/meal.service';
 import { ErrorNotificationService } from '../../../core/services/error-notification.service';
-import type { FoodItemVO } from '../../../core/models/entities/meal.entity';
+import type { AiFodmapAlert, FoodItemVO, MealEntity } from '../../../core/models/entities/meal.entity';
 import type { MealAnalysisResult } from '../../../core/services/ai.service';
 import type { PhotoSelectedEvent } from '../../../shared/components/photo-input/photo-input.component';
 
@@ -20,9 +20,13 @@ const emptyResult: MealAnalysisResult = { items: [], aiFodmapFlags: [] };
 
 type ComponentPrivate = {
   onPhotoSelected(event: PhotoSelectedEvent): Promise<void>;
+  analyzeTextInput(): void;
   setMode(mode: string): void;
   mode: string;
+  phase: string;
   proposedItems: FoodItemVO[];
+  pendingAiFodmapFlags: AiFodmapAlert[];
+  textInput: string;
   aiUnavailable: boolean;
 };
 
@@ -147,6 +151,55 @@ describe('MealEntryComponent', () => {
     });
   });
 
+  describe('alertes FODMAP — phase validation', () => {
+    it('affiche les alertes FODMAP dans la phase validation', async () => {
+      const flags: AiFodmapAlert[] = [
+        { item: 'Oignon', reason: 'Riche en fructanes, risque de fermentation', severity: 'danger' },
+      ];
+      const resultWithFlags: MealAnalysisResult = { items: mockItems, aiFodmapFlags: flags };
+      const mockService = makeMealServiceMock(resultWithFlags);
+      const { fixture } = await createComponent(mockService);
+      const comp = fixture.componentInstance as unknown as ComponentPrivate;
+      comp.setMode('photo');
+      fixture.detectChanges();
+
+      await comp.onPhotoSelected({ base64: 'abc', mediaType: 'image/jpeg' });
+      fixture.detectChanges();
+
+      const alerts = fixture.debugElement.queryAll(By.css('[data-testid="fodmap-alert"]'));
+      expect(alerts).toHaveLength(1);
+      expect(alerts[0].nativeElement.textContent).toContain('Oignon');
+    });
+
+    it('n\'affiche pas la section alertes si fodmapAlerts est vide', async () => {
+      const { fixture } = await createComponent(makeMealServiceMock(mockResult));
+      const comp = fixture.componentInstance as unknown as ComponentPrivate;
+      comp.setMode('photo');
+      fixture.detectChanges();
+
+      await comp.onPhotoSelected({ base64: 'abc', mediaType: 'image/jpeg' });
+      fixture.detectChanges();
+
+      const alerts = fixture.debugElement.queryAll(By.css('[data-testid="fodmap-alert"]'));
+      expect(alerts).toHaveLength(0);
+    });
+
+    it('le bouton submit en phase validation porte l\'aria-label "Confirmer et enregistrer le repas"', async () => {
+      const { fixture } = await createComponent(makeMealServiceMock(mockResult));
+      const comp = fixture.componentInstance as unknown as ComponentPrivate;
+      comp.setMode('photo');
+      fixture.detectChanges();
+
+      await comp.onPhotoSelected({ base64: 'abc', mediaType: 'image/jpeg' });
+      fixture.detectChanges();
+
+      const btn = fixture.debugElement.query(By.css('[data-testid="submit-meal"]'));
+      expect(btn).not.toBeNull();
+      expect((btn.nativeElement as HTMLButtonElement).getAttribute('aria-label'))
+        .toBe('Confirmer et enregistrer le repas');
+    });
+  });
+
   describe('date du journal sélectionnée', () => {
     afterEach(() => history.replaceState({}, ''));
 
@@ -249,55 +302,83 @@ describe('MealEntryComponent', () => {
     it('retourne "snack" à 10h00 (entre breakfast et lunch)', () => expect(comp.defaultMealType(at(10, 0))).toBe('snack'));
   });
 
-  describe('mode texte — analyse IA sur validation', () => {
+  describe('mode texte — bouton analyser', () => {
     afterEach(() => history.replaceState({}, ''));
 
-    it('appelle extractFromText avec textInput avant d\'enregistrer', async () => {
+    it('affiche le bouton "Analyser" quand textInput n\'est pas vide en mode texte', async () => {
+      const { fixture } = await createComponent();
+      const comp = fixture.componentInstance as unknown as ComponentPrivate;
+      comp.textInput = 'Salade verte';
+      fixture.detectChanges();
+
+      const btn = fixture.debugElement.query(By.css('[data-testid="analyze-meal"]'));
+      expect(btn).not.toBeNull();
+      expect((btn.nativeElement as HTMLButtonElement).getAttribute('aria-label'))
+        .toBe('Analyser les aliments par IA');
+    });
+
+    it('affiche le bouton "Enregistrer" quand textInput est vide en mode texte', async () => {
+      const { fixture } = await createComponent();
+      fixture.detectChanges();
+
+      const btn = fixture.debugElement.query(By.css('[data-testid="submit-meal"]'));
+      expect(btn).not.toBeNull();
+    });
+
+    it('analyzeTextInput() appelle extractFromText avec le contenu de textInput', async () => {
       const mockService = makeMealServiceMock();
       const { fixture } = await createComponent(mockService);
-      const comp = fixture.componentInstance as unknown as {
-        textInput: string; submit(): Promise<void>;
-      };
+      const comp = fixture.componentInstance as unknown as ComponentPrivate;
       comp.textInput = 'Riz blanc et poulet';
-      await comp.submit();
+
+      comp.analyzeTextInput();
+      await fixture.whenStable();
+
       expect(mockService.extractFromText).toHaveBeenCalledWith('Riz blanc et poulet');
     });
 
-    it('enregistre les aliments extraits par l\'IA quand elle retourne des résultats', async () => {
-      const aiItems: FoodItemVO[] = [
-        { name: 'Riz blanc', fodmap: { level: 'low' }, confirmed: false },
-      ];
+    it('passe en phase validation avec les aliments IA après analyzeTextInput()', async () => {
+      const aiItems: FoodItemVO[] = [{ name: 'Riz blanc', fodmap: { level: 'low' }, confirmed: false }];
       const mockService = makeMealServiceMock();
       mockService.extractFromText = vi.fn().mockResolvedValue({ items: aiItems, aiFodmapFlags: [] });
       const { fixture } = await createComponent(mockService);
-      const comp = fixture.componentInstance as unknown as {
-        textInput: string; submit(): Promise<void>;
-      };
+      const comp = fixture.componentInstance as unknown as ComponentPrivate;
       comp.textInput = 'Riz blanc';
-      await comp.submit();
-      const callArg = mockService.add.mock.calls[0][0] as { items: FoodItemVO[] };
-      expect(callArg.items).toEqual([{ name: 'Riz blanc', fodmap: { level: 'low' }, confirmed: true }]);
-    });
 
-    it('conserve les aliments manuels quand l\'IA retourne 0 résultat (mode dégradé)', async () => {
-      const mockService = makeMealServiceMock(); // extractFromText retourne emptyResult par défaut
-      const { fixture } = await createComponent(mockService);
-      const comp = fixture.componentInstance as unknown as {
-        textInput: string; submit(): Promise<void>;
-      };
-      comp.textInput = 'Poulet rôti';
-      await comp.submit();
-      const callArg = mockService.add.mock.calls[0][0] as { items: FoodItemVO[] };
-      expect(callArg.items[0].name).toBe('Poulet rôti');
-    });
-
-    it('le bouton submit porte l\'aria-label "Analyser par IA et enregistrer le repas" en mode texte', async () => {
-      const { fixture } = await createComponent();
+      comp.analyzeTextInput();
+      await fixture.whenStable();
       fixture.detectChanges();
-      const btn = fixture.debugElement.query(By.css('[data-testid="submit-meal"]'));
-      expect(btn).not.toBeNull();
-      expect((btn.nativeElement as HTMLButtonElement).getAttribute('aria-label'))
-        .toBe('Analyser par IA et enregistrer le repas');
+
+      expect(comp.phase).toBe('validation');
+      expect(comp.proposedItems).toHaveLength(1);
+    });
+
+    it('affiche les alertes FODMAP dans la phase validation après analyzeTextInput()', async () => {
+      const flags: AiFodmapAlert[] = [{ item: 'Ail', reason: 'Fructanes — risque SIBO', severity: 'danger' }];
+      const mockService = makeMealServiceMock();
+      mockService.extractFromText = vi.fn().mockResolvedValue({ items: mockItems, aiFodmapFlags: flags });
+      const { fixture } = await createComponent(mockService);
+      const comp = fixture.componentInstance as unknown as ComponentPrivate;
+      comp.textInput = 'Pâtes à l\'ail';
+
+      comp.analyzeTextInput();
+      await fixture.whenStable();
+      fixture.detectChanges();
+
+      const alerts = fixture.debugElement.queryAll(By.css('[data-testid="fodmap-alert"]'));
+      expect(alerts).toHaveLength(1);
+      expect(alerts[0].nativeElement.textContent).toContain('Ail');
+    });
+
+    it('submit() n\'appelle pas extractFromText (l\'analyse est distincte de l\'enregistrement)', async () => {
+      const mockService = makeMealServiceMock();
+      const { fixture } = await createComponent(mockService);
+      const comp = fixture.componentInstance as unknown as ComponentPrivate;
+      comp.textInput = 'Poulet rôti';
+
+      await (fixture.componentInstance as unknown as { submit(): Promise<void> }).submit();
+
+      expect(mockService.extractFromText).not.toHaveBeenCalled();
     });
 
     it('n\'appelle pas extractFromText lors du submit en mode photo', async () => {
@@ -311,24 +392,16 @@ describe('MealEntryComponent', () => {
       expect(mockService.extractFromText).not.toHaveBeenCalled();
     });
 
-    it('utilise les noms des aliments comme texte d\'analyse en mode édition (textInput vide)', async () => {
-      const editEntry = {
-        id: 'e1',
-        occurredAt: new Date(),
-        type: 'lunch' as const,
-        inputMode: 'voice' as const,
-        items: [
-          { name: 'Brocoli', fodmap: { level: 'high' as const }, confirmed: true },
-          { name: 'Tofu', fodmap: { level: 'low' as const }, confirmed: true },
-        ],
-        notes: undefined,
-        aiFodmapFlags: [],
-      };
-      history.replaceState({ editEntry }, '');
+    it('conserve les aliments manuels en mode dégradé (textInput sans correspondance IA)', async () => {
       const mockService = makeMealServiceMock();
       const { fixture } = await createComponent(mockService);
+      const comp = fixture.componentInstance as unknown as ComponentPrivate;
+      comp.textInput = 'Poulet rôti';
+
       await (fixture.componentInstance as unknown as { submit(): Promise<void> }).submit();
-      expect(mockService.extractFromText).toHaveBeenCalledWith('Brocoli, Tofu');
+
+      const callArg = mockService.add.mock.calls[0][0] as { items: FoodItemVO[] };
+      expect(callArg.items[0].name).toBe('Poulet rôti');
     });
   });
 

@@ -210,6 +210,54 @@
   color: var(--fodmap-low-text);
 }
 
+/* FODMAP alerts (phase validation) */
+.fodmap-alerts {
+  margin: 8px 0 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.alerts-title {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  color: var(--text-3);
+  margin-bottom: 2px;
+}
+.fodmap-alert {
+  padding: 12px;
+  border-radius: 10px;
+  border: 0.5px solid var(--chip-border);
+  background: var(--chip);
+}
+.fodmap-alert--warning {
+  background: var(--fodmap-medium-bg);
+  border-color: var(--fodmap-medium-border);
+}
+.fodmap-alert--danger {
+  background: var(--fodmap-high-bg);
+  border-color: var(--fodmap-high-border);
+}
+.alert-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 4px;
+}
+.alert-item { font-size: 14px; font-weight: 600; color: var(--text-1); }
+.alert-badge {
+  font-size: 11px;
+  font-weight: 700;
+  padding: 2px 7px;
+  border-radius: 8px;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+}
+.alert-badge--warning { background: var(--fodmap-medium-border); color: var(--fodmap-medium-text); }
+.alert-badge--danger  { background: var(--fodmap-high-border);   color: var(--fodmap-high-text);   }
+.alert-reason { font-size: 13px; color: var(--text-2); line-height: 1.4; }
+
 /* Submit footer */
 .submit-footer {
   padding: 12px 16px 24px;

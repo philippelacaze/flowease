@@ -59,6 +59,15 @@ export type AppTheme = 'auto' | 'light' | 'dark';
  * @param defaultCoachContext - Fenêtre de contexte par défaut pour le Coach
  * @param updatedAt - Dernière mise à jour du profil
  */
+/** Contexte de profil médical transmis aux analyseurs IA de repas. */
+export interface MealProfileContext {
+  readonly conditions: readonly MedicalCondition[];
+  readonly protocol: FodmapProtocol;
+  readonly allergies?: string;
+  readonly dietaryRestrictions?: string;
+  readonly otherConditions?: string;
+}
+
 export interface UserProfileEntity {
   readonly id: string;
   readonly firstName?: string;
