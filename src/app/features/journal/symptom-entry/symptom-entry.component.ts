@@ -30,6 +30,7 @@ interface SymptomRow {
   readonly hasYesNo: boolean;
   readonly hasSleepHours: boolean;
   readonly hasDelay: boolean;
+  readonly invertedScale: boolean;
   intensity: number;
   painZones: AbdominalZone[];
   painTypes: PainType[];
@@ -43,38 +44,38 @@ interface SymptomRow {
 
 type SymptomMeta = Pick<SymptomRow,
   'category' | 'hasMap' | 'hasPainTypes' | 'hasBristol' |
-  'hasGas' | 'gasHasOdor' | 'hasYesNo' | 'hasSleepHours' | 'hasDelay'
+  'hasGas' | 'gasHasOdor' | 'hasYesNo' | 'hasSleepHours' | 'hasDelay' | 'invertedScale'
 >;
 
 const F = false, T = true;
 const SYMPTOM_METADATA: Readonly<Record<string, SymptomMeta>> = {
   // Bloc A — Digestifs
-  abdominal_pain:     { category: 'digestive', hasMap: T, hasPainTypes: T, hasBristol: F, hasGas: F, gasHasOdor: F, hasYesNo: F, hasSleepHours: F, hasDelay: F },
-  bloating:           { category: 'digestive', hasMap: F, hasPainTypes: F, hasBristol: F, hasGas: F, gasHasOdor: F, hasYesNo: F, hasSleepHours: F, hasDelay: F },
-  nausea:             { category: 'digestive', hasMap: F, hasPainTypes: F, hasBristol: F, hasGas: F, gasHasOdor: F, hasYesNo: F, hasSleepHours: F, hasDelay: F },
-  heartburn:          { category: 'digestive', hasMap: F, hasPainTypes: F, hasBristol: F, hasGas: F, gasHasOdor: F, hasYesNo: F, hasSleepHours: F, hasDelay: F },
-  transit:            { category: 'digestive', hasMap: F, hasPainTypes: F, hasBristol: T, hasGas: F, gasHasOdor: F, hasYesNo: F, hasSleepHours: F, hasDelay: F },
-  gas:                { category: 'digestive', hasMap: F, hasPainTypes: F, hasBristol: F, hasGas: T, gasHasOdor: T, hasYesNo: F, hasSleepHours: F, hasDelay: F },
-  belching:           { category: 'digestive', hasMap: F, hasPainTypes: F, hasBristol: F, hasGas: T, gasHasOdor: F, hasYesNo: F, hasSleepHours: F, hasDelay: F },
-  early_satiety:      { category: 'digestive', hasMap: F, hasPainTypes: F, hasBristol: F, hasGas: F, gasHasOdor: F, hasYesNo: F, hasSleepHours: F, hasDelay: F },
-  postmeal_heaviness: { category: 'digestive', hasMap: F, hasPainTypes: F, hasBristol: F, hasGas: F, gasHasOdor: F, hasYesNo: F, hasSleepHours: F, hasDelay: T },
+  abdominal_pain:     { category: 'digestive', hasMap: T, hasPainTypes: T, hasBristol: F, hasGas: F, gasHasOdor: F, hasYesNo: F, hasSleepHours: F, hasDelay: F, invertedScale: F },
+  bloating:           { category: 'digestive', hasMap: F, hasPainTypes: F, hasBristol: F, hasGas: F, gasHasOdor: F, hasYesNo: F, hasSleepHours: F, hasDelay: F, invertedScale: F },
+  nausea:             { category: 'digestive', hasMap: F, hasPainTypes: F, hasBristol: F, hasGas: F, gasHasOdor: F, hasYesNo: F, hasSleepHours: F, hasDelay: F, invertedScale: F },
+  heartburn:          { category: 'digestive', hasMap: F, hasPainTypes: F, hasBristol: F, hasGas: F, gasHasOdor: F, hasYesNo: F, hasSleepHours: F, hasDelay: F, invertedScale: F },
+  transit:            { category: 'digestive', hasMap: F, hasPainTypes: F, hasBristol: T, hasGas: F, gasHasOdor: F, hasYesNo: F, hasSleepHours: F, hasDelay: F, invertedScale: F },
+  gas:                { category: 'digestive', hasMap: F, hasPainTypes: F, hasBristol: F, hasGas: T, gasHasOdor: T, hasYesNo: F, hasSleepHours: F, hasDelay: F, invertedScale: F },
+  belching:           { category: 'digestive', hasMap: F, hasPainTypes: F, hasBristol: F, hasGas: T, gasHasOdor: F, hasYesNo: F, hasSleepHours: F, hasDelay: F, invertedScale: F },
+  early_satiety:      { category: 'digestive', hasMap: F, hasPainTypes: F, hasBristol: F, hasGas: F, gasHasOdor: F, hasYesNo: F, hasSleepHours: F, hasDelay: F, invertedScale: F },
+  postmeal_heaviness: { category: 'digestive', hasMap: F, hasPainTypes: F, hasBristol: F, hasGas: F, gasHasOdor: F, hasYesNo: F, hasSleepHours: F, hasDelay: T, invertedScale: F },
   // Bloc B — Systémiques
-  fatigue:            { category: 'systemic',  hasMap: F, hasPainTypes: F, hasBristol: F, hasGas: F, gasHasOdor: F, hasYesNo: F, hasSleepHours: F, hasDelay: F },
-  headache:           { category: 'systemic',  hasMap: F, hasPainTypes: F, hasBristol: F, hasGas: F, gasHasOdor: F, hasYesNo: F, hasSleepHours: F, hasDelay: F },
-  brain_fog:          { category: 'systemic',  hasMap: F, hasPainTypes: F, hasBristol: F, hasGas: F, gasHasOdor: F, hasYesNo: F, hasSleepHours: F, hasDelay: F },
-  joint_pain:         { category: 'systemic',  hasMap: F, hasPainTypes: F, hasBristol: F, hasGas: F, gasHasOdor: F, hasYesNo: T, hasSleepHours: F, hasDelay: F },
-  sleep_quality:      { category: 'systemic',  hasMap: F, hasPainTypes: F, hasBristol: F, hasGas: F, gasHasOdor: F, hasYesNo: F, hasSleepHours: T, hasDelay: F },
-  // Bloc C — Bien-être
-  wellbeing_score:    { category: 'wellbeing', hasMap: F, hasPainTypes: F, hasBristol: F, hasGas: F, gasHasOdor: F, hasYesNo: F, hasSleepHours: F, hasDelay: F },
-  mood:               { category: 'wellbeing', hasMap: F, hasPainTypes: F, hasBristol: F, hasGas: F, gasHasOdor: F, hasYesNo: F, hasSleepHours: F, hasDelay: F },
+  fatigue:            { category: 'systemic',  hasMap: F, hasPainTypes: F, hasBristol: F, hasGas: F, gasHasOdor: F, hasYesNo: F, hasSleepHours: F, hasDelay: F, invertedScale: F },
+  headache:           { category: 'systemic',  hasMap: F, hasPainTypes: F, hasBristol: F, hasGas: F, gasHasOdor: F, hasYesNo: F, hasSleepHours: F, hasDelay: F, invertedScale: F },
+  brain_fog:          { category: 'systemic',  hasMap: F, hasPainTypes: F, hasBristol: F, hasGas: F, gasHasOdor: F, hasYesNo: F, hasSleepHours: F, hasDelay: F, invertedScale: F },
+  joint_pain:         { category: 'systemic',  hasMap: F, hasPainTypes: F, hasBristol: F, hasGas: F, gasHasOdor: F, hasYesNo: T, hasSleepHours: F, hasDelay: F, invertedScale: F },
+  sleep_quality:      { category: 'systemic',  hasMap: F, hasPainTypes: F, hasBristol: F, hasGas: F, gasHasOdor: F, hasYesNo: F, hasSleepHours: T, hasDelay: F, invertedScale: F },
+  // Bloc C — Bien-être (score, humeur, énergie : échelle inversée — haut = bon)
+  wellbeing_score:    { category: 'wellbeing', hasMap: F, hasPainTypes: F, hasBristol: F, hasGas: F, gasHasOdor: F, hasYesNo: F, hasSleepHours: F, hasDelay: F, invertedScale: T },
+  mood:               { category: 'wellbeing', hasMap: F, hasPainTypes: F, hasBristol: F, hasGas: F, gasHasOdor: F, hasYesNo: F, hasSleepHours: F, hasDelay: F, invertedScale: T },
   // Archivés hors-specs — conservés pour l'historique existant
-  energy:             { category: 'wellbeing', hasMap: F, hasPainTypes: F, hasBristol: F, hasGas: F, gasHasOdor: F, hasYesNo: F, hasSleepHours: F, hasDelay: F },
-  stress:             { category: 'wellbeing', hasMap: F, hasPainTypes: F, hasBristol: F, hasGas: F, gasHasOdor: F, hasYesNo: F, hasSleepHours: F, hasDelay: F },
+  energy:             { category: 'wellbeing', hasMap: F, hasPainTypes: F, hasBristol: F, hasGas: F, gasHasOdor: F, hasYesNo: F, hasSleepHours: F, hasDelay: F, invertedScale: T },
+  stress:             { category: 'wellbeing', hasMap: F, hasPainTypes: F, hasBristol: F, hasGas: F, gasHasOdor: F, hasYesNo: F, hasSleepHours: F, hasDelay: F, invertedScale: F },
 };
 
 const FALLBACK_META: SymptomMeta = {
   category: 'systemic', hasMap: F, hasPainTypes: F, hasBristol: F,
-  hasGas: F, gasHasOdor: F, hasYesNo: F, hasSleepHours: F, hasDelay: F,
+  hasGas: F, gasHasOdor: F, hasYesNo: F, hasSleepHours: F, hasDelay: F, invertedScale: F,
 };
 
 /**

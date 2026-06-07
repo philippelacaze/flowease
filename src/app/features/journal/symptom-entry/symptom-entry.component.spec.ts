@@ -13,6 +13,7 @@ type SymptomRowPartial = {
   hasYesNo: boolean;
   hasSleepHours: boolean; sleepHours: number | null;
   hasDelay: boolean; postmealDelay: number | null;
+  invertedScale: boolean;
   category: string; labelFr: string; painZones: unknown[]; painTypes: unknown[];
   stoolBlood: boolean; stoolMucus: boolean; stoolFrequency: number;
 };

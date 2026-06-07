@@ -220,6 +220,89 @@ describe('MealEntryComponent', () => {
     });
   });
 
+  describe('mode texte — analyse IA sur validation', () => {
+    afterEach(() => history.replaceState({}, ''));
+
+    it('appelle extractFromText avec textInput avant d\'enregistrer', async () => {
+      const mockService = makeMealServiceMock();
+      const { fixture } = await createComponent(mockService);
+      const comp = fixture.componentInstance as unknown as {
+        textInput: string; submit(): Promise<void>;
+      };
+      comp.textInput = 'Riz blanc et poulet';
+      await comp.submit();
+      expect(mockService.extractFromText).toHaveBeenCalledWith('Riz blanc et poulet');
+    });
+
+    it('enregistre les aliments extraits par l\'IA quand elle retourne des résultats', async () => {
+      const aiItems: FoodItemVO[] = [
+        { name: 'Riz blanc', fodmap: { level: 'low' }, confirmed: false },
+      ];
+      const mockService = makeMealServiceMock();
+      mockService.extractFromText = vi.fn().mockResolvedValue({ items: aiItems, aiFodmapFlags: [] });
+      const { fixture } = await createComponent(mockService);
+      const comp = fixture.componentInstance as unknown as {
+        textInput: string; submit(): Promise<void>;
+      };
+      comp.textInput = 'Riz blanc';
+      await comp.submit();
+      const callArg = mockService.add.mock.calls[0][0] as { items: FoodItemVO[] };
+      expect(callArg.items).toEqual([{ name: 'Riz blanc', fodmap: { level: 'low' }, confirmed: true }]);
+    });
+
+    it('conserve les aliments manuels quand l\'IA retourne 0 résultat (mode dégradé)', async () => {
+      const mockService = makeMealServiceMock(); // extractFromText retourne emptyResult par défaut
+      const { fixture } = await createComponent(mockService);
+      const comp = fixture.componentInstance as unknown as {
+        textInput: string; submit(): Promise<void>;
+      };
+      comp.textInput = 'Poulet rôti';
+      await comp.submit();
+      const callArg = mockService.add.mock.calls[0][0] as { items: FoodItemVO[] };
+      expect(callArg.items[0].name).toBe('Poulet rôti');
+    });
+
+    it('le bouton submit porte l\'aria-label "Analyser par IA et enregistrer le repas" en mode texte', async () => {
+      const { fixture } = await createComponent();
+      fixture.detectChanges();
+      const btn = fixture.debugElement.query(By.css('[data-testid="submit-meal"]'));
+      expect(btn).not.toBeNull();
+      expect((btn.nativeElement as HTMLButtonElement).getAttribute('aria-label'))
+        .toBe('Analyser par IA et enregistrer le repas');
+    });
+
+    it('n\'appelle pas extractFromText lors du submit en mode photo', async () => {
+      const mockService = makeMealServiceMock(mockResult);
+      const { fixture } = await createComponent(mockService);
+      const comp = fixture.componentInstance as unknown as ComponentPrivate;
+      comp.setMode('photo');
+      await comp.onPhotoSelected({ base64: 'abc123==', mediaType: 'image/jpeg' });
+      mockService.extractFromText.mockClear();
+      await (fixture.componentInstance as unknown as { submit(): Promise<void> }).submit();
+      expect(mockService.extractFromText).not.toHaveBeenCalled();
+    });
+
+    it('utilise les noms des aliments comme texte d\'analyse en mode édition (textInput vide)', async () => {
+      const editEntry = {
+        id: 'e1',
+        occurredAt: new Date(),
+        type: 'lunch' as const,
+        inputMode: 'voice' as const,
+        items: [
+          { name: 'Brocoli', fodmap: { level: 'high' as const }, confirmed: true },
+          { name: 'Tofu', fodmap: { level: 'low' as const }, confirmed: true },
+        ],
+        notes: undefined,
+        aiFodmapFlags: [],
+      };
+      history.replaceState({ editEntry }, '');
+      const mockService = makeMealServiceMock();
+      const { fixture } = await createComponent(mockService);
+      await (fixture.componentInstance as unknown as { submit(): Promise<void> }).submit();
+      expect(mockService.extractFromText).toHaveBeenCalledWith('Brocoli, Tofu');
+    });
+  });
+
   describe('mode photo — bouton désactivé si hors-ligne', () => {
     let fixture: ComponentFixture<MealEntryComponent>;
     let originalDescriptor: PropertyDescriptor | undefined;

@@ -75,6 +75,8 @@
   letter-spacing: 0.8px;
   color: var(--teal);
   margin: 0 0 12px;
+
+  span[aria-hidden] { font-size: 24px; }
 }
 
 .symptom-row {
@@ -223,6 +225,31 @@
 }
 .sym-add-confirm { background: var(--teal); color: white; }
 .sym-add-cancel  { background: var(--chip); color: var(--text-2); }
+
+/* ── Note libre du jour ─────────────────────────── */
+.wellbeing-note-row { margin-top: 12px; }
+.wellbeing-note-label {
+  display: block;
+  font-size: 13px;
+  color: var(--text-3);
+  margin-bottom: 6px;
+}
+.wellbeing-note-input {
+  width: 100%;
+  border: 0.5px solid var(--border);
+  border-radius: 12px;
+  padding: 10px 12px;
+  background: var(--input-bg);
+  color: var(--text-1);
+  font-size: 14px;
+  font-family: inherit;
+  resize: none;
+  outline: none;
+  box-sizing: border-box;
+
+  &:focus { border-color: var(--teal); }
+  &::placeholder { color: var(--text-4); }
+}
 
 /* ── Submit ─────────────────────────────────────── */
 .submit-row {

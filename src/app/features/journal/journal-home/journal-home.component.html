@@ -43,12 +43,12 @@
                 (click)="openCamera($event)">
           <span>📷</span><span>Photo</span>
         </button>
+        <button class="qc-btn" aria-label="Saisir manuellement un repas"
+                data-testid="qc-meal-text"
+                (click)="navigate('/journal/meal', 'text')">
+          <span>✏️</span><span>Texte</span>
+        </button>
       </div>
-      <button class="qc-text-link" aria-label="Saisir manuellement un repas"
-              data-testid="qc-meal-text"
-              (click)="navigate('/journal/meal', 'text')">
-        ＋ Saisir manuellement
-      </button>
     </div>
 
     <!-- Symptômes -->
@@ -66,7 +66,7 @@
         <button class="qc-btn" aria-label="Saisir les symptômes"
                 data-testid="qc-symptom-form"
                 (click)="navigate('/journal/symptom', 'form')">
-          <span>✏️</span><span>Saisir</span>
+          <span>✏️</span><span>Texte</span>
         </button>
       </div>
     </div>

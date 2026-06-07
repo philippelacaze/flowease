@@ -246,6 +246,18 @@ export class MealEntryComponent implements OnInit, OnDestroy {
     this.saving = true;
     this.cdr.markForCheck();
 
+    if (this.srcMode === 'text') {
+      const analysisText = this.textInput.trim() || items.map(i => i.name).join(', ');
+      if (analysisText) {
+        const aiResult = await this.meals.extractFromText(analysisText);
+        if (aiResult.items.length > 0) {
+          items = aiResult.items.map(item => ({ ...item, confirmed: true }));
+          this.proposedItems = items;
+          this.pendingAiFodmapFlags = [...aiResult.aiFodmapFlags];
+        }
+      }
+    }
+
     if (this.editingEntry) {
       await this.meals.edit({
         id: this.editingEntry.id,

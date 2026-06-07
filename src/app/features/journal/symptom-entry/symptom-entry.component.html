@@ -91,6 +91,7 @@
             <app-intensity-slider
               [label]="row.labelFr"
               [value]="row.intensity"
+              [inverted]="row.invertedScale"
               (valueChange)="row.intensity = $event; markDirty()" />
             @if (row.hasMap && row.intensity > 0) {
               <div class="pain-detail">
@@ -144,6 +145,7 @@
             <app-intensity-slider
               [label]="row.labelFr"
               [value]="row.intensity"
+              [inverted]="row.invertedScale"
               (valueChange)="row.intensity = $event; markDirty()" />
             <div class="sleep-hours-row">
               <label class="sleep-hours-label" [for]="'sleep-h-' + row.key">
@@ -160,6 +162,7 @@
             <app-intensity-slider
               [label]="row.labelFr"
               [value]="row.intensity"
+              [inverted]="row.invertedScale"
               (valueChange)="row.intensity = $event; markDirty()" />
           }
         </div>
@@ -174,6 +177,7 @@
           <app-intensity-slider
             [label]="row.labelFr"
             [value]="row.intensity"
+            [inverted]="row.invertedScale"
             (valueChange)="row.intensity = $event; markDirty()" />
         </div>
       }

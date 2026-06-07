@@ -16,6 +16,8 @@
          data-testid="intensity-range"
          (input)="onInput($event)" />
   <div class="intensity-legend" aria-hidden="true">
-    <span>Absent</span><span>Modéré</span><span>Intense</span>
+    <span [style.color]="legendMinColor">{{ inverted ? 'Très mauvais' : 'Absent' }}</span>
+    <span>Modéré</span>
+    <span [style.color]="legendMaxColor">{{ inverted ? 'Très bon' : 'Intense' }}</span>
   </div>
 </div>

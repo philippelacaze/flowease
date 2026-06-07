@@ -51,12 +51,44 @@ describe('IntensitySliderComponent', () => {
       expect(range.max).toBe('10');
     });
 
-    it('affiche la légende Absent/Modéré/Intense', () => {
+    it('affiche la légende Absent/Modéré/Intense par défaut', () => {
       fixture.detectChanges();
       const text = fixture.nativeElement.textContent as string;
       expect(text).toContain('Absent');
       expect(text).toContain('Modéré');
       expect(text).toContain('Intense');
+    });
+  });
+
+  describe('mode inversé (inverted)', () => {
+    beforeEach(() => { component.inverted = true; });
+
+    it('affiche "Très mauvais" et "Très bon" à la place de "Absent" et "Intense"', () => {
+      component.value = 0;
+      fixture.detectChanges();
+      const text = fixture.nativeElement.textContent as string;
+      expect(text).toContain('Très mauvais');
+      expect(text).toContain('Très bon');
+      expect(text).not.toContain('Absent');
+      expect(text).not.toContain('Intense');
+    });
+
+    it('scoreColor retourne high-dot pour valeur 1–3 (bas = mauvais)', () => {
+      component.value = 2;
+      expect((component as unknown as { scoreColor: string }).scoreColor).toBe('var(--fodmap-high-dot)');
+    });
+
+    it('scoreColor retourne low-dot pour valeur 7–10 (haut = bon)', () => {
+      component.value = 8;
+      expect((component as unknown as { scoreColor: string }).scoreColor).toBe('var(--fodmap-low-dot)');
+    });
+
+    it('legendMinColor retourne high-dot (rouge = mauvais côté min)', () => {
+      expect((component as unknown as { legendMinColor: string }).legendMinColor).toBe('var(--fodmap-high-dot)');
+    });
+
+    it('legendMaxColor retourne low-dot (vert = bon côté max)', () => {
+      expect((component as unknown as { legendMaxColor: string }).legendMaxColor).toBe('var(--fodmap-low-dot)');
     });
   });
 

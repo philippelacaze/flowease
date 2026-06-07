@@ -161,10 +161,10 @@
   </div>
   <div class="submit-footer">
     <button class="primary-btn" data-testid="submit-meal"
-            aria-label="Enregistrer le repas"
+            [attr.aria-label]="srcMode === 'text' ? 'Analyser par IA et enregistrer le repas' : 'Enregistrer le repas'"
             [disabled]="!canSubmit || saving"
             (click)="submit()">
-      {{ saving ? '…' : '✓ Enregistrer le repas' }}
+      {{ saving ? '…' : (srcMode === 'text' ? '✨ Analyser par IA et enregistrer le repas' : '✓ Enregistrer le repas') }}
     </button>
   </div>
 }
@@ -215,10 +215,10 @@
   </div>
   <div class="submit-footer">
     <button class="primary-btn" data-testid="submit-meal"
-            aria-label="Confirmer et enregistrer le repas"
+            [attr.aria-label]="srcMode === 'text' ? 'Analyser par IA et enregistrer le repas' : 'Confirmer et enregistrer le repas'"
             [disabled]="!canSubmit || saving"
             (click)="submit()">
-      {{ saving ? '…' : '✓ Confirmer le repas' }}
+      {{ saving ? '…' : (srcMode === 'text' ? '✨ Analyser par IA et enregistrer le repas' : '✓ Confirmer le repas') }}
     </button>
   </div>
 }

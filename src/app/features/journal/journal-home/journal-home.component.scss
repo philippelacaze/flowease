@@ -20,6 +20,7 @@
       text-align: center;
       flex: 1;
     }
+    .journal-header mat-icon { font-size: 48px; width: 48px; height: 48px; }
 
     /* ── Quick Capture Grid ──────────────────────── */
     .qc-grid {
@@ -44,6 +45,8 @@
       align-items: center;
       gap: 7px;
       font-size: 16px;
+
+      span[aria-hidden] { font-size: 32px; }
     }
 
     .qc-card-label {
@@ -73,6 +76,8 @@
       align-items: center;
       justify-content: center;
       gap: 3px;
+
+      span:first-child { font-size: 22px; }
     }
 
     .qc-btn--recording {
@@ -139,7 +144,7 @@
       color: var(--teal);
       margin: 0 0 8px;
     }
-    .section-title mat-icon { font-size: 16px; width: 16px; height: 16px; }
+    .section-title mat-icon { font-size: 32px; width: 32px; height: 32px; }
 
     .entry-card {
       padding: 10px 12px;
@@ -169,9 +174,9 @@
       display: inline-flex;
       align-items: center;
       justify-content: center;
-      width: 28px;
-      height: 28px;
-      min-width: 28px;
+      width: 44px;
+      height: 44px;
+      min-width: 44px;
       border-radius: 50%;
       background: transparent;
       border: none;
@@ -187,7 +192,7 @@
       color: var(--teal);
       outline: none;
     }
-    .entry-edit-btn mat-icon { font-size: 16px; width: 16px; height: 16px; }
+    .entry-edit-btn mat-icon { font-size: 32px; width: 32px; height: 32px; }
 
     /* Repas — chips */
     .food-chips-row { display: flex; flex-wrap: wrap; gap: 5px; padding: 2px 0; }
@@ -235,7 +240,7 @@
 
     /* Prises — badge statut */
     .status-badge { display: inline-flex; align-items: center; gap: 4px; font-size: 13px; font-weight: 600; }
-    .status-badge mat-icon { font-size: 16px; width: 16px; height: 16px; }
+    .status-badge mat-icon { font-size: 32px; width: 32px; height: 32px; }
     .status-taken   { color: var(--fodmap-low-text); }
     .status-skipped { color: var(--coral); }
 
@@ -260,7 +265,7 @@
       color: var(--text-3);
       margin: 0 0 6px;
     }
-    .note-ai-icon { font-size: 13px; width: 13px; height: 13px; }
+    .note-ai-icon { font-size: 26px; width: 26px; height: 26px; }
     .note-ai-chip-row { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 8px; }
     .note-ai-chip {
       display: inline-flex;
