@@ -124,9 +124,15 @@
       <app-voice-input [autoStart]="true" (transcript)="onTranscript($event)" />
     }
     @if (srcMode === 'text') {
+      <textarea class="meal-textarea"
+                [(ngModel)]="textInput"
+                placeholder="Décrivez votre repas… (ex : poulet grillé, riz basmati, courgettes)"
+                aria-label="Description du repas en texte libre"
+                data-testid="meal-text-input"
+                rows="3"></textarea>
       <div class="add-item-row">
         <input class="add-item-input" [(ngModel)]="newItemName"
-               placeholder="Nom de l'aliment…"
+               placeholder="Ou ajouter un aliment précis…"
                aria-label="Nom de l'aliment à ajouter"
                data-testid="add-item-input"
                (keydown.enter)="addManualItem()" />

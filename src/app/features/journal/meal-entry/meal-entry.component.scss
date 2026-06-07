@@ -129,6 +129,26 @@
   padding-right: 32px;
 }
 
+/* Textarea description repas (mode texte) */
+.meal-textarea {
+  width: 100%;
+  padding: 10px 12px;
+  border: 0.5px solid var(--border);
+  border-radius: 10px;
+  background: var(--input-bg);
+  color: var(--text-1);
+  font-size: 14px;
+  font-family: inherit;
+  line-height: 1.5;
+  resize: vertical;
+  min-height: 72px;
+  margin-bottom: 10px;
+  box-sizing: border-box;
+
+  &::placeholder { color: var(--text-3); }
+  &:focus { outline: none; border-color: var(--teal); }
+}
+
 /* Add item row */
 .add-item-row {
   display: flex;
