@@ -5,6 +5,7 @@ import { vi } from 'vitest';
 import { ReportBuilderComponent } from './report-builder.component';
 import { ReportService } from '../services/report.service';
 import { PdfReportService } from '../../../core/services/pdf-report.service';
+import { StorageService } from '../../../core/services/storage.service';
 import { MatSnackBar } from '@angular/material/snack-bar';
 
 const mockReport = {
@@ -22,6 +23,21 @@ const mockReportService = {
 const mockPdfService = { generate: vi.fn() };
 const mockSnackBar = { open: vi.fn() };
 
+const mockProfile = {
+  id: 'singleton',
+  conditions: ['sibo_methane'],
+  protocol: 'strict',
+  otherConditions: 'Endométriose',
+  allergies: 'Arachides',
+  dietaryRestrictions: 'Sans lactose',
+  language: 'fr',
+  theme: 'auto',
+  showTokenCounter: false,
+  defaultCoachContext: '14',
+  updatedAt: new Date(),
+};
+const mockStorage = { get: vi.fn().mockResolvedValue(mockProfile) };
+
 async function createComponent() {
   await TestBed.configureTestingModule({
     imports: [ReportBuilderComponent, NoopAnimationsModule],
@@ -29,6 +45,7 @@ async function createComponent() {
       provideRouter([]),
       { provide: ReportService, useValue: mockReportService },
       { provide: PdfReportService, useValue: mockPdfService },
+      { provide: StorageService, useValue: mockStorage },
       { provide: MatSnackBar, useValue: mockSnackBar },
     ],
   }).compileComponents();
@@ -145,6 +162,22 @@ describe('ReportBuilderComponent', () => {
       fixture.nativeElement.querySelector('[data-testid="generate-button"]').click();
       await fixture.whenStable();
       expect(mockReportService.generateSummary).toHaveBeenCalledOnce();
+    });
+
+    it('transmet les conditions et le contexte médical libre du profil à generateSummary', async () => {
+      const fixture = await createComponent();
+      fixture.nativeElement.querySelector('[data-testid="ai-summary-checkbox"]').click();
+      fixture.nativeElement.querySelector('[data-testid="generate-button"]').click();
+      await fixture.whenStable();
+      expect(mockReportService.generateSummary).toHaveBeenCalledWith(
+        'r1',
+        expect.objectContaining({
+          userConditions: ['sibo_methane'],
+          otherConditions: 'Endométriose',
+          allergies: 'Arachides',
+          dietaryRestrictions: 'Sans lactose',
+        }),
+      );
     });
   });
 

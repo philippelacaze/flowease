@@ -126,6 +126,30 @@ describe('AnalysisService — run', () => {
       const callArg = mockAi.analyzeData.mock.calls[0][0] as Record<string, unknown>;
       expect(callArg['curesJson']).toBeUndefined();
     });
+
+    it('transmet conditions, otherConditions, allergies et restrictions du profil au service IA', async () => {
+      const storage = makeStorageMock({
+        session: {
+          id: 'singleton',
+          conditions: ['gastroparesis'],
+          protocol: 'maintenance',
+          otherConditions: 'Endométriose',
+          allergies: 'Arachides',
+          dietaryRestrictions: 'Sans lactose',
+        },
+      });
+      const { service } = setup(mockAi, storage);
+      await service.run(14);
+      expect(mockAi.analyzeData).toHaveBeenCalledWith(
+        expect.objectContaining({
+          userConditions: ['gastroparesis'],
+          protocol: 'maintenance',
+          otherConditions: 'Endométriose',
+          allergies: 'Arachides',
+          dietaryRestrictions: 'Sans lactose',
+        }),
+      );
+    });
   });
 
   describe('mode dégradé — NullAiService injecté', () => {

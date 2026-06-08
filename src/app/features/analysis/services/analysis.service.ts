@@ -63,6 +63,9 @@ export class AnalysisService {
       curesJson: cures.length > 0 ? JSON.stringify(cures) : undefined,
       userConditions: userProfile?.conditions ?? [],
       protocol: userProfile?.protocol ?? 'none',
+      otherConditions: userProfile?.otherConditions,
+      allergies: userProfile?.allergies,
+      dietaryRestrictions: userProfile?.dietaryRestrictions,
     };
 
     const result = await this.ai.analyzeData(context) ?? DEGRADED_RESULT;

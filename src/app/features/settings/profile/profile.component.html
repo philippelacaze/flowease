@@ -34,6 +34,16 @@
               </mat-checkbox>
             }
           </div>
+
+          <mat-form-field appearance="outline" class="full-width">
+            <mat-label>Autres conditions médicales (facultatif)</mat-label>
+            <textarea
+              matInput
+              formControlName="otherConditions"
+              rows="2"
+              aria-label="Autres conditions médicales"
+              data-testid="other-conditions"></textarea>
+          </mat-form-field>
         </section>
 
         <mat-divider />
@@ -59,16 +69,6 @@
               formControlName="referringDoctor"
               aria-label="Médecin référent"
               data-testid="referring-doctor" />
-          </mat-form-field>
-
-          <mat-form-field appearance="outline" class="full-width">
-            <mat-label>Autres conditions médicales (facultatif)</mat-label>
-            <textarea
-              matInput
-              formControlName="otherConditions"
-              rows="2"
-              aria-label="Autres conditions médicales"
-              data-testid="other-conditions"></textarea>
           </mat-form-field>
 
           <mat-form-field appearance="outline" class="full-width">

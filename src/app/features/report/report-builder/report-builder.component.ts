@@ -5,8 +5,10 @@ import { FormsModule } from '@angular/forms';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { ReportService } from '../services/report.service';
 import { PdfReportService } from '../../../core/services/pdf-report.service';
+import { StorageService } from '../../../core/services/storage.service';
 import type { ReportEntity, ReportFormat } from '../../../core/models/entities/report.entity';
 import type { ReportData } from '../../../core/services/ai.service';
+import type { UserProfileEntity } from '../../../core/models/entities/user-profile.entity';
 
 type WindowPreset = 7 | 14 | 30 | 90 | 'custom';
 
@@ -30,6 +32,7 @@ type WindowPreset = 7 | 14 | 30 | 90 | 'custom';
 export class ReportBuilderComponent {
   private readonly report = inject(ReportService);
   private readonly pdfService = inject(PdfReportService);
+  private readonly storage = inject(StorageService);
   private readonly snackBar = inject(MatSnackBar);
 
   protected windowPreset: WindowPreset = 14;
@@ -91,10 +94,14 @@ export class ReportBuilderComponent {
       this.generatedReport.set(report);
 
       if (this.includeAiSummary) {
+        const profile = await this.storage.get('user-profile', 'singleton') as UserProfileEntity | undefined;
         const reportData: ReportData = {
           windowDays,
           sections: report.sections.filter(s => s.included),
-          userConditions: [],
+          userConditions: profile?.conditions ?? [],
+          otherConditions: profile?.otherConditions,
+          allergies: profile?.allergies,
+          dietaryRestrictions: profile?.dietaryRestrictions,
         };
         const summary = await this.report.generateSummary(report.id, reportData);
         this.aiSummaryText.set(summary);

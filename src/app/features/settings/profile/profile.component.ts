@@ -26,7 +26,6 @@ const CONDITION_LABELS: Record<MedicalCondition, string> = {
   crohn: 'Maladie de Crohn',
   colitis: 'Colite',
   gerd: 'RGO',
-  other: 'Autre',
 };
 
 /**

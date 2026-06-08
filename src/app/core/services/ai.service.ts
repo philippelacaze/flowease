@@ -38,6 +38,9 @@ export interface AnalysisContext {
   readonly userConditions: readonly string[];
   readonly protocol: string;
   readonly curesJson?: string;
+  readonly otherConditions?: string;
+  readonly allergies?: string;
+  readonly dietaryRestrictions?: string;
 }
 
 export type InsightType =
@@ -73,6 +76,9 @@ export interface ReportData {
   readonly sections: readonly ReportSection[];
   readonly windowDays: number;
   readonly userConditions: readonly string[];
+  readonly otherConditions?: string;
+  readonly allergies?: string;
+  readonly dietaryRestrictions?: string;
 }
 
 export interface CoachMessage {
@@ -216,6 +222,9 @@ export class AiService {
       ...(context.curesJson ? { cures: context.curesJson } : {}),
       conditions: context.userConditions,
       protocol: context.protocol,
+      ...(context.otherConditions ? { otherConditions: context.otherConditions } : {}),
+      ...(context.allergies ? { allergies: context.allergies } : {}),
+      ...(context.dietaryRestrictions ? { dietaryRestrictions: context.dietaryRestrictions } : {}),
     });
 
     const prompt = ANALYSIS_PROMPT
@@ -246,6 +255,9 @@ export class AiService {
       sections: data.sections,
       windowDays: data.windowDays,
       conditions: data.userConditions,
+      ...(data.otherConditions ? { otherConditions: data.otherConditions } : {}),
+      ...(data.allergies ? { allergies: data.allergies } : {}),
+      ...(data.dietaryRestrictions ? { dietaryRestrictions: data.dietaryRestrictions } : {}),
     });
 
     const prompt = REPORT_SUMMARY_PROMPT.replace('{{REPORT_DATA}}', reportData);

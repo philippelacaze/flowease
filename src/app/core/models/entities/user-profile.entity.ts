@@ -15,8 +15,7 @@ export type MedicalCondition =
   | 'ibs'
   | 'crohn'
   | 'colitis'
-  | 'gerd'
-  | 'other';
+  | 'gerd';
 
 /** Niveau de régime FODMAP suivi. */
 export type FodmapProtocol =
