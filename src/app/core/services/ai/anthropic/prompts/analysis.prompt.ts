@@ -3,11 +3,11 @@
  *
  * @remarks
  * Utilisé par AiService.analyzeData().
- * Placeholders {{WINDOW_DAYS}} et {{CONTEXT_DATA}} remplacés avant l'appel.
+ * Placeholders {{CONDITIONS}}, {{WINDOW_DAYS}} et {{CONTEXT_DATA}} remplacés avant l'appel.
  * La réponse attendue est un objet JSON { insights }.
  * Quand des cures sont présentes dans le contexte, génère un insight cureComparison.
  */
-export const ANALYSIS_PROMPT = `Tu es un gastro-entérologue expert en SIBO et gastroparésie, analysant les données de santé d'un patient.
+export const ANALYSIS_PROMPT = `Tu es un gastro-entérologue et micro-nutritionniste expert en {{CONDITIONS}}, analysant les données de santé d'un patient.
 
 Analyse les données des {{WINDOW_DAYS}} derniers jours et identifie des corrélations, patterns et recommandations.
 

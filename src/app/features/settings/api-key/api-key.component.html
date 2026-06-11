@@ -3,7 +3,7 @@
         <a mat-icon-button routerLink=".." aria-label="Retour aux paramètres">
           <mat-icon>arrow_back</mat-icon>
         </a>
-        <h1>Clé API Claude</h1>
+        <h1>IA</h1>
       </header>
 
       <div class="content">
@@ -117,6 +117,45 @@
           La clé est stockée uniquement dans votre navigateur (localStorage).
           Elle n'est jamais envoyée à nos serveurs.
         </p>
+
+        <!-- Prompts IA (lecture seule, débogage) -->
+        <section class="prompts-section" aria-label="Prompts IA utilisés" data-testid="prompts-section">
+          <h2 class="prompts-title">Prompts IA</h2>
+          <p class="prompts-hint">
+            <mat-icon class="small-icon">info</mat-icon>
+            Prompts résolus à l'ouverture de la page, en lecture seule. L'override
+            personnalisé arrivera dans une prochaine version.
+          </p>
+
+          @for (prompt of prompts(); track prompt.id) {
+            <div class="prompt-card" [attr.data-testid]="'prompt-' + prompt.id">
+              <div class="prompt-card-head">
+                <span class="prompt-label">{{ prompt.label }}</span>
+                <mat-chip-set>
+                  @if (prompt.resolved) {
+                    <mat-chip class="prompt-tag prompt-tag--resolved">résolu selon profil</mat-chip>
+                  } @else {
+                    <mat-chip class="prompt-tag">pattern</mat-chip>
+                  }
+                </mat-chip-set>
+              </div>
+              <p class="prompt-desc">{{ prompt.description }}</p>
+              @if (prompt.placeholders.length > 0) {
+                <p class="prompt-placeholders">
+                  Variables injectées à l'appel : {{ prompt.placeholders.join(', ') }}
+                </p>
+              }
+              <textarea
+                class="prompt-textarea"
+                readonly
+                rows="10"
+                spellcheck="false"
+                [attr.aria-label]="'Prompt ' + prompt.label + ' (lecture seule)'"
+                [attr.data-testid]="'prompt-textarea-' + prompt.id"
+                [value]="prompt.text"></textarea>
+            </div>
+          }
+        </section>
       </div>
     </div>
   

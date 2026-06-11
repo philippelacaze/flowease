@@ -7,23 +7,7 @@
  * La réponse attendue est un objet JSON { items, fodmapAlerts }.
  */
 import type { MealProfileContext } from '../../../../models/entities/user-profile.entity';
-
-const CONDITION_LABELS: Record<string, string> = {
-  sibo_hydrogen: 'SIBO à hydrogène',
-  sibo_methane: 'SIBO au méthane',
-  sibo_hydrogen_sulfide: 'SIBO à hydrogène sulfuré',
-  gastroparesis: 'gastroparésie',
-  ibs: 'syndrome de l\'intestin irritable (SII)',
-  crohn: 'maladie de Crohn',
-  colitis: 'recto-colite hémorragique',
-  gerd: 'RGO (reflux gastro-œsophagien)',
-};
-
-const PROTOCOL_LABELS: Record<string, string> = {
-  strict: 'régime FODMAP strict',
-  reintroduction: 'phase de réintroduction FODMAP',
-  maintenance: 'phase de maintenance FODMAP',
-};
+import { CONDITION_LABELS, PROTOCOL_LABELS } from './medical-conditions';
 
 function buildPersona(ctx: MealProfileContext): string {
   const labels = ctx.conditions.map(c => CONDITION_LABELS[c]).filter(Boolean);

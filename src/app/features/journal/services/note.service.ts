@@ -3,6 +3,7 @@ import { StorageService } from '../../../core/services/storage.service';
 import { AiService } from '../../../core/services/ai.service';
 import type { NoteEntity, NoteInputMode, LinkedEntry } from '../../../core/models/entities/note.entity';
 import type { NoteTaggingResult } from '../../../core/services/ai.service';
+import type { UserProfileEntity } from '../../../core/models/entities/user-profile.entity';
 
 export interface AddNoteInput {
   readonly occurredAt: Date;
@@ -62,7 +63,12 @@ export class NoteService {
     const note = await this.storage.get<NoteEntity>('notes', noteId);
     if (!note) return EMPTY_TAG_RESULT;
 
-    const result = await this.ai.tagNote(note.content);
+    const profile = await this.storage.get<UserProfileEntity>('user-profile', 'singleton');
+    const result = await this.ai.tagNote(
+      note.content,
+      profile?.conditions ?? [],
+      profile?.otherConditions,
+    );
     if (result === null) return EMPTY_TAG_RESULT;
 
     // Stocke les tags en attente de confirmation, sans modifier tags[]

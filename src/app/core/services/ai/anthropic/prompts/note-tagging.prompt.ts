@@ -3,10 +3,10 @@
  *
  * @remarks
  * Utilisé par AiService.tagNote().
- * Placeholder {{NOTE_CONTENT}} remplacé avant l'appel.
+ * Placeholders {{CONDITIONS}} et {{NOTE_CONTENT}} remplacés avant l'appel.
  * La réponse attendue est un objet JSON { tags, summary }.
  */
-export const NOTE_TAGGING_PROMPT = `Tu es un assistant médical spécialisé dans le suivi du SIBO et de la gastroparésie.
+export const NOTE_TAGGING_PROMPT = `Tu es un assistant médical spécialisé dans le suivi de {{CONDITIONS}}.
 
 Analyse cette note de journal de santé et génère des tags pertinents ainsi qu'un résumé court.
 

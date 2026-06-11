@@ -15,6 +15,7 @@ import { NOTE_TAGGING_PROMPT } from '../../core/services/ai/anthropic/prompts/no
 import { ANALYSIS_PROMPT } from '../../core/services/ai/anthropic/prompts/analysis.prompt';
 import { REPORT_SUMMARY_PROMPT } from '../../core/services/ai/anthropic/prompts/report-summary.prompt';
 import { COACH_SYSTEM_PROMPT } from '../../core/services/ai/anthropic/prompts/coach-system.prompt';
+import { describeConditions, describeProtocol } from '../../core/services/ai/anthropic/prompts/medical-conditions';
 
 // --- Types (anciennement dans les fichiers de ports) ---
 
@@ -89,6 +90,7 @@ export interface CoachMessage {
 export interface CoachContext {
   readonly contextWindow: CoachContextWindow;
   readonly userConditions: readonly string[];
+  readonly otherConditions?: string;
   readonly protocol: string;
   readonly activeTreatments: readonly string[];
   readonly previousSessionSummary?: string;
@@ -192,11 +194,17 @@ export class AiService {
     return result;
   }
 
-  async tagNote(content: string): Promise<NoteTaggingResult | null> {
+  async tagNote(
+    content: string,
+    conditions: readonly string[] = [],
+    otherConditions?: string,
+  ): Promise<NoteTaggingResult | null> {
     const apiKey = this.requireApiKey();
     if (!apiKey) return null;
 
-    const prompt = NOTE_TAGGING_PROMPT.replace('{{NOTE_CONTENT}}', content);
+    const prompt = NOTE_TAGGING_PROMPT
+      .replace(/\{\{CONDITIONS\}\}/g, describeConditions(conditions, otherConditions))
+      .replace('{{NOTE_CONTENT}}', content);
     const text = await this.callApi(MODEL_FAST, prompt, apiKey);
     if (text === null) return null;
 
@@ -228,6 +236,7 @@ export class AiService {
     });
 
     const prompt = ANALYSIS_PROMPT
+      .replace(/\{\{CONDITIONS\}\}/g, describeConditions(context.userConditions, context.otherConditions))
       .replace('{{WINDOW_DAYS}}', String(context.windowDays))
       .replace('{{CONTEXT_DATA}}', contextData);
 
@@ -260,7 +269,9 @@ export class AiService {
       ...(data.dietaryRestrictions ? { dietaryRestrictions: data.dietaryRestrictions } : {}),
     });
 
-    const prompt = REPORT_SUMMARY_PROMPT.replace('{{REPORT_DATA}}', reportData);
+    const prompt = REPORT_SUMMARY_PROMPT
+      .replace(/\{\{CONDITIONS\}\}/g, describeConditions(data.userConditions, data.otherConditions))
+      .replace('{{REPORT_DATA}}', reportData);
     return this.callApi(MODEL_DEFAULT, prompt, apiKey);
   }
 
@@ -276,8 +287,8 @@ export class AiService {
       ? `\n${context.profileContext}\n`
       : '';
     const systemPrompt = COACH_SYSTEM_PROMPT
-      .replace('{{CONDITIONS}}', context.userConditions.join(', ') || 'Non renseigné')
-      .replace('{{PROTOCOL}}', context.protocol || 'Non renseigné')
+      .replace(/\{\{CONDITIONS\}\}/g, describeConditions(context.userConditions, context.otherConditions))
+      .replace('{{PROTOCOL}}', describeProtocol(context.protocol))
       .replace('{{TREATMENTS}}', context.activeTreatments.join(', ') || 'Aucun')
       .replace('{{MEDICAL_DETAILS}}', medicalDetails)
       .replace('{{PREVIOUS_SESSION_SUMMARY}}', context.previousSessionSummary ?? 'Première session')

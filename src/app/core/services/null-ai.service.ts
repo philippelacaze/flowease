@@ -29,7 +29,11 @@ export class NullAiService {
     return null;
   }
 
-  async tagNote(_content: string): Promise<NoteTaggingResult | null> {
+  async tagNote(
+    _content: string,
+    _conditions?: readonly string[],
+    _otherConditions?: string,
+  ): Promise<NoteTaggingResult | null> {
     return null;
   }
 

@@ -156,6 +156,7 @@ export class CoachService {
     return {
       contextWindow,
       userConditions: profile?.conditions ?? [],
+      otherConditions: profile?.otherConditions,
       protocol: profile?.protocol ?? 'none',
       activeTreatments,
       healthDataJson,

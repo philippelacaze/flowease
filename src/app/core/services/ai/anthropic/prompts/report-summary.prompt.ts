@@ -3,9 +3,10 @@
  *
  * @remarks
  * Utilisé par AiService.generateReportSummary().
+ * Placeholder {{CONDITIONS}} remplacé avant l'appel.
  * La réponse attendue est du texte markdown sans wrapper JSON.
  */
-export const REPORT_SUMMARY_PROMPT = `Tu es un gastro-entérologue rédigeant une synthèse médicale structurée pour un patient atteint de SIBO ou de gastroparésie.
+export const REPORT_SUMMARY_PROMPT = `Tu es un gastro-entérologue et micro-nutritionniste rédigeant une synthèse médicale structurée pour un patient atteint de {{CONDITIONS}}.
 
 À partir des données du rapport ci-dessous, rédige une synthèse narrative en markdown.
 

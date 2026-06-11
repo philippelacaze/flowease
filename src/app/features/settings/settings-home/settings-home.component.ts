@@ -36,7 +36,7 @@ export class SettingsHomeComponent {
 
   protected readonly items: readonly SettingsItem[] = [
     { label: 'Mon profil',                 emoji: '👤',  route: 'profile',         description: 'Conditions médicales, protocole' },
-    { label: 'Clé API Claude',             emoji: '🔑',  route: 'api-key',         description: 'Accès aux fonctions IA' },
+    { label: 'IA',                         emoji: '🔑',  route: 'api-key',         description: 'Clé API et prompts' },
     { label: 'Traitements',                emoji: '💊',  route: 'treatments',      description: 'Médicaments et rappels' },
     { label: 'Symptômes',                  emoji: '🫀',  route: 'symptoms-config', description: 'Personnaliser le suivi' },
     { label: 'Préférences Coach',          emoji: '🤖',  route: 'coach-settings',  description: 'Mode et contexte IA' },

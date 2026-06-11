@@ -99,6 +99,26 @@ describe('NoteService', () => {
       expect(result.tags).toEqual(['crampes', 'sibo']);
       expect(storage.save).toHaveBeenCalledWith('notes', expect.objectContaining({ aiTagSuggestions: ['crampes', 'sibo'] }));
     });
+
+    it('transmet les conditions du profil à tagNote', async () => {
+      const mockAi = { tagNote: vi.fn().mockResolvedValue({ tags: [], summary: '' }) };
+      const storage = {
+        ...makeStorageMock(),
+        get: vi.fn().mockImplementation((store: string) =>
+          Promise.resolve(
+            store === 'user-profile'
+              ? { id: 'singleton', conditions: ['gastroparesis'], otherConditions: 'Endométriose' }
+              : mockNote,
+          ),
+        ),
+      };
+      TestBed.configureTestingModule({
+        providers: [NoteService, { provide: StorageService, useValue: storage }, { provide: AiService, useValue: mockAi }],
+      });
+      const svc = TestBed.inject(NoteService);
+      await svc.tag('note-1');
+      expect(mockAi.tagNote).toHaveBeenCalledWith('Crampes abdominales', ['gastroparesis'], 'Endométriose');
+    });
   });
 
   describe('confirmTags', () => {
