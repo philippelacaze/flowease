@@ -65,11 +65,10 @@ const SYMPTOM_METADATA: Readonly<Record<string, SymptomMeta>> = {
   brain_fog:          { category: 'systemic',  hasMap: F, hasPainTypes: F, hasBristol: F, hasGas: F, gasHasOdor: F, hasYesNo: F, hasSleepHours: F, hasDelay: F, invertedScale: F },
   joint_pain:         { category: 'systemic',  hasMap: F, hasPainTypes: F, hasBristol: F, hasGas: F, gasHasOdor: F, hasYesNo: T, hasSleepHours: F, hasDelay: F, invertedScale: F },
   sleep_quality:      { category: 'systemic',  hasMap: F, hasPainTypes: F, hasBristol: F, hasGas: F, gasHasOdor: F, hasYesNo: F, hasSleepHours: T, hasDelay: F, invertedScale: F },
-  // Bloc C — Bien-être (score, humeur, énergie : échelle inversée — haut = bon)
-  wellbeing_score:    { category: 'wellbeing', hasMap: F, hasPainTypes: F, hasBristol: F, hasGas: F, gasHasOdor: F, hasYesNo: F, hasSleepHours: F, hasDelay: F, invertedScale: T },
-  mood:               { category: 'wellbeing', hasMap: F, hasPainTypes: F, hasBristol: F, hasGas: F, gasHasOdor: F, hasYesNo: F, hasSleepHours: F, hasDelay: F, invertedScale: T },
-  // Archivés hors-specs — conservés pour l'historique existant
-  energy:             { category: 'wellbeing', hasMap: F, hasPainTypes: F, hasBristol: F, hasGas: F, gasHasOdor: F, hasYesNo: F, hasSleepHours: F, hasDelay: F, invertedScale: T },
+  // Bloc C — Humeur : échelle uniforme 0 = absent → 10 = intense (mal-être, anxiété)
+  wellbeing_score:    { category: 'wellbeing', hasMap: F, hasPainTypes: F, hasBristol: F, hasGas: F, gasHasOdor: F, hasYesNo: F, hasSleepHours: F, hasDelay: F, invertedScale: F },
+  mood:               { category: 'wellbeing', hasMap: F, hasPainTypes: F, hasBristol: F, hasGas: F, gasHasOdor: F, hasYesNo: F, hasSleepHours: F, hasDelay: F, invertedScale: F },
+  // Archivé hors-specs — conservé pour l'historique existant
   stress:             { category: 'wellbeing', hasMap: F, hasPainTypes: F, hasBristol: F, hasGas: F, gasHasOdor: F, hasYesNo: F, hasSleepHours: F, hasDelay: F, invertedScale: F },
 };
 
@@ -79,7 +78,7 @@ const FALLBACK_META: SymptomMeta = {
 };
 
 /**
- * Page de saisie des symptômes — 3 blocs (digestifs, systémiques, bien-être), confirmation.
+ * Page de saisie des symptômes — 3 blocs (digestifs, systémiques, humeur), confirmation.
  *
  * @remarks
  * srcMode lu depuis queryParams.mode : 'voice' → dictée préanalysée, 'form' → saisie manuelle.

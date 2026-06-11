@@ -65,11 +65,10 @@ const DEFAULT_CONFIGS: StoredSymptomConfig[] = [
   { id: 'brain_fog',          key: 'brain_fog',          label: 'Brouillard mental',     order: 11, custom: false, active: true,  category: 'systemic'  },
   { id: 'joint_pain',         key: 'joint_pain',         label: 'Douleurs articulaires', order: 12, custom: false, active: true,  category: 'systemic'  },
   { id: 'sleep_quality',      key: 'sleep_quality',      label: 'Qualité du sommeil',    order: 13, custom: false, active: true,  category: 'systemic'  },
-  // Bloc C — Bien-être
-  { id: 'wellbeing_score',    key: 'wellbeing_score',    label: 'Score de bien-être',    order: 14, custom: false, active: true,  category: 'wellbeing' },
-  { id: 'mood',               key: 'mood',               label: 'Humeur / anxiété',      order: 15, custom: false, active: true,  category: 'wellbeing' },
+  // Bloc C — Humeur (échelle uniforme 0 = absent → 10 = intense, comme les autres symptômes)
+  { id: 'wellbeing_score',    key: 'wellbeing_score',    label: 'Mal-être',              order: 14, custom: false, active: true,  category: 'wellbeing' },
+  { id: 'mood',               key: 'mood',               label: 'Anxiété',               order: 15, custom: false, active: true,  category: 'wellbeing' },
   // Archivés — hors-specs §1.4.2, inactifs par défaut, historique conservé
-  { id: 'energy',             key: 'energy',             label: 'Énergie globale',       order: 16, custom: false, active: false, category: 'wellbeing' },
   { id: 'stress',             key: 'stress',             label: 'Stress',                order: 17, custom: false, active: false, category: 'wellbeing' },
 ];
 

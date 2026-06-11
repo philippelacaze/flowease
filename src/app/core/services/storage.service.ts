@@ -30,8 +30,8 @@ export class StorageService {
    */
   async init(): Promise<void> {
     this.db = await openDB(DB_NAME, DB_VERSION, {
-      upgrade(db, oldVersion) {
-        upgradeSchema(db, oldVersion);
+      async upgrade(db, oldVersion, _newVersion, tx) {
+        await upgradeSchema(db, oldVersion, tx);
       },
     });
   }

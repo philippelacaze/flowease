@@ -6,9 +6,9 @@
   @if (!loading) {
     @if (noData) {
       <div class="heatmap-state" role="status" data-testid="no-wellbeing-data">
-        Aucun score de bien-être enregistré.
+        Aucun score de mal-être enregistré.
         <br>
-          <small>Saisissez un score dans la page Symptômes (Bloc C — Bien-être).</small>
+          <small>Saisissez un score dans la page Symptômes (Humeur).</small>
         </div>
       }
       @if (!noData) {
@@ -18,7 +18,7 @@
             <span class="wellbeing-score" [ngClass]="'score-' + avgColorClass" data-testid="wellbeing-average">
               {{ monthlyAverage | number:'1.1-1' }}/10
             </span>
-            <span class="wellbeing-label">bien-être moyen sur {{ windowDays }}&nbsp;j</span>
+            <span class="wellbeing-label">mal-être moyen sur {{ windowDays }}&nbsp;j</span>
           </div>
         }
         <!-- Month name -->
@@ -27,7 +27,7 @@
         <div
           class="calendar-grid"
           role="grid"
-          aria-label="Calendrier mensuel de bien-être"
+          aria-label="Calendrier mensuel de mal-être"
           >
           @for (name of DAY_NAMES; track name) {
             <div class="day-header" role="columnheader">{{ name }}</div>
@@ -55,9 +55,9 @@
         </div>
         <!-- Legend -->
         <div class="legend" aria-label="Légende du calendrier">
-          <span class="legend-item green">≥&nbsp;7</span>
+          <span class="legend-item green">≤&nbsp;3</span>
           <span class="legend-item orange">4–6</span>
-          <span class="legend-item red">≤&nbsp;3</span>
+          <span class="legend-item red">≥&nbsp;7</span>
           <span class="legend-item nodata">pas de saisie</span>
         </div>
       }

@@ -24,12 +24,13 @@ const MONTH_NAMES = [
 ];
 
 /**
- * Calendrier mensuel heatmap du score de bien-être quotidien.
+ * Calendrier mensuel heatmap du score de mal-être quotidien.
  *
  * @remarks
  * Respecte SRP : visualisation uniquement, sans logique métier.
  * Lit les données via GetSymptomTrendsUseCase avec symptomKey='wellbeing_score'.
- * Couleur par jour : vert ≥7 / orange 4–6 / rouge ≤3 / gris = pas de saisie.
+ * Échelle uniforme 0 = absent → 10 = intense : un score élevé = mal-être fort.
+ * Couleur par jour : rouge ≥7 / orange 4–6 / vert ≤3 / gris = pas de saisie.
  * Fonctionne hors-ligne (lecture IndexedDB uniquement).
  */
 @Component({
@@ -55,9 +56,9 @@ export class WellbeingHeatmapComponent implements OnInit, OnChanges {
 
   protected get avgColorClass(): 'green' | 'orange' | 'red' {
     const avg = this.monthlyAverage ?? 0;
-    if (avg >= 7) return 'green';
+    if (avg >= 7) return 'red';
     if (avg >= 4) return 'orange';
-    return 'red';
+    return 'green';
   }
 
   ngOnInit(): void {
@@ -120,7 +121,7 @@ export class WellbeingHeatmapComponent implements OnInit, OnChanges {
 
       let colorClass: CalendarDay['colorClass'] = 'outside';
       if (inWindow && score !== null) {
-        colorClass = score >= 7 ? 'green' : score >= 4 ? 'orange' : 'red';
+        colorClass = score >= 7 ? 'red' : score >= 4 ? 'orange' : 'green';
       }
 
       days.push({ day: d, inWindow, colorClass, score });

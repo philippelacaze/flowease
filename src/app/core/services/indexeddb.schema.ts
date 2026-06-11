@@ -9,10 +9,24 @@
  * Référence MDN : https://developer.mozilla.org/en-US/docs/Web/API/IndexedDB_API
  */
 
-import type { IDBPDatabase } from 'idb';
+import type { IDBPDatabase, IDBPTransaction } from 'idb';
 
 export const DB_NAME = 'flowease-db';
-export const DB_VERSION = 3;
+export const DB_VERSION = 4;
+
+/**
+ * Symptômes dont l'échelle a été inversée en v4 (haut = bon → haut = mauvais).
+ *
+ * @remarks
+ * Avant v4, wellbeing_score/mood/energy utilisaient une échelle inversée
+ * (10 = très bon). La v4 uniformise tout sur 0 = absent → 10 = intense, donc
+ * les valeurs historiques sont retournées via `10 - intensity`.
+ */
+const INVERTED_SCALE_KEYS: ReadonlySet<string> = new Set([
+  'wellbeing_score',
+  'mood',
+  'energy',
+]);
 
 /**
  * Noms de tous les object stores de la base de données.
@@ -46,8 +60,14 @@ export type StoreName = typeof STORES[keyof typeof STORES];
  *
  * @param db - Instance de la base ouverte en phase d'upgrade
  * @param oldVersion - Version précédente de la base (0 si création)
+ * @param tx - Transaction de versionchange (requise pour migrer des données)
+ * @returns Promise résolue quand les migrations de données sont terminées
  */
-export function upgradeSchema(db: IDBPDatabase, oldVersion: number): void {
+export async function upgradeSchema(
+  db: IDBPDatabase,
+  oldVersion: number,
+  tx?: IDBPTransaction<unknown, string[], 'versionchange'>,
+): Promise<void> {
   if (oldVersion < 1) {
     const meals = db.createObjectStore(STORES.MEALS, { keyPath: 'id' });
     meals.createIndex('occurredAt', 'occurredAt');
@@ -99,5 +119,24 @@ export function upgradeSchema(db: IDBPDatabase, oldVersion: number): void {
     intakes.createIndex('confirmedAt', 'confirmedAt');
     intakes.createIndex('treatmentId', 'treatmentId');
     intakes.createIndex('status', 'status');
+  }
+
+  if (oldVersion < 4 && oldVersion >= 1 && tx) {
+    // Uniformisation de l'échelle des symptômes "wellbeing" : avant la v4,
+    // wellbeing_score/mood/energy étaient saisis sur une échelle inversée
+    // (10 = très bon). On bascule sur 0 = absent → 10 = intense via 10 - intensity.
+    const symptoms = tx.objectStore(STORES.SYMPTOMS);
+    let cursor = await symptoms.openCursor();
+    while (cursor) {
+      const entry = cursor.value as { symptomKey?: string; intensity?: number };
+      if (
+        entry.symptomKey !== undefined &&
+        INVERTED_SCALE_KEYS.has(entry.symptomKey) &&
+        typeof entry.intensity === 'number'
+      ) {
+        await cursor.update({ ...entry, intensity: 10 - entry.intensity });
+      }
+      cursor = await cursor.continue();
+    }
   }
 }

@@ -41,8 +41,8 @@ const MOCK_WITH_TRANSIT: ActiveSymptomConfig[] = [
 
 const MOCK_WITH_WELLBEING: ActiveSymptomConfig[] = [
   ...MOCK_ACTIVE_SYMPTOMS,
-  { id: 'wellbeing_score', key: 'wellbeing_score', label: 'Score de bien-être', order: 5, custom: false },
-  { id: 'mood',            key: 'mood',            label: 'Humeur / anxiété',   order: 6, custom: false },
+  { id: 'wellbeing_score', key: 'wellbeing_score', label: 'Mal-être', order: 5, custom: false },
+  { id: 'mood',            key: 'mood',            label: 'Anxiété',  order: 6, custom: false },
 ];
 
 const MOCK_WITH_GAS: ActiveSymptomConfig[] = [

@@ -38,15 +38,15 @@
     </div>
   </section>
 
-  <!-- Bloc C — Bien-être -->
+  <!-- Bloc C — Humeur -->
   <section class="bloc-section" data-testid="bloc-wellbeing">
-    <h2 class="bloc-title">Bloc C — Bien-être</h2>
+    <h2 class="bloc-title">Bloc C — Humeur</h2>
     <div
       cdkDropList
       [cdkDropListData]="wellbeingItems()"
       (cdkDropListDropped)="onDrop($event, 'wellbeing')"
       class="symptom-list"
-      aria-label="Symptômes bien-être, glissez pour réordonner">
+      aria-label="Symptômes d'humeur, glissez pour réordonner">
       @for (item of wellbeingItems(); track item.id) {
         <ng-container *ngTemplateOutlet="itemTpl; context: { item: item }" />
       }
@@ -86,7 +86,7 @@
             data-testid="new-symptom-category">
             <mat-option value="digestive">Digestif (Bloc A)</mat-option>
             <mat-option value="systemic">Systémique (Bloc B)</mat-option>
-            <mat-option value="wellbeing">Bien-être (Bloc C)</mat-option>
+            <mat-option value="wellbeing">Humeur (Bloc C)</mat-option>
           </mat-select>
         </mat-form-field>
 

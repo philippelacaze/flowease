@@ -169,9 +169,9 @@
       }
     </section>
 
-    <!-- Bloc Bien-être -->
-    <section class="symptom-section" aria-label="Indicateurs de bien-être">
-      <h2 class="section-title"><span aria-hidden="true">😊</span>Bien-être</h2>
+    <!-- Bloc Humeur -->
+    <section class="symptom-section" aria-label="Indicateurs d'humeur">
+      <h2 class="section-title"><span aria-hidden="true">😊</span>Humeur</h2>
       @for (row of wellbeingRows; track row) {
         <div class="symptom-row" [attr.data-testid]="'symptom-' + row.key">
           <app-intensity-slider

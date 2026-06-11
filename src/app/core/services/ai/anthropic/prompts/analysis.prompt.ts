@@ -36,14 +36,16 @@ Types d'insights :
     "description": "conclusion sur l'effet de la cure (2-3 phrases)",
     "confidence": 0.0 à 1.0,
     "comparisonPeriods": [
-      { "label": "Avant",   "avgWellbeing": null|1.0-10.0, "avgSymptomIntensity": null|1.0-10.0 },
-      { "label": "Pendant", "avgWellbeing": null|1.0-10.0, "avgSymptomIntensity": null|1.0-10.0 },
-      { "label": "Après",   "avgWellbeing": null|1.0-10.0, "avgSymptomIntensity": null|1.0-10.0 }
+      { "label": "Avant",   "avgWellbeing": null|0.0-10.0, "avgSymptomIntensity": null|0.0-10.0 },
+      { "label": "Pendant", "avgWellbeing": null|0.0-10.0, "avgSymptomIntensity": null|0.0-10.0 },
+      { "label": "Après",   "avgWellbeing": null|0.0-10.0, "avgSymptomIntensity": null|0.0-10.0 }
     ]
   }
-  avgWellbeing = moyenne des scores de bien-être (catégorie wellbeing, 1-10), null si aucune donnée.
+  avgWellbeing = moyenne des scores de la catégorie "wellbeing" (mal-être + anxiété, 0-10 où 10 = pire état), null si aucune donnée.
   avgSymptomIntensity = moyenne des intensités de tous les autres symptômes, null si aucune donnée.
   Si la cure est encore en cours → "Après" doit avoir null pour les deux valeurs.
+
+Échelle des intensités : TOUTES les valeurs (y compris la catégorie "wellbeing") suivent une échelle uniforme 0 = absent → 10 = intense. Un score élevé est toujours défavorable, jamais l'inverse.
 
 Règles :
 - Maximum 6 insights (dont au plus 1 cureComparison)

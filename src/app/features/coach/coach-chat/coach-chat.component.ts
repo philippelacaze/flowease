@@ -41,7 +41,7 @@ const SUGGESTED_QUESTIONS: readonly string[] = [
   'Comment se passe mon protocole cette semaine ?',
   'Quels aliments semblent déclencher mes symptômes ?',
   'Mon observance des traitements est-elle satisfaisante ?',
-  'Quelles sont mes tendances de bien-être ce mois-ci ?',
+  'Quelles sont mes tendances d\'humeur ce mois-ci ?',
 ];
 
 const CONTEXT_LABELS: Record<CoachContextWindow, string> = {

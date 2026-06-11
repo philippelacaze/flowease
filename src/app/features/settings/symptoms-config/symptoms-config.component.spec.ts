@@ -18,7 +18,7 @@ const MOCK_CONFIGS: StoredSymptomConfig[] = [
   makeConfig({ id: 'abdominal_pain', key: 'abdominal_pain', label: 'Douleur abdominale', order: 0, category: 'digestive' }),
   makeConfig({ id: 'bloating',       key: 'bloating',       label: 'Ballonnements',      order: 1, category: 'digestive' }),
   makeConfig({ id: 'fatigue',        key: 'fatigue',        label: 'Fatigue',             order: 0, category: 'systemic'  }),
-  makeConfig({ id: 'mood',           key: 'mood',           label: 'Humeur / anxiété',    order: 0, category: 'wellbeing' }),
+  makeConfig({ id: 'mood',           key: 'mood',           label: 'Anxiété',             order: 0, category: 'wellbeing' }),
   makeConfig({ id: 'energy',         key: 'energy',         label: 'Énergie globale',     order: 1, category: 'wellbeing', active: false }),
 ];
 
@@ -51,12 +51,12 @@ describe('SymptomsConfigComponent', () => {
     fixture.detectChanges();
   });
 
-  it('affiche 3 sections (Digestifs, Systémiques, Bien-être)', () => {
+  it('affiche 3 sections (Digestifs, Systémiques, Humeur)', () => {
     const sections = fixture.nativeElement.querySelectorAll('.bloc-section') as NodeListOf<HTMLElement>;
     expect(sections.length).toBe(3);
     expect(sections[0].textContent).toContain('Digestifs');
     expect(sections[1].textContent).toContain('Systémiques');
-    expect(sections[2].textContent).toContain('Bien-être');
+    expect(sections[2].textContent).toContain('Humeur');
   });
 
   it('affiche les symptômes dans leur section respective', () => {
@@ -68,7 +68,7 @@ describe('SymptomsConfigComponent', () => {
     expect(systemicSection.textContent).toContain('Fatigue');
 
     const wellbeingSection = fixture.nativeElement.querySelector('[data-testid="bloc-wellbeing"]') as HTMLElement;
-    expect(wellbeingSection.textContent).toContain('Humeur / anxiété');
+    expect(wellbeingSection.textContent).toContain('Anxiété');
     expect(wellbeingSection.textContent).toContain('Énergie globale');
   });
 

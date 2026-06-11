@@ -74,7 +74,7 @@
                   </thead>
                   <tbody>
                     <tr>
-                      <td class="cure-row-label">Bien-être</td>
+                      <td class="cure-row-label">Mal-être</td>
                       @for (period of card.insight.comparisonPeriods; track period.label) {
                         <td [class.cure-score-null]="period.avgWellbeing === null">
                           {{ period.avgWellbeing !== null ? (period.avgWellbeing | number:'1.1-1') + '/10' : '—' }}

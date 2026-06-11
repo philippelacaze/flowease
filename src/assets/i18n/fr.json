@@ -54,7 +54,7 @@
       "groups": {
         "digestive": "Digestifs",
         "systemic": "Systémiques",
-        "wellbeing": "Bien-être"
+        "wellbeing": "Humeur"
       },
       "keys": {
         "abdominal_pain": "Douleur abdominale",
@@ -71,8 +71,8 @@
         "brain_fog": "Brouillard mental",
         "joint_pain": "Douleurs articulaires",
         "sleep_quality": "Qualité du sommeil",
-        "wellbeing_score": "Score de bien-être",
-        "mood": "Humeur / anxiété",
+        "wellbeing_score": "Mal-être",
+        "mood": "Anxiété",
         "energy": "Énergie globale",
         "stress": "Stress",
         "constipation": "Constipation",
@@ -131,7 +131,7 @@
       "noData": "Aucune saisie"
     },
     "wellbeing": {
-      "title": "Bien-être"
+      "title": "Mal-être"
     }
   },
   "report": {
@@ -159,7 +159,7 @@
       "weeklyProtocol": "Comment se passe mon protocole cette semaine ?",
       "triggers": "Quels aliments semblent déclencher mes symptômes ?",
       "adherence": "Mon observance des traitements est-elle satisfaisante ?",
-      "trends": "Quelles sont mes tendances de bien-être ce mois-ci ?"
+      "trends": "Quelles sont mes tendances d'humeur ce mois-ci ?"
     },
     "context": {
       "today": "Aujourd'hui",

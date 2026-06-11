@@ -142,7 +142,7 @@ describe('SymptomService', () => {
       expect(result[0].category).toBeDefined();
     });
 
-    it('inclut les configs inactives (energy, stress)', async () => {
+    it('inclut la config inactive stress mais plus energy (retiré en v4)', async () => {
       const storage = makeStorageMock();
       storage.getAll.mockResolvedValue([]);
       TestBed.configureTestingModule({
@@ -150,8 +150,8 @@ describe('SymptomService', () => {
       });
       const svc = TestBed.inject(SymptomService);
       const result = await svc.getAllConfigs();
-      expect(result.some(c => c.key === 'energy' && !c.active)).toBe(true);
       expect(result.some(c => c.key === 'stress' && !c.active)).toBe(true);
+      expect(result.some(c => c.key === 'energy')).toBe(false);
     });
 
     it('migre les configs legacy sans category vers la catégorie par défaut', async () => {
@@ -249,6 +249,18 @@ describe('SymptomService', () => {
       const svc = TestBed.inject(SymptomService);
       const result = await svc.getActiveConfigs();
       expect(result.some(c => c.key === 'wellbeing_score')).toBe(true);
+    });
+
+    it('libelle wellbeing_score "Mal-être" et mood "Anxiété" (échelle uniforme)', async () => {
+      const storage = makeStorageMock();
+      storage.getAll.mockResolvedValue([]);
+      TestBed.configureTestingModule({
+        providers: [SymptomService, { provide: StorageService, useValue: storage }],
+      });
+      const svc = TestBed.inject(SymptomService);
+      const result = await svc.getActiveConfigs();
+      expect(result.find(c => c.key === 'wellbeing_score')?.label).toBe('Mal-être');
+      expect(result.find(c => c.key === 'mood')?.label).toBe('Anxiété');
     });
 
     it('n\'inclut pas energy ni stress dans les configs actives par défaut', async () => {
