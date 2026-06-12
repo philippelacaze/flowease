@@ -169,4 +169,47 @@
       flex-wrap: wrap;
       margin-top: 8px;
     }
-  
+
+    /* ── Accordéon traitements — header adaptatif ─────────────────────
+       Le header Material a une hauteur fixe (48px replié / 64px ouvert)
+       qui tronque le titre quand le nom + la posologie ne tiennent pas
+       sur une ligne (fréquent sur smartphone). On laisse la hauteur
+       grandir et le contenu passer à la ligne. */
+    .treatments-page ::ng-deep .mat-expansion-panel-header {
+      height: auto;
+      min-height: 48px;
+      padding-top: 10px;
+      padding-bottom: 10px;
+    }
+    .treatments-page ::ng-deep .mat-expansion-panel-header.mat-expanded {
+      height: auto;
+      min-height: 64px;
+    }
+    .treatments-page ::ng-deep .mat-expansion-panel-header .mat-content {
+      flex-wrap: wrap;
+      align-items: center;
+      row-gap: 2px;
+    }
+    .treatments-page ::ng-deep .mat-expansion-panel-header-title {
+      white-space: normal;
+      overflow-wrap: anywhere;
+      margin-right: 12px;
+    }
+    .treatments-page ::ng-deep .mat-expansion-panel-header-description {
+      white-space: normal;
+      overflow: visible;
+      text-overflow: clip;
+    }
+
+    /* Smartphone : empile le nom au-dessus de la posologie pour
+       garantir un titre complet et lisible. */
+    @media (max-width: 480px) {
+      .treatments-page ::ng-deep .mat-expansion-panel-header .mat-content {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+      .treatments-page ::ng-deep .mat-expansion-panel-header-description {
+        margin-right: 0;
+      }
+    }
+

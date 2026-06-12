@@ -56,7 +56,10 @@
       "PowerShell(npx vitest run src/app/features/journal/services/intake.service.spec.ts src/app/features/journal/intake-entry/intake-entry.component.spec.ts src/app/features/journal/journal-home/journal-home.component.spec.ts src/app/features/report/services/report.service.spec.ts 2>&1 | Select-Object -Last 60)",
       "PowerShell(npx ng test --help 2>&1 | Select-Object -First 50)",
       "PowerShell(npx ng test --watch=false --include=\"src/app/features/journal/services/intake.service.spec.ts\" --include=\"src/app/features/journal/intake-entry/intake-entry.component.spec.ts\" --include=\"src/app/features/journal/journal-home/journal-home.component.spec.ts\" --include=\"src/app/features/report/services/report.service.spec.ts\" 2>&1 | Select-Object -Last 70)",
-      "PowerShell(npx ng test --watch=false 2>&1 | Select-Object -Last 25)"
+      "PowerShell(npx ng test --watch=false 2>&1 | Select-Object -Last 25)",
+      "PowerShell(npx ng test --watch=false --include=\"src/app/features/journal/journal-home/journal-home.component.spec.ts\" --include=\"src/app/features/journal/symptom-entry/symptom-confirm.component.spec.ts\" 2>&1 | Select-Object -Last 20)",
+      "PowerShell(npx ng test --watch=false --include=\"src/app/features/settings/treatments/treatments.component.spec.ts\" 2>&1 | Select-Object -Last 18)",
+      "PowerShell(npx ng build --configuration development 2>&1 | Select-Object -Last 15)"
     ]
   }
 }
