@@ -68,6 +68,7 @@ type ComponentProtected = {
   confirmAllTags(note: NoteEntity): void;
   addFreeTag(note: NoteEntity, inputEl: HTMLInputElement): void;
   treatmentName(id: string): string;
+  intensityClass(intensity: number): string;
   symptoms: JournalEntry[];
   entries: JournalEntry[];
 };
@@ -271,6 +272,21 @@ describe('JournalHomeComponent', () => {
       expect(label.textContent?.trim()).toBe('Spasfon');
       const dose = fixture.nativeElement.querySelector('[data-testid="intake-dose"]') as HTMLElement;
       expect(dose.textContent?.trim()).toBe('2 cp');
+    });
+  });
+
+  describe('intensityClass — code couleur des barres de symptômes', () => {
+    it('0–1 → vert, 2–3 → jaune, 4–6 → orange, 7–10 → rouge', async () => {
+      const fixture = await createComponent();
+      const comp = fixture.componentInstance as unknown as ComponentProtected;
+      expect(comp.intensityClass(0)).toBe('intensity-low');
+      expect(comp.intensityClass(1)).toBe('intensity-low');
+      expect(comp.intensityClass(2)).toBe('intensity-mild');
+      expect(comp.intensityClass(3)).toBe('intensity-mild');
+      expect(comp.intensityClass(4)).toBe('intensity-mid');
+      expect(comp.intensityClass(6)).toBe('intensity-mid');
+      expect(comp.intensityClass(7)).toBe('intensity-high');
+      expect(comp.intensityClass(10)).toBe('intensity-high');
     });
   });
 

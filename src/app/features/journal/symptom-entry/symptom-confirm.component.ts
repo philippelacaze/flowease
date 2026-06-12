@@ -81,6 +81,7 @@ interface ConfirmItem {
     .intensity-bar { height: 6px; background: var(--border); border-radius: 3px; overflow: hidden; }
     .intensity-fill { height: 100%; border-radius: 3px; transition: width 0.3s; }
     .intensity-low    { background: var(--fodmap-low-dot); }
+    .intensity-mild   { background: var(--yellow); }
     .intensity-medium { background: var(--fodmap-medium-dot); }
     .intensity-high   { background: var(--fodmap-high-dot); }
 
@@ -118,7 +119,8 @@ export class SymptomConfirmComponent implements OnInit {
   }
 
   protected intensityClass(intensity: number): string {
-    if (intensity <= 3) return 'intensity-low';
+    if (intensity <= 1) return 'intensity-low';
+    if (intensity <= 3) return 'intensity-mild';
     if (intensity <= 6) return 'intensity-medium';
     return 'intensity-high';
   }

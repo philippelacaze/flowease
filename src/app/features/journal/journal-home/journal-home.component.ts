@@ -182,6 +182,19 @@ export class JournalHomeComponent implements OnInit {
     return this.symptomLabelMap.get(key) ?? key;
   }
 
+  /**
+   * Classe CSS de couleur d'une barre d'intensité de symptôme (0→10, haut = pire).
+   *
+   * @remarks
+   * Échelle : 0–1 vert, 2–3 jaune, 4–6 orange, 7–10 rouge.
+   */
+  protected intensityClass(intensity: number): string {
+    if (intensity <= 1) return 'intensity-low';
+    if (intensity <= 3) return 'intensity-mild';
+    if (intensity <= 6) return 'intensity-mid';
+    return 'intensity-high';
+  }
+
   protected treatmentName(id: string): string {
     return this.treatmentMap.get(id) ?? id;
   }

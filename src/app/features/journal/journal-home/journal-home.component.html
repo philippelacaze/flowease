@@ -203,9 +203,7 @@
                 <div class="intensity-row" [attr.aria-label]="'Intensité ' + e.data.intensity + ' sur 10'">
                   <div class="intensity-bar">
                     <div class="intensity-fill" [style.width.%]="e.data.intensity * 10"
-                      [class.intensity-low]="e.data.intensity <= 3"
-                      [class.intensity-mid]="e.data.intensity > 3 && e.data.intensity <= 6"
-                      [class.intensity-high]="e.data.intensity > 6">
+                      [class]="intensityClass(e.data.intensity)">
                     </div>
                   </div>
                   <span class="intensity-value">{{ e.data.intensity }}/10</span>

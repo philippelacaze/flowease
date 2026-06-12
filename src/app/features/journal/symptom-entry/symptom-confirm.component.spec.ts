@@ -133,4 +133,34 @@ describe('SymptomConfirmComponent', () => {
       expect(items).toHaveLength(0);
     });
   });
+
+  describe('intensityClass — code couleur 0–1 vert, 2–3 jaune, 4–6 orange, 7–10 rouge', () => {
+    it('retourne intensity-low pour 0 et 1', async () => {
+      const { fixture } = await createComponent();
+      const comp = fixture.componentInstance as unknown as { intensityClass(i: number): string };
+      expect(comp.intensityClass(0)).toBe('intensity-low');
+      expect(comp.intensityClass(1)).toBe('intensity-low');
+    });
+
+    it('retourne intensity-mild (jaune) pour 2 et 3', async () => {
+      const { fixture } = await createComponent();
+      const comp = fixture.componentInstance as unknown as { intensityClass(i: number): string };
+      expect(comp.intensityClass(2)).toBe('intensity-mild');
+      expect(comp.intensityClass(3)).toBe('intensity-mild');
+    });
+
+    it('retourne intensity-medium pour 4 à 6', async () => {
+      const { fixture } = await createComponent();
+      const comp = fixture.componentInstance as unknown as { intensityClass(i: number): string };
+      expect(comp.intensityClass(4)).toBe('intensity-medium');
+      expect(comp.intensityClass(6)).toBe('intensity-medium');
+    });
+
+    it('retourne intensity-high pour 7 à 10', async () => {
+      const { fixture } = await createComponent();
+      const comp = fixture.componentInstance as unknown as { intensityClass(i: number): string };
+      expect(comp.intensityClass(7)).toBe('intensity-high');
+      expect(comp.intensityClass(10)).toBe('intensity-high');
+    });
+  });
 });
