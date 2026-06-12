@@ -9,12 +9,11 @@ import { DatePipe } from '@angular/common';
 import { Router } from '@angular/router';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
-import { IntakeService, JournalEntry, CureProgressVO } from '../services/intake.service';
+import { IntakeService, JournalEntry, CureProgressVO, DueReminderVO } from '../services/intake.service';
 import { NoteService } from '../services/note.service';
 import { SymptomService } from '../services/symptom.service';
 import { MealService } from '../services/meal.service';
 
-import { SettingsService } from '../../settings/services/settings.service';
 import type { CoachSuggestionVO } from '../../../core/models/entities/coach-suggestion.vo';
 import { OfflineBannerComponent } from '../../../shared/components/offline-banner/offline-banner.component';
 import { FoodChipComponent } from '../../../shared/components/food-chip/food-chip.component';
@@ -76,7 +75,6 @@ export class JournalHomeComponent implements OnInit {
   private readonly notesSvc = inject(NoteService);
   private readonly symptomSvc = inject(SymptomService);
   private readonly mealSvc = inject(MealService);
-  private readonly settingsService = inject(SettingsService);
   private readonly router = inject(Router);
   private readonly cdr = inject(ChangeDetectorRef);
 
@@ -84,6 +82,8 @@ export class JournalHomeComponent implements OnInit {
   private treatmentMap = new Map<string, string>();
   private symptomLabelMap = new Map<string, string>();
   protected entries: JournalEntry[] = [];
+  /** Rappels de prise dus, affichés en bas du journal du jour. */
+  protected dueReminders: DueReminderVO[] = [];
   protected activeCures: CureProgressVO[] = [];
   protected coachSuggestions: CoachSuggestionVO[] = [];
   protected loading = true;
@@ -116,7 +116,6 @@ export class JournalHomeComponent implements OnInit {
     void this.loadActiveCures();
     void this.loadTreatmentNames();
     void this.loadSymptomLabels();
-    void this.settingsService.scheduleReminders();
   }
 
   protected prevDay(): void {
@@ -187,6 +186,28 @@ export class JournalHomeComponent implements OnInit {
   protected async deleteIntake(data: IntakeEntity): Promise<void> {
     await this.intake.delete(data.id);
     this.entries = this.entries.filter(e => !(e.kind === 'intake' && e.data.id === data.id));
+    this.cdr.markForCheck();
+  }
+
+  /**
+   * Valide un rappel de prise : enregistre une prise normale (prise) à l'heure
+   * prévue, puis recharge le journal — la prise rejoint la chronologie et le
+   * rappel disparaît.
+   */
+  protected async validateReminder(r: DueReminderVO): Promise<void> {
+    await this.intake.confirm({
+      treatmentId: r.treatmentId,
+      scheduledAt: r.scheduledAt,
+      confirmedAt: new Date(),
+      status: 'taken',
+    });
+    await this.loadEntries();
+  }
+
+  /** Annule un rappel (poubelle) : le retire et mémorise l'annulation pour la journée. */
+  protected dismissReminder(r: DueReminderVO): void {
+    this.intake.dismissReminder(r.key);
+    this.dueReminders = this.dueReminders.filter(x => x.key !== r.key);
     this.cdr.markForCheck();
   }
 
@@ -343,6 +364,8 @@ export class JournalHomeComponent implements OnInit {
     this.cdr.markForCheck();
     this.entries = await this.intake.getJournalDay(this.currentDate);
     this.loading = false;
+    this.cdr.markForCheck();
+    this.dueReminders = await this.intake.getDueReminders(this.currentDate, this.entries);
     this.cdr.markForCheck();
     this.coachSuggestions = await this.intake.getSuggestions(this.currentDate, this.entries);
     this.cdr.markForCheck();

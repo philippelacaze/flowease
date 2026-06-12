@@ -287,6 +287,20 @@
     .intake-time { flex-shrink: 0; margin-left: auto; }
     .intake-line .entry-edit-btn { flex-shrink: 0; }
 
+    /* Rappel de prise dû — mis en évidence, checkbox de validation */
+    .entry-card--due {
+      background: color-mix(in srgb, var(--blue) 8%, var(--card-bg));
+      border-color: color-mix(in srgb, var(--blue) 35%, var(--border));
+    }
+    .due-checkbox {
+      flex-shrink: 0;
+      width: 22px;
+      height: 22px;
+      min-width: 22px;
+      accent-color: var(--blue);
+      cursor: pointer;
+    }
+
     /* Notes — texte complet */
     .note-content { margin: 0 0 6px; font-size: 14px; line-height: 1.5; white-space: pre-wrap; word-break: break-word; }
     .note-tags    { display: flex; flex-wrap: wrap; gap: 4px; margin-bottom: 4px; }

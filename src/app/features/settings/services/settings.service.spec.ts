@@ -1,12 +1,10 @@
 ﻿import { TestBed } from '@angular/core/testing';
 import { StorageService } from '../../../core/services/storage.service';
-import { NotificationService } from '../../../core/services/notification.service';
 import { AiService } from '../../../core/services/ai.service';
 import { NullAiService } from '../../../core/services/null-ai.service';
 import { vi } from 'vitest';
 import { SettingsService, ImportValidationError } from './settings.service';
 import type { CreateCureInput } from './settings.service';
-import type { TreatmentEntity } from '../../../core/models/entities/treatment.entity';
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
@@ -23,51 +21,21 @@ function makeStorage(existingIds: string[] = []) {
   };
 }
 
-function makeNotif() {
-  return {
-    requestPermission: vi.fn().mockResolvedValue('granted'),
-    scheduleReminders: vi.fn(),
-    cancelReminders: vi.fn(),
-    getPermissionStatus: vi.fn().mockReturnValue('granted'),
-  };
-}
-
-function makeTreatment(overrides: Partial<TreatmentEntity> = {}): TreatmentEntity {
-  return {
-    id: 'treatment-1',
-    name: 'Rifaximine',
-    category: 'antibiotic',
-    mode: 'oral',
-    dosage: '550mg',
-    unit: 'mg',
-    frequency: 2,
-    reminder: { enabled: true, times: ['08:00', '20:00'], soundEnabled: false },
-    notes: '',
-    active: true,
-    startedAt: new Date(),
-    createdAt: new Date(),
-    ...overrides,
-  };
-}
-
 function setup(options: {
   storage?: ReturnType<typeof makeStorage>;
-  notif?: ReturnType<typeof makeNotif>;
   ai?: object;
 } = {}) {
   const storage = options.storage ?? makeStorage();
-  const notif = options.notif ?? makeNotif();
   TestBed.configureTestingModule({
     providers: [
       SettingsService,
       { provide: StorageService, useValue: storage },
-      { provide: NotificationService, useValue: notif },
       options.ai
         ? { provide: AiService, useValue: options.ai }
         : { provide: AiService, useClass: NullAiService },
     ],
   });
-  return { service: TestBed.inject(SettingsService), storage, notif };
+  return { service: TestBed.inject(SettingsService), storage };
 }
 
 const VALID_BUNDLE = JSON.stringify({
@@ -139,73 +107,6 @@ describe('SettingsService — createCure', () => {
     expect(cure.status).toBe('active');
     expect(cure.id).toBeDefined();
     expect(storage.save).toHaveBeenCalledWith('cures', expect.objectContaining({ name: 'Rifaximin' }));
-  });
-});
-
-// ── scheduleReminders ─────────────────────────────────────────────────────────
-
-describe('SettingsService — scheduleReminders', () => {
-  it('planifie les rappels pour les traitements actifs avec rappels activés', async () => {
-    const storage = makeStorage();
-    storage.getAll.mockResolvedValue([makeTreatment()]);
-    const notif = makeNotif();
-    setup({ storage, notif });
-    const service = TestBed.inject(SettingsService);
-    await service.scheduleReminders();
-    expect(notif.scheduleReminders).toHaveBeenCalledWith('treatment-1', 'Rifaximine', ['08:00', '20:00']);
-  });
-
-  it('ne planifie pas pour un traitement inactif', async () => {
-    const storage = makeStorage();
-    storage.getAll.mockResolvedValue([makeTreatment({ active: false })]);
-    const notif = makeNotif();
-    setup({ storage, notif });
-    const service = TestBed.inject(SettingsService);
-    await service.scheduleReminders();
-    expect(notif.scheduleReminders).not.toHaveBeenCalled();
-  });
-
-  it('ne planifie pas si les rappels sont désactivés', async () => {
-    const storage = makeStorage();
-    storage.getAll.mockResolvedValue([
-      makeTreatment({ reminder: { enabled: false, times: [], soundEnabled: false } }),
-    ]);
-    const notif = makeNotif();
-    setup({ storage, notif });
-    const service = TestBed.inject(SettingsService);
-    await service.scheduleReminders();
-    expect(notif.scheduleReminders).not.toHaveBeenCalled();
-  });
-
-  it('ne planifie pas si la liste d\'heures est vide', async () => {
-    const storage = makeStorage();
-    storage.getAll.mockResolvedValue([
-      makeTreatment({ reminder: { enabled: true, times: [], soundEnabled: false } }),
-    ]);
-    const notif = makeNotif();
-    setup({ storage, notif });
-    const service = TestBed.inject(SettingsService);
-    await service.scheduleReminders();
-    expect(notif.scheduleReminders).not.toHaveBeenCalled();
-  });
-
-  it('planifie uniquement les traitements actifs (2 sur 3)', async () => {
-    const storage = makeStorage();
-    storage.getAll.mockResolvedValue([
-      makeTreatment({ id: 't1', name: 'Rifaximine', reminder: { enabled: true, times: ['08:00'], soundEnabled: false } }),
-      makeTreatment({ id: 't2', name: 'Probiotique', reminder: { enabled: true, times: ['12:00'], soundEnabled: false } }),
-      makeTreatment({ id: 't3', name: 'Inactif', active: false, reminder: { enabled: true, times: ['09:00'], soundEnabled: false } }),
-    ]);
-    const notif = makeNotif();
-    setup({ storage, notif });
-    const service = TestBed.inject(SettingsService);
-    await service.scheduleReminders();
-    expect(notif.scheduleReminders).toHaveBeenCalledTimes(2);
-  });
-
-  it('ne lève pas d\'erreur quand aucun traitement', async () => {
-    const { service } = setup();
-    await expect(service.scheduleReminders()).resolves.toBeUndefined();
   });
 });
 

@@ -50,7 +50,27 @@ export interface CureProgressVO {
   readonly progressPercent: number;
 }
 
+/**
+ * Rappel de prise « dû » : un créneau de traitement dont l'heure approche
+ * (moins de 30 min avant, ou déjà passée) et non encore validé ni annulé.
+ *
+ * @remarks
+ * Affiché en bas du journal du jour, avec une checkbox de validation et une
+ * poubelle d'annulation. La validation crée un IntakeEntity normal.
+ */
+export interface DueReminderVO {
+  /** Clé unique du créneau : `treatmentId|YYYY-MM-DD|HH:MM`. */
+  readonly key: string;
+  readonly treatmentId: string;
+  readonly treatmentName: string;
+  readonly dosage: string;
+  readonly time: string;
+  readonly scheduledAt: Date;
+}
+
 const MS_PER_DAY = 24 * 60 * 60 * 1000;
+/** Fenêtre d'affichage d'un rappel : il apparaît dès 30 min avant l'heure prévue. */
+const REMINDER_WINDOW_MS = 30 * 60 * 1000;
 
 function entryTime(entry: JournalEntry): number {
   if (entry.kind === 'intake') return entry.data.confirmedAt.getTime();
@@ -192,6 +212,76 @@ export class IntakeService {
     }
 
     return result;
+  }
+
+  /**
+   * Calcule les rappels de prise dus pour la date affichée (uniquement aujourd'hui).
+   *
+   * @remarks
+   * Un créneau (traitement × heure de rappel) est dû dès qu'il reste moins de
+   * 30 min avant l'heure prévue (ou qu'elle est passée), tant qu'aucune prise
+   * n'a été enregistrée pour ce créneau et qu'il n'a pas été annulé (poubelle).
+   *
+   * @param date - Jour du journal affiché
+   * @param dayEntries - Entrées déjà chargées du jour (pour repérer les prises enregistrées)
+   * @returns Liste triée par heure prévue, ou [] si la date n'est pas aujourd'hui
+   */
+  async getDueReminders(date: Date, dayEntries: JournalEntry[]): Promise<DueReminderVO[]> {
+    const now = new Date();
+    if (date.toDateString() !== now.toDateString()) return [];
+
+    const treatments = await this.getActiveTreatments();
+    const dismissed = new Set(this.localSettings.getDismissedReminders());
+    const day = this.dayKey(date);
+
+    const handledSlots = new Set(
+      dayEntries
+        .filter((e): e is Extract<JournalEntry, { kind: 'intake' }> => e.kind === 'intake')
+        .map(e => `${e.data.treatmentId ?? ''}|${this.hhmm(e.data.scheduledAt)}`),
+    );
+
+    const reminders: DueReminderVO[] = [];
+    for (const t of treatments) {
+      if (!t.reminder.enabled) continue;
+      for (const time of t.reminder.times) {
+        const scheduledAt = this.atTime(date, time);
+        if (now.getTime() < scheduledAt.getTime() - REMINDER_WINDOW_MS) continue;
+        if (handledSlots.has(`${t.id}|${time}`)) continue;
+        const key = `${t.id}|${day}|${time}`;
+        if (dismissed.has(key)) continue;
+        reminders.push({
+          key,
+          treatmentId: t.id,
+          treatmentName: t.name,
+          dosage: `${t.dosage} ${t.unit}`.trim(),
+          time,
+          scheduledAt,
+        });
+      }
+    }
+
+    return reminders.sort((a, b) => a.scheduledAt.getTime() - b.scheduledAt.getTime());
+  }
+
+  /** Mémorise l'annulation d'un rappel pour qu'il ne réapparaisse pas. */
+  dismissReminder(key: string): void {
+    this.localSettings.dismissReminder(key);
+  }
+
+  private dayKey(d: Date): string {
+    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+  }
+
+  private hhmm(d: Date): string {
+    const x = new Date(d);
+    return `${String(x.getHours()).padStart(2, '0')}:${String(x.getMinutes()).padStart(2, '0')}`;
+  }
+
+  private atTime(date: Date, time: string): Date {
+    const [h, m] = time.split(':').map(Number);
+    const d = new Date(date);
+    d.setHours(Number.isFinite(h) ? h : 0, Number.isFinite(m) ? m : 0, 0, 0);
+    return d;
   }
 
   private async checkSymptomTrend(

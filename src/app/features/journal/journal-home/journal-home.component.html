@@ -296,7 +296,38 @@
             </div>
           </div>
         }
-      } @else {
+      }
+
+      <!-- Rappels de prise dus — toujours en bas, tant que non validés/annulés -->
+      @for (r of dueReminders; track r.key) {
+        <div class="entry-card entry-card--intake entry-card--due"
+             [attr.data-testid]="'due-reminder-' + r.treatmentId">
+          <div class="entry-row">
+            <span class="entry-cat-icon entry-cat-icon--intake"
+                  role="img" aria-label="Prise de médicament à valider">
+              <mat-icon fontSet="material-symbols-outlined" aria-hidden="true">pill</mat-icon>
+            </span>
+            <div class="entry-body">
+              <div class="intake-line">
+                <input type="checkbox" class="due-checkbox"
+                       [attr.data-testid]="'validate-reminder-' + r.treatmentId"
+                       [attr.aria-label]="'Valider la prise de ' + r.treatmentName + ' de ' + r.time"
+                       (change)="validateReminder(r)" />
+                <span class="entry-label intake-name">{{ r.treatmentName }}</span>
+                <span class="intake-dose">({{ r.dosage }})</span>
+                <span class="entry-time intake-time">{{ r.time }}</span>
+                <button class="entry-edit-btn entry-delete-btn" aria-label="Annuler ce rappel"
+                        [attr.data-testid]="'dismiss-reminder-' + r.treatmentId"
+                        (click)="dismissReminder(r)">
+                  <mat-icon aria-hidden="true">delete</mat-icon>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      }
+
+      @if (entries.length === 0 && dueReminders.length === 0) {
         <div class="empty-state" role="status">
           <mat-icon aria-hidden="true" class="empty-icon">today</mat-icon>
           <p>Aucune entrée pour ce jour.</p>

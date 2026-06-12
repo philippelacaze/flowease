@@ -2,11 +2,9 @@
 import { provideRouter } from '@angular/router';
 import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 import { LocalSettingsService } from '../../../core/services/local-settings.service';
-import { NotificationService } from '../../../core/services/notification.service';
 import { vi } from 'vitest';
 import { JournalHomeComponent } from './journal-home.component';
 import type { TreatmentEntity } from '../../../core/models/entities/treatment.entity';
-import { SettingsService } from '../../settings/services/settings.service';
 import type { FoodItemVO, AiFodmapAlert } from '../../../core/models/entities/meal.entity';
 import type { JournalEntry } from '../services/intake.service';
 import type { SymptomEntity } from '../../../core/models/entities/symptom.entity';
@@ -71,6 +69,9 @@ type ComponentProtected = {
   treatmentName(id: string): string;
   intensityClass(intensity: number): string;
   deleteIntake(data: IntakeEntity): Promise<void>;
+  validateReminder(r: unknown): Promise<void>;
+  dismissReminder(r: unknown): void;
+  dueReminders: unknown[];
   symptoms: JournalEntry[];
   entries: JournalEntry[];
 };
@@ -81,6 +82,8 @@ function makeIntakeMock(journalEntries: JournalEntry[] = [], treatments: Treatme
     getActiveCures: vi.fn().mockResolvedValue([]),
     getAllTreatments: vi.fn().mockResolvedValue(treatments),
     getSuggestions: vi.fn().mockResolvedValue([]),
+    getDueReminders: vi.fn().mockResolvedValue([]),
+    dismissReminder: vi.fn(),
     confirm: vi.fn().mockResolvedValue('intake-id'),
     edit: vi.fn().mockResolvedValue(undefined),
     delete: vi.fn().mockResolvedValue(undefined),
@@ -102,8 +105,6 @@ async function createComponent(journalEntries: JournalEntry[] = [], treatments: 
       ]), delete: vi.fn().mockResolvedValue(undefined) } },
       { provide: MealService, useValue: { delete: vi.fn().mockResolvedValue(undefined) } },
 
-      { provide: SettingsService, useValue: { scheduleReminders: vi.fn().mockResolvedValue(undefined) } },
-      { provide: NotificationService, useValue: { getPermissionStatus: () => 'default', scheduleReminders: vi.fn(), cancelReminders: vi.fn(), requestPermission: vi.fn() } },
       { provide: LocalSettingsService, useValue: { getLanguage: () => 'fr', getApiKey: () => null } },
     ],
   }).compileComponents();
@@ -551,6 +552,47 @@ describe('JournalHomeComponent', () => {
       ) as HTMLElement;
       expect(icon.textContent?.trim()).toBe('pill');
       expect(icon.classList).toContain('material-symbols-outlined');
+    });
+  });
+
+  describe('rappels de prise dus', () => {
+    const reminder = {
+      key: 'treat-1|2026-06-12|08:00',
+      treatmentId: 'treat-1',
+      treatmentName: 'Rifaximine',
+      dosage: '550 mg',
+      time: '08:00',
+      scheduledAt: new Date(),
+    };
+
+    it('affiche un rappel dû en bas avec checkbox de validation et poubelle', async () => {
+      const fixture = await createComponent();
+      const comp = fixture.componentInstance as unknown as ComponentProtected;
+      comp.dueReminders = [reminder];
+      fixture.detectChanges();
+      expect(fixture.nativeElement.querySelector('[data-testid="due-reminder-treat-1"]')).not.toBeNull();
+      expect(fixture.nativeElement.querySelector('[data-testid="validate-reminder-treat-1"]')).not.toBeNull();
+      expect(fixture.nativeElement.querySelector('[data-testid="dismiss-reminder-treat-1"]')).not.toBeNull();
+    });
+
+    it('valider un rappel enregistre une prise (taken) à l\'heure prévue', async () => {
+      const fixture = await createComponent();
+      const comp = fixture.componentInstance as unknown as ComponentProtected;
+      const svc = TestBed.inject(IntakeService) as unknown as { confirm: ReturnType<typeof vi.fn> };
+      await comp.validateReminder(reminder);
+      expect(svc.confirm).toHaveBeenCalledWith(
+        expect.objectContaining({ treatmentId: 'treat-1', status: 'taken', scheduledAt: reminder.scheduledAt }),
+      );
+    });
+
+    it('annuler un rappel le retire de la liste et mémorise l\'annulation', async () => {
+      const fixture = await createComponent();
+      const comp = fixture.componentInstance as unknown as ComponentProtected;
+      comp.dueReminders = [reminder];
+      const svc = TestBed.inject(IntakeService) as unknown as { dismissReminder: ReturnType<typeof vi.fn> };
+      comp.dismissReminder(reminder);
+      expect(svc.dismissReminder).toHaveBeenCalledWith(reminder.key);
+      expect(comp.dueReminders).toHaveLength(0);
     });
   });
 

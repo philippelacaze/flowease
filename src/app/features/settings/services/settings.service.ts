@@ -1,10 +1,8 @@
 ﻿import { Injectable, inject } from '@angular/core';
 import { StorageService } from '../../../core/services/storage.service';
-import { NotificationService } from '../../../core/services/notification.service';
 import { AiService } from '../../../core/services/ai.service';
 import type { UserProfileEntity } from '../../../core/models/entities/user-profile.entity';
 import type { CureEntity } from '../../../core/models/entities/cure.entity';
-import type { TreatmentEntity } from '../../../core/models/entities/treatment.entity';
 
 const PROFILE_ID = 'singleton' as const;
 
@@ -46,7 +44,6 @@ export interface TestApiKeyResult {
 @Injectable({ providedIn: 'root' })
 export class SettingsService {
   private readonly storage = inject(StorageService);
-  private readonly notifications = inject(NotificationService);
   private readonly ai = inject(AiService);
 
   async saveProfile(profile: Omit<UserProfileEntity, 'id' | 'updatedAt'>): Promise<void> {
@@ -73,15 +70,6 @@ export class SettingsService {
     };
     await this.storage.save('cures', cure);
     return cure;
-  }
-
-  async scheduleReminders(): Promise<void> {
-    const treatments = await this.storage.getAll('treatments') as TreatmentEntity[];
-    for (const treatment of treatments) {
-      if (treatment.active && treatment.reminder.enabled && treatment.reminder.times.length > 0) {
-        this.notifications.scheduleReminders(treatment.id, treatment.name, treatment.reminder.times);
-      }
-    }
   }
 
   async exportData(): Promise<string> {

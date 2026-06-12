@@ -146,4 +146,36 @@ describe('LocalSettingsService', () => {
       expect(adapter.getShowTokenCounter()).toBe(true);
     });
   });
+
+  // --- Rappels de prise annulés ---
+
+  describe('dismissReminder / getDismissedReminders', () => {
+    it('retourne [] si aucune annulation', () => {
+      expect(adapter.getDismissedReminders()).toEqual([]);
+    });
+
+    it('mémorise une clé annulée', () => {
+      adapter.dismissReminder('treat-1|2026-06-12|08:00');
+      expect(adapter.getDismissedReminders()).toContain('treat-1|2026-06-12|08:00');
+    });
+
+    it('ne duplique pas une clé déjà annulée', () => {
+      adapter.dismissReminder('treat-1|2026-06-12|08:00');
+      adapter.dismissReminder('treat-1|2026-06-12|08:00');
+      expect(adapter.getDismissedReminders()).toHaveLength(1);
+    });
+
+    it('ne conserve que les annulations du même jour que la nouvelle clé', () => {
+      adapter.dismissReminder('treat-1|2026-06-11|08:00');
+      adapter.dismissReminder('treat-2|2026-06-12|09:00');
+      const dismissed = adapter.getDismissedReminders();
+      expect(dismissed).toContain('treat-2|2026-06-12|09:00');
+      expect(dismissed).not.toContain('treat-1|2026-06-11|08:00');
+    });
+
+    it('retourne [] si le stockage est corrompu', () => {
+      localStorage.setItem('flowease_dismissed_reminders', '{not json');
+      expect(adapter.getDismissedReminders()).toEqual([]);
+    });
+  });
 });

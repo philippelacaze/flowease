@@ -24,6 +24,7 @@ const KEYS = {
   LAST_ANALYSIS_DATE: 'flowease_last_analysis_date',
   SHOW_TOKEN_COUNTER: 'flowease_show_token_counter',
   COACH_SUGGESTIONS: 'flowease_coach_suggestions',
+  DISMISSED_REMINDERS: 'flowease_dismissed_reminders',
 } as const;
 
 @Injectable({ providedIn: 'root' })
@@ -186,5 +187,41 @@ export class LocalSettingsService {
    */
   setCoachSuggestions(enabled: boolean): void {
     localStorage.setItem(KEYS.COACH_SUGGESTIONS, String(enabled));
+  }
+
+  /**
+   * Retourne les clés de rappels de prise annulés par l'utilisateur (poubelle).
+   *
+   * @remarks
+   * Une clé encode un créneau : `treatmentId|YYYY-MM-DD|HH:MM`. Permet d'éviter
+   * qu'un rappel annulé ne réapparaisse dans le journal au rechargement.
+   *
+   * @returns Tableau de clés, ou [] si aucune ou stockage corrompu
+   */
+  getDismissedReminders(): string[] {
+    const raw = localStorage.getItem(KEYS.DISMISSED_REMINDERS);
+    if (!raw) return [];
+    try {
+      const parsed = JSON.parse(raw);
+      return Array.isArray(parsed) ? (parsed as string[]) : [];
+    } catch {
+      return [];
+    }
+  }
+
+  /**
+   * Mémorise l'annulation d'un rappel de prise.
+   *
+   * @remarks
+   * Ne conserve que les annulations du même jour que la clé fournie pour éviter
+   * la croissance illimitée du stockage (les rappels sont propres à une journée).
+   *
+   * @param key - Clé du créneau `treatmentId|YYYY-MM-DD|HH:MM`
+   */
+  dismissReminder(key: string): void {
+    const day = key.split('|')[1] ?? '';
+    const kept = this.getDismissedReminders().filter(k => k.split('|')[1] === day);
+    if (!kept.includes(key)) kept.push(key);
+    localStorage.setItem(KEYS.DISMISSED_REMINDERS, JSON.stringify(kept));
   }
 }
