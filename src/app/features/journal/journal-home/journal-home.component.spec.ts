@@ -271,7 +271,7 @@ describe('JournalHomeComponent', () => {
       const label = fixture.nativeElement.querySelector('[data-testid="intake-entry"] .entry-label') as HTMLElement;
       expect(label.textContent?.trim()).toBe('Spasfon');
       const dose = fixture.nativeElement.querySelector('[data-testid="intake-dose"]') as HTMLElement;
-      expect(dose.textContent?.trim()).toBe('2 cp');
+      expect(dose.textContent?.trim()).toBe('(2 cp)');
     });
   });
 

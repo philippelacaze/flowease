@@ -241,10 +241,21 @@
 
     .entry-notes { margin: 6px 0 0; font-size: 13px; color: var(--text-3); font-style: italic; }
 
-    /* Prises — badge statut */
-    .intake-dose { display: block; margin: 2px 0 6px; font-size: 13px; color: var(--text-3); }
-    .status-badge { display: inline-flex; align-items: center; gap: 4px; font-size: 13px; font-weight: 600; }
-    .status-badge mat-icon { font-size: 32px; width: 32px; height: 32px; }
+    /* Prises — ligne compacte : [icône statut] nom (dose) ···· heure ✎ */
+    .entry-card--intake { padding: 0 4px 0 12px; }
+    .intake-line { display: flex; align-items: center; gap: 8px; min-height: 44px; }
+    .intake-line .status-icon { display: inline-flex; align-items: center; flex-shrink: 0; }
+    .intake-line .status-icon mat-icon { font-size: 22px; width: 22px; height: 22px; }
+    .intake-name {
+      flex: 0 1 auto;
+      min-width: 0;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    .intake-dose { flex-shrink: 0; font-size: 13px; color: var(--text-3); white-space: nowrap; }
+    .intake-time { flex-shrink: 0; margin-left: auto; }
+    .intake-line .entry-edit-btn { flex-shrink: 0; }
     .status-taken   { color: var(--fodmap-low-text); }
     .status-skipped { color: var(--coral); }
 

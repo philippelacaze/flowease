@@ -37,13 +37,17 @@ export class IntensitySliderComponent {
   @Output() valueChange = new EventEmitter<number>();
 
   protected get scoreColor(): string {
+    // Échelle de couleur : 0 absent (gris), 1 vert, 2–3 jaune, 4–6 orange, 7–10 rouge.
+    // En mode inversé (haut = bon), l'échelle est miroir : 1–3 rouge, 4–6 orange, 7–8 jaune, 9–10 vert.
     if (this.value === 0) return 'var(--chip-border)';
     if (this.inverted) {
       if (this.value <= 3) return 'var(--fodmap-high-dot)';
       if (this.value <= 6) return 'var(--fodmap-medium-dot)';
+      if (this.value <= 8) return 'var(--yellow)';
       return 'var(--fodmap-low-dot)';
     }
-    if (this.value <= 3)  return 'var(--fodmap-low-dot)';
+    if (this.value <= 1)  return 'var(--fodmap-low-dot)';
+    if (this.value <= 3)  return 'var(--yellow)';
     if (this.value <= 6)  return 'var(--fodmap-medium-dot)';
     return 'var(--fodmap-high-dot)';
   }

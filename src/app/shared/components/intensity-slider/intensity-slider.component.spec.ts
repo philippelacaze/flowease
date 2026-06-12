@@ -78,8 +78,13 @@ describe('IntensitySliderComponent', () => {
       expect((component as unknown as { scoreColor: string }).scoreColor).toBe('var(--fodmap-high-dot)');
     });
 
-    it('scoreColor retourne low-dot pour valeur 7–10 (haut = bon)', () => {
-      component.value = 8;
+    it('scoreColor retourne jaune pour valeur 7–8 (miroir de 2–3)', () => {
+      component.value = 7;
+      expect((component as unknown as { scoreColor: string }).scoreColor).toBe('var(--yellow)');
+    });
+
+    it('scoreColor retourne low-dot pour valeur 9–10 (haut = bon)', () => {
+      component.value = 9;
       expect((component as unknown as { scoreColor: string }).scoreColor).toBe('var(--fodmap-low-dot)');
     });
 
@@ -98,12 +103,19 @@ describe('IntensitySliderComponent', () => {
       expect((component as unknown as { scoreColor: string }).scoreColor).toBe('var(--chip-border)');
     });
 
-    it('retourne la couleur low pour valeur 1–3', () => {
-      component.value = 2;
+    it('retourne la couleur low (vert) pour valeur 1', () => {
+      component.value = 1;
       expect((component as unknown as { scoreColor: string }).scoreColor).toBe('var(--fodmap-low-dot)');
     });
 
-    it('retourne la couleur medium pour valeur 4–6', () => {
+    it('retourne la couleur jaune pour valeur 2–3', () => {
+      component.value = 2;
+      expect((component as unknown as { scoreColor: string }).scoreColor).toBe('var(--yellow)');
+      component.value = 3;
+      expect((component as unknown as { scoreColor: string }).scoreColor).toBe('var(--yellow)');
+    });
+
+    it('retourne la couleur medium (orange) pour valeur 4–6', () => {
       component.value = 5;
       expect((component as unknown as { scoreColor: string }).scoreColor).toBe('var(--fodmap-medium-dot)');
     });

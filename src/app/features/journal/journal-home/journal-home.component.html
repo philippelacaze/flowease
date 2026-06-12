@@ -222,26 +222,25 @@
               <mat-icon aria-hidden="true">medication</mat-icon>Prises
             </h2>
             @for (e of intakes; track e) {
-              <div class="entry-card" data-testid="intake-entry">
-                <div class="entry-head">
-                  <span class="entry-label">{{ intakeLabel(e.data) }}</span>
-                  <div class="entry-head-right">
-                    <span class="entry-time">{{ e.data.confirmedAt | date:'HH:mm' }}</span>
-                    <button class="entry-edit-btn" aria-label="Modifier cette prise"
-                            data-testid="edit-intake-btn" (click)="editIntake(e.data)">
-                      <mat-icon aria-hidden="true">edit</mat-icon>
-                    </button>
-                  </div>
+              <div class="entry-card entry-card--intake" data-testid="intake-entry">
+                <div class="intake-line">
+                  <span class="status-icon"
+                        [class.status-taken]="e.data.status === 'taken'"
+                        [class.status-skipped]="e.data.status === 'skipped'"
+                        role="img"
+                        [attr.aria-label]="e.data.status === 'taken' ? 'Pris' : 'Sauté'">
+                    <mat-icon aria-hidden="true">{{ e.data.status === 'taken' ? 'check_circle' : 'cancel' }}</mat-icon>
+                  </span>
+                  <span class="entry-label intake-name">{{ intakeLabel(e.data) }}</span>
+                  @if (e.data.actualDose) {
+                    <span class="intake-dose" data-testid="intake-dose">({{ e.data.actualDose }})</span>
+                  }
+                  <span class="entry-time intake-time">{{ e.data.confirmedAt | date:'HH:mm' }}</span>
+                  <button class="entry-edit-btn" aria-label="Modifier cette prise"
+                          data-testid="edit-intake-btn" (click)="editIntake(e.data)">
+                    <mat-icon aria-hidden="true">edit</mat-icon>
+                  </button>
                 </div>
-                @if (e.data.actualDose) {
-                  <span class="intake-dose" data-testid="intake-dose">{{ e.data.actualDose }}</span>
-                }
-                <span class="status-badge"
-                  [class.status-taken]="e.data.status === 'taken'"
-                  [class.status-skipped]="e.data.status === 'skipped'">
-                  <mat-icon aria-hidden="true">{{ e.data.status === 'taken' ? 'check_circle' : 'cancel' }}</mat-icon>
-                  {{ e.data.status === 'taken' ? 'Pris' : 'Sauté' }}
-                </span>
               </div>
             }
           </section>
