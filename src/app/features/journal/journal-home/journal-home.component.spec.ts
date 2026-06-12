@@ -16,6 +16,7 @@ import type { IntakeEntity } from '../../../core/models/entities/intake.entity';
 import { IntakeService } from '../services/intake.service';
 import { NoteService } from '../services/note.service';
 import { SymptomService } from '../services/symptom.service';
+import { MealService } from '../services/meal.service';
 
 
 const LOW_ITEMS: FoodItemVO[] = [
@@ -69,6 +70,7 @@ type ComponentProtected = {
   addFreeTag(note: NoteEntity, inputEl: HTMLInputElement): void;
   treatmentName(id: string): string;
   intensityClass(intensity: number): string;
+  deleteIntake(data: IntakeEntity): Promise<void>;
   symptoms: JournalEntry[];
   entries: JournalEntry[];
 };
@@ -81,6 +83,7 @@ function makeIntakeMock(journalEntries: JournalEntry[] = [], treatments: Treatme
     getSuggestions: vi.fn().mockResolvedValue([]),
     confirm: vi.fn().mockResolvedValue('intake-id'),
     edit: vi.fn().mockResolvedValue(undefined),
+    delete: vi.fn().mockResolvedValue(undefined),
     getActiveTreatments: vi.fn().mockResolvedValue([]),
   };
 }
@@ -96,7 +99,8 @@ async function createComponent(journalEntries: JournalEntry[] = [], treatments: 
         { key: 'bloating',           label: 'Ballonnements' },
         { key: 'wellbeing_score',    label: 'Score de bien-être' },
         { key: 'abdominal_pain',     label: 'Douleur abdominale' },
-      ]) } },
+      ]), delete: vi.fn().mockResolvedValue(undefined) } },
+      { provide: MealService, useValue: { delete: vi.fn().mockResolvedValue(undefined) } },
 
       { provide: SettingsService, useValue: { scheduleReminders: vi.fn().mockResolvedValue(undefined) } },
       { provide: NotificationService, useValue: { getPermissionStatus: () => 'default', scheduleReminders: vi.fn(), cancelReminders: vi.fn(), requestPermission: vi.fn() } },
@@ -433,6 +437,62 @@ describe('JournalHomeComponent', () => {
       expect(btn).not.toBeNull();
     });
 
+    it('affiche un bouton suppression sur les cartes prises', async () => {
+      const fixture = await createComponent([makeIntakeEntry()]);
+      fixture.detectChanges();
+      const btn = fixture.nativeElement.querySelector('[data-testid="delete-intake-btn"]');
+      expect(btn).not.toBeNull();
+    });
+
+    it('le clic sur delete-intake-btn supprime la prise et la retire de la liste', async () => {
+      const fixture = await createComponent([makeIntakeEntry()]);
+      fixture.detectChanges();
+      const intakeSvc = TestBed.inject(IntakeService) as unknown as { delete: ReturnType<typeof vi.fn> };
+
+      const btn = fixture.nativeElement.querySelector('[data-testid="delete-intake-btn"]') as HTMLButtonElement;
+      btn.click();
+      await fixture.whenStable();
+      fixture.detectChanges();
+
+      expect(intakeSvc.delete).toHaveBeenCalledWith('intake-1');
+      expect(fixture.nativeElement.querySelector('[data-testid="intake-entry"]')).toBeNull();
+    });
+
+    it('affiche un bouton suppression sur les cartes repas et symptômes', async () => {
+      const fixture = await createComponent([makeMealEntry(LOW_ITEMS), makeRegularSymptomEntry()]);
+      fixture.detectChanges();
+      expect(fixture.nativeElement.querySelector('[data-testid="delete-meal-btn"]')).not.toBeNull();
+      expect(fixture.nativeElement.querySelector('[data-testid="delete-symptom-btn"]')).not.toBeNull();
+    });
+
+    it('le clic sur delete-meal-btn supprime le repas et le retire de la liste', async () => {
+      const fixture = await createComponent([makeMealEntry(LOW_ITEMS)]);
+      fixture.detectChanges();
+      const mealSvc = TestBed.inject(MealService) as unknown as { delete: ReturnType<typeof vi.fn> };
+
+      const btn = fixture.nativeElement.querySelector('[data-testid="delete-meal-btn"]') as HTMLButtonElement;
+      btn.click();
+      await fixture.whenStable();
+      fixture.detectChanges();
+
+      expect(mealSvc.delete).toHaveBeenCalledWith('meal-1');
+      expect(fixture.nativeElement.querySelector('[data-testid="meal-entry"]')).toBeNull();
+    });
+
+    it('le clic sur delete-symptom-btn supprime le symptôme et le retire de la liste', async () => {
+      const fixture = await createComponent([makeRegularSymptomEntry()]);
+      fixture.detectChanges();
+      const symptomSvc = TestBed.inject(SymptomService) as unknown as { delete: ReturnType<typeof vi.fn> };
+
+      const btn = fixture.nativeElement.querySelector('[data-testid="delete-symptom-btn"]') as HTMLButtonElement;
+      btn.click();
+      await fixture.whenStable();
+      fixture.detectChanges();
+
+      expect(symptomSvc.delete).toHaveBeenCalledWith('sym-1');
+      expect(fixture.nativeElement.querySelector('[data-testid="symptom-entry"]')).toBeNull();
+    });
+
     it('le clic sur edit-meal-btn appelle editMeal', async () => {
       const fixture = await createComponent([makeMealEntry(LOW_ITEMS)]);
       const comp = fixture.componentInstance as unknown as ComponentProtected;
@@ -451,6 +511,46 @@ describe('JournalHomeComponent', () => {
       const btn = fixture.nativeElement.querySelector('[data-testid="edit-note-btn"]');
       btn.click();
       expect(spy).toHaveBeenCalledOnce();
+    });
+  });
+
+  describe('vue chronologique (sans regroupement par catégorie)', () => {
+    it('affiche tous les évènements dans l\'ordre fourni, catégories mélangées', async () => {
+      const entries = [
+        makeMealEntry(LOW_ITEMS),
+        makeIntakeEntry(),
+        makeRegularSymptomEntry(),
+        makeNoteEntry(),
+      ];
+      const fixture = await createComponent(entries);
+      fixture.detectChanges();
+      const cards = Array.from(
+        fixture.nativeElement.querySelectorAll('[data-testid$="-entry"]'),
+      ) as HTMLElement[];
+      const order = cards.map(c => c.getAttribute('data-testid'));
+      expect(order).toEqual(['meal-entry', 'intake-entry', 'symptom-entry', 'note-entry']);
+    });
+
+    it('n\'affiche aucun titre de section de catégorie', async () => {
+      const fixture = await createComponent([makeMealEntry(LOW_ITEMS), makeIntakeEntry()]);
+      fixture.detectChanges();
+      expect(fixture.nativeElement.querySelectorAll('.section-title')).toHaveLength(0);
+    });
+
+    it('affiche une icône de catégorie en tête de chaque évènement', async () => {
+      const fixture = await createComponent([makeMealEntry(LOW_ITEMS), makeIntakeEntry()]);
+      fixture.detectChanges();
+      expect(fixture.nativeElement.querySelectorAll('.entry-cat-icon')).toHaveLength(2);
+    });
+
+    it('utilise l\'icône pill (pilule, Material Symbols) pour les prises', async () => {
+      const fixture = await createComponent([makeIntakeEntry()]);
+      fixture.detectChanges();
+      const icon = fixture.nativeElement.querySelector(
+        '[data-testid="intake-entry"] .entry-cat-icon mat-icon',
+      ) as HTMLElement;
+      expect(icon.textContent?.trim()).toBe('pill');
+      expect(icon.classList).toContain('material-symbols-outlined');
     });
   });
 

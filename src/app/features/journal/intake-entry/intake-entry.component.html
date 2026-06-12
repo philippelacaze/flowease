@@ -1,7 +1,7 @@
 <div class="intake-entry">
   <div class="intake-header">
     <button class="icon-btn" aria-label="Retour au journal" (click)="back()">←</button>
-    <h1 class="intake-title">Saisir des prises</h1>
+    <h1 class="intake-title">{{ pageTitle }}</h1>
   </div>
 
   @if (isRetrospective) {
@@ -16,7 +16,7 @@
     </div>
   }
 
-  @if (!loading) {
+  @if (!loading && (!isEditing || isEditingAdHoc)) {
     <form class="adhoc-form" data-testid="adhoc-form" (ngSubmit)="addAdHoc()">
       <h2 class="adhoc-title">
         {{ editingAdHocId ? 'Modifier la prise ponctuelle' : 'Médicament ponctuel' }}
@@ -84,7 +84,7 @@
     </form>
   }
 
-  @if (!loading && treatmentStates.length === 0) {
+  @if (!loading && !isEditing && treatmentStates.length === 0) {
     <div class="empty-state" role="status">
       <p class="empty-hint">Aucun traitement actif — configurez-les pour un suivi d'observance.</p>
       <button
@@ -99,9 +99,11 @@
 
   @if (!loading && treatmentStates.length > 0) {
     <div class="treatment-list">
-      <p class="list-hint" role="status">
-        Appui court = pris · Appui long = détail
-      </p>
+      @if (!isEditing) {
+        <p class="list-hint" role="status">
+          Appui court = pris · Appui long = détail
+        </p>
+      }
       @for (state of treatmentStates; track state) {
         <div
           class="treatment-card"
@@ -138,7 +140,7 @@
     </div>
   }
 
-  @if (!loading && treatmentStates.length > 0) {
+  @if (!loading && !isEditing && treatmentStates.length > 0) {
     <div class="submit-row">
       <p class="confirmed-count" role="status" aria-live="polite">
         {{ confirmedCount }} traitement(s) confirmé(s) sur {{ treatmentStates.length }}

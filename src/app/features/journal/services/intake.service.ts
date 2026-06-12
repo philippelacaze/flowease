@@ -78,6 +78,15 @@ export class IntakeService {
     return this.storage.save('intakes', intake);
   }
 
+  /**
+   * Supprime définitivement une prise (traitement ou ponctuelle) du journal.
+   *
+   * @param id - Identifiant de l'IntakeEntity à supprimer
+   */
+  async delete(id: string): Promise<void> {
+    await this.storage.delete('intakes', id);
+  }
+
   async edit(input: EditIntakeInput): Promise<void> {
     const existing = await this.storage.get<IntakeEntity>('intakes', input.id);
     if (!existing) return;

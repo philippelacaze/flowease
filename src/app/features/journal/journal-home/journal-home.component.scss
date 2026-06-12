@@ -156,6 +156,26 @@
       border-radius: 12px;
     }
 
+    /* Ligne d'évènement : icône de catégorie à gauche + corps */
+    .entry-row { display: flex; align-items: flex-start; gap: 10px; }
+    .entry-cat-icon {
+      flex-shrink: 0;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 26px;
+      /* Hauteur calée sur la 1re ligne de contenu (44px, imposée par le bouton
+         d'action) pour aligner l'icône avec le titre, quelle que soit la catégorie. */
+      min-height: 44px;
+      color: var(--text-3);
+    }
+    .entry-cat-icon mat-icon { font-size: 22px; width: 22px; height: 22px; }
+    .entry-cat-icon--meal    { color: var(--teal); }
+    .entry-cat-icon--symptom { color: var(--coral); }
+    .entry-cat-icon--intake  { color: var(--blue); }
+    .entry-cat-icon--note    { color: var(--amber); }
+    .entry-body { flex: 1; min-width: 0; }
+
     .entry-head {
       display: flex;
       align-items: center;
@@ -195,6 +215,8 @@
       outline: none;
     }
     .entry-edit-btn mat-icon { font-size: 32px; width: 32px; height: 32px; }
+    .entry-delete-btn:hover,
+    .entry-delete-btn:focus-visible { color: var(--coral); }
 
     /* Repas — chips */
     .food-chips-row { display: flex; flex-wrap: wrap; gap: 5px; padding: 2px 0; }
@@ -241,11 +263,10 @@
 
     .entry-notes { margin: 6px 0 0; font-size: 13px; color: var(--text-3); font-style: italic; }
 
-    /* Prises — ligne compacte : [icône statut] nom (dose) ···· heure ✎ */
-    .entry-card--intake { padding: 0 4px 0 12px; }
+    /* Prises — ligne compacte : nom (dose) ···· heure ✎ 🗑 (icône pilule à gauche via .entry-cat-icon) */
+    .entry-card--intake { padding: 2px 12px 2px 10px; }
+    .entry-card--intake .entry-row { align-items: center; }
     .intake-line { display: flex; align-items: center; gap: 8px; min-height: 44px; }
-    .intake-line .status-icon { display: inline-flex; align-items: center; flex-shrink: 0; }
-    .intake-line .status-icon mat-icon { font-size: 22px; width: 22px; height: 22px; }
     .intake-name {
       flex: 0 1 auto;
       min-width: 0;
@@ -253,11 +274,18 @@
       text-overflow: ellipsis;
       white-space: nowrap;
     }
+    .intake-skipped { text-decoration: line-through; color: var(--text-3); }
     .intake-dose { flex-shrink: 0; font-size: 13px; color: var(--text-3); white-space: nowrap; }
+    .intake-skip-badge {
+      flex-shrink: 0;
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: var(--coral);
+    }
     .intake-time { flex-shrink: 0; margin-left: auto; }
     .intake-line .entry-edit-btn { flex-shrink: 0; }
-    .status-taken   { color: var(--fodmap-low-text); }
-    .status-skipped { color: var(--coral); }
 
     /* Notes — texte complet */
     .note-content { margin: 0 0 6px; font-size: 14px; line-height: 1.5; white-space: pre-wrap; word-break: break-word; }

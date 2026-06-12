@@ -65,6 +65,22 @@ describe('IntakeService', () => {
     });
   });
 
+  describe('delete', () => {
+    it('supprime la prise du store intakes via son id', async () => {
+      const storage = makeStorageMock();
+      TestBed.configureTestingModule({
+        providers: [
+          IntakeService,
+          { provide: StorageService, useValue: storage },
+          { provide: LocalSettingsService, useValue: makeSettingsMock() },
+        ],
+      });
+      const svc = TestBed.inject(IntakeService);
+      await svc.delete('intake-42');
+      expect(storage.delete).toHaveBeenCalledWith('intakes', 'intake-42');
+    });
+  });
+
   describe('edit', () => {
     it('ne fait rien si l\'entrée est introuvable', async () => {
       const storage = makeStorageMock();

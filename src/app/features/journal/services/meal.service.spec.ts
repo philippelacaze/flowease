@@ -25,6 +25,22 @@ function makeStorageMock() {
 
 describe('MealService', () => {
 
+  describe('delete', () => {
+    it('supprime le repas du store meals via son id', async () => {
+      const storage = makeStorageMock();
+      TestBed.configureTestingModule({
+        providers: [
+          MealService,
+          { provide: StorageService, useValue: storage },
+          { provide: AiService, useClass: NullAiService },
+        ],
+      });
+      const svc = TestBed.inject(MealService);
+      await svc.delete('meal-7');
+      expect(storage.delete).toHaveBeenCalledWith('meals', 'meal-7');
+    });
+  });
+
   describe('add', () => {
     it('persiste un MealEntity et retourne son id', async () => {
       const storage = makeStorageMock();

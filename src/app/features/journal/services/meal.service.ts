@@ -66,6 +66,15 @@ export class MealService {
     await this.storage.save('meals', updated);
   }
 
+  /**
+   * Supprime définitivement un repas du journal.
+   *
+   * @param id - Identifiant du MealEntity à supprimer
+   */
+  async delete(id: string): Promise<void> {
+    await this.storage.delete('meals', id);
+  }
+
   async analyzePhoto(input: AnalyzeMealPhotoInput): Promise<MealAnalysisResult> {
     const ctx = await this.loadProfileContext();
     const result = await this.ai.analyzeMealPhoto(input.base64Image, input.mediaType, ctx);

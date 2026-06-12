@@ -31,6 +31,18 @@ describe('SymptomService', () => {
     });
   });
 
+  describe('delete', () => {
+    it('supprime le symptôme du store symptoms via son id', async () => {
+      const storage = makeStorageMock();
+      TestBed.configureTestingModule({
+        providers: [SymptomService, { provide: StorageService, useValue: storage }],
+      });
+      const svc = TestBed.inject(SymptomService);
+      await svc.delete('symptom-9');
+      expect(storage.delete).toHaveBeenCalledWith('symptoms', 'symptom-9');
+    });
+  });
+
   describe('edit', () => {
     it('ne fait rien si le symptôme est introuvable', async () => {
       const storage = makeStorageMock();

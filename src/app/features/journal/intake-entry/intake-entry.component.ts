@@ -71,6 +71,20 @@ export class IntakeEntryComponent implements OnInit, OnDestroy {
     return this.treatmentStates.filter(s => s.confirmed || s.skipped).length;
   }
 
+  /** true si la page est ouverte pour modifier une prise existante (depuis le journal). */
+  protected get isEditing(): boolean {
+    return this.editingEntry !== null;
+  }
+
+  /** true si la prise éditée est une prise ponctuelle (sans traitement rattaché). */
+  protected get isEditingAdHoc(): boolean {
+    return this.editingEntry !== null && !this.editingEntry.treatmentId;
+  }
+
+  protected get pageTitle(): string {
+    return this.isEditing ? 'Modifier la prise' : 'Saisir des prises';
+  }
+
   ngOnInit(): void {
     const state = history.state as { editEntry?: IntakeEntity; journalDate?: string };
     if (state?.journalDate) {
@@ -251,6 +265,10 @@ export class IntakeEntryComponent implements OnInit, OnDestroy {
   }
 
   private async loadTreatments(): Promise<void> {
+    if (this.editingEntry) {
+      await this.loadForEdit(this.editingEntry);
+      return;
+    }
     const treatments = await this.intake.getActiveTreatments();
     this.treatmentStates = treatments.map(t => ({
       treatment: t,
@@ -259,17 +277,34 @@ export class IntakeEntryComponent implements OnInit, OnDestroy {
     }));
     this.loading = false;
     this.cdr.markForCheck();
+  }
 
-    if (this.editingEntry) {
-      if (this.editingEntry.treatmentId) {
-        this.openEditSheet(this.editingEntry);
-      } else {
-        this.editingAdHocId = this.editingEntry.id;
-        this.adHocName = this.editingEntry.medicationName ?? '';
-        this.adHocDose = this.editingEntry.actualDose ?? '';
-        this.adHocTime = this.toTimeString(this.editingEntry.confirmedAt);
-        this.cdr.markForCheck();
-      }
+  /**
+   * Mode édition : restreint la page au seul médicament concerné.
+   *
+   * @remarks
+   * Prise rattachée à un traitement → on ne charge que ce traitement (même
+   * inactif) et on ouvre directement la feuille de détail. Prise ponctuelle →
+   * on pré-remplit le formulaire libre, sans afficher aucun traitement.
+   */
+  private async loadForEdit(editEntry: IntakeEntity): Promise<void> {
+    if (editEntry.treatmentId) {
+      const all = await this.intake.getAllTreatments();
+      const treatment = all.find(t => t.id === editEntry.treatmentId);
+      this.treatmentStates = treatment
+        ? [{ treatment, confirmed: false, skipped: false }]
+        : [];
+      this.loading = false;
+      this.cdr.markForCheck();
+      if (treatment) this.openEditSheet(editEntry);
+    } else {
+      this.editingAdHocId = editEntry.id;
+      this.adHocName = editEntry.medicationName ?? '';
+      this.adHocDose = editEntry.actualDose ?? '';
+      this.adHocTime = this.toTimeString(editEntry.confirmedAt);
+      this.treatmentStates = [];
+      this.loading = false;
+      this.cdr.markForCheck();
     }
   }
 

@@ -1,12 +1,5 @@
 <app-offline-banner />
 
-@if (notifDenied) {
-  <div class="notif-denied-banner" role="status" data-testid="notif-denied-banner">
-    <mat-icon aria-hidden="true">notifications_off</mat-icon>
-    <span>Rappels de traitement désactivés — autorisez les notifications dans les paramètres du navigateur.</span>
-  </div>
-}
-
 <div class="journal-home">
 
   <!-- En-tête navigation jour -->
@@ -145,179 +138,163 @@
   @if (!loading) {
     <div class="journal-entries">
       @if (entries.length > 0) {
-        <!-- Repas -->
-        @if (meals.length > 0) {
-          <section class="entry-section" aria-label="Repas du jour">
-            <h2 class="section-title">
-              <mat-icon aria-hidden="true">restaurant</mat-icon>Repas
-            </h2>
-            @for (e of meals; track e) {
-              <div class="entry-card" data-testid="meal-entry">
-                <div class="entry-head">
-                  <span class="entry-label">{{ mealLabel(e.data.type) }}</span>
-                  <div class="entry-head-right">
-                    <span class="entry-time">{{ e.data.occurredAt | date:'HH:mm' }}</span>
-                    <button class="entry-edit-btn" aria-label="Modifier ce repas"
-                            data-testid="edit-meal-btn" (click)="editMeal(e.data)">
-                      <mat-icon aria-hidden="true">edit</mat-icon>
-                    </button>
-                  </div>
-                </div>
-                <div class="food-chips-row" role="list" aria-label="Aliments">
-                  @for (item of e.data.items; track item) {
-                    <app-food-chip [item]="item" [removable]="false" />
-                  }
-                </div>
-                @if (e.data.aiFodmapFlags?.length) {
-                  <ul class="fodmap-alerts" aria-label="Alertes FODMAP">
-                    @for (flag of e.data.aiFodmapFlags; track flag.item) {
-                      <li class="fodmap-alert fodmap-alert--{{ flag.severity }}"
-                          [attr.aria-label]="'Alerte FODMAP ' + flag.severity + ' : ' + flag.item">
-                        ⚠️ <strong>{{ flag.item }}</strong> — {{ flag.reason }}
-                      </li>
-                    }
-                  </ul>
-                }
-              </div>
-            }
-          </section>
-        }
-        <!-- Symptômes -->
-        @if (symptoms.length > 0) {
-          <section class="entry-section" aria-label="Symptômes du jour">
-            <h2 class="section-title">
-              <mat-icon aria-hidden="true">health_and_safety</mat-icon>Symptômes
-            </h2>
-            @for (e of symptoms; track e) {
-              <div class="entry-card" data-testid="symptom-entry">
-                <div class="entry-head">
-                  <span class="entry-label">{{ symptomLabel(e.data.symptomKey) }}</span>
-                  <div class="entry-head-right">
-                    <span class="entry-time">{{ e.data.occurredAt | date:'HH:mm' }}</span>
-                    <button class="entry-edit-btn" aria-label="Modifier ce symptôme"
-                            data-testid="edit-symptom-btn" (click)="editSymptom(e.data)">
-                      <mat-icon aria-hidden="true">edit</mat-icon>
-                    </button>
-                  </div>
-                </div>
-                <div class="intensity-row" [attr.aria-label]="'Intensité ' + e.data.intensity + ' sur 10'">
-                  <div class="intensity-bar">
-                    <div class="intensity-fill" [style.width.%]="e.data.intensity * 10"
-                      [class]="intensityClass(e.data.intensity)">
+        <!-- Vue strictement chronologique : tous les évènements mélangés, triés par heure -->
+        @for (e of entries; track e) {
+          <div class="entry-card entry-card--{{ e.kind }}" [attr.data-testid]="e.kind + '-entry'">
+            <div class="entry-row">
+              <span class="entry-cat-icon entry-cat-icon--{{ e.kind }}"
+                    role="img" [attr.aria-label]="categoryLabel(e.kind)">
+                <mat-icon fontSet="material-symbols-outlined" aria-hidden="true">{{ categoryIcon(e.kind) }}</mat-icon>
+              </span>
+              <div class="entry-body">
+                @switch (e.kind) {
+                  @case ('meal') {
+                    <div class="entry-head">
+                      <span class="entry-label">{{ mealLabel(e.data.type) }}</span>
+                      <div class="entry-head-right">
+                        <span class="entry-time">{{ e.data.occurredAt | date:'HH:mm' }}</span>
+                        <button class="entry-edit-btn" aria-label="Modifier ce repas"
+                                data-testid="edit-meal-btn" (click)="editMeal(e.data)">
+                          <mat-icon aria-hidden="true">edit</mat-icon>
+                        </button>
+                        <button class="entry-edit-btn entry-delete-btn" aria-label="Supprimer ce repas"
+                                data-testid="delete-meal-btn" (click)="deleteMeal(e.data)">
+                          <mat-icon aria-hidden="true">delete</mat-icon>
+                        </button>
+                      </div>
                     </div>
-                  </div>
-                  <span class="intensity-value">{{ e.data.intensity }}/10</span>
-                </div>
-                @if (e.data.notes) {
-                  <p class="entry-notes">{{ e.data.notes }}</p>
-                }
-              </div>
-            }
-          </section>
-        }
-        <!-- Prises -->
-        @if (intakes.length > 0) {
-          <section class="entry-section" aria-label="Prises du jour">
-            <h2 class="section-title">
-              <mat-icon aria-hidden="true">medication</mat-icon>Prises
-            </h2>
-            @for (e of intakes; track e) {
-              <div class="entry-card entry-card--intake" data-testid="intake-entry">
-                <div class="intake-line">
-                  <span class="status-icon"
-                        [class.status-taken]="e.data.status === 'taken'"
-                        [class.status-skipped]="e.data.status === 'skipped'"
-                        role="img"
-                        [attr.aria-label]="e.data.status === 'taken' ? 'Pris' : 'Sauté'">
-                    <mat-icon aria-hidden="true">{{ e.data.status === 'taken' ? 'check_circle' : 'cancel' }}</mat-icon>
-                  </span>
-                  <span class="entry-label intake-name">{{ intakeLabel(e.data) }}</span>
-                  @if (e.data.actualDose) {
-                    <span class="intake-dose" data-testid="intake-dose">({{ e.data.actualDose }})</span>
-                  }
-                  <span class="entry-time intake-time">{{ e.data.confirmedAt | date:'HH:mm' }}</span>
-                  <button class="entry-edit-btn" aria-label="Modifier cette prise"
-                          data-testid="edit-intake-btn" (click)="editIntake(e.data)">
-                    <mat-icon aria-hidden="true">edit</mat-icon>
-                  </button>
-                </div>
-              </div>
-            }
-          </section>
-        }
-        <!-- Notes -->
-        @if (notes.length > 0) {
-          <section class="entry-section" aria-label="Notes du jour">
-            <h2 class="section-title">
-              <mat-icon aria-hidden="true">edit_note</mat-icon>Notes
-            </h2>
-            @for (e of notes; track e) {
-              <div class="entry-card" data-testid="note-entry">
-                <div class="entry-head">
-                  <span class="entry-time">{{ e.data.occurredAt | date:'HH:mm' }}</span>
-                  <button class="entry-edit-btn" aria-label="Modifier cette note"
-                          data-testid="edit-note-btn" (click)="editNote(e.data)">
-                    <mat-icon aria-hidden="true">edit</mat-icon>
-                  </button>
-                </div>
-                <p class="note-content">{{ e.data.content }}</p>
-                <!-- Tags confirmés -->
-                @if (e.data.tags.length > 0) {
-                  <div class="note-tags">
-                    @for (tag of e.data.tags; track tag) {
-                      <span class="note-tag">#{{ tag }}</span>
-                    }
-                  </div>
-                }
-                <!-- Suggestions IA en attente de confirmation -->
-                @if (e.data.aiTagSuggestions && e.data.aiTagSuggestions.length > 0) {
-                  <div class="note-ai-suggestions" data-testid="note-ai-suggestions">
-                    <p class="note-ai-suggestions-label">
-                      <mat-icon aria-hidden="true" class="note-ai-icon">auto_awesome</mat-icon>
-                      Suggestions IA
-                    </p>
-                    <div class="note-ai-chip-row">
-                      @for (tag of e.data.aiTagSuggestions; track tag) {
-                        <span class="note-ai-chip" [attr.data-testid]="'note-ai-chip-' + tag">
-                          <span class="note-ai-chip-text">#{{ tag }}</span>
-                          <button
-                            class="note-ai-chip-btn note-ai-chip-btn--confirm"
-                            [attr.aria-label]="'Valider le tag ' + tag"
-                            [attr.data-testid]="'note-ai-confirm-' + tag"
-                            (click)="confirmTag(e.data, tag)">✓</button>
-                          <button
-                            class="note-ai-chip-btn note-ai-chip-btn--reject"
-                            [attr.aria-label]="'Rejeter le tag ' + tag"
-                            [attr.data-testid]="'note-ai-reject-' + tag"
-                            (click)="rejectTag(e.data, tag)">✕</button>
-                        </span>
+                    <div class="food-chips-row" role="list" aria-label="Aliments">
+                      @for (item of e.data.items; track item) {
+                        <app-food-chip [item]="item" [removable]="false" />
                       }
                     </div>
-                    <div class="note-ai-actions">
-                      <button
-                        class="note-ai-confirm-all-btn"
-                        aria-label="Valider tous les tags suggérés"
-                        data-testid="note-ai-confirm-all-btn"
-                        (click)="confirmAllTags(e.data)">✓ Tout valider</button>
-                      <input
-                        #freeTagInput
-                        class="note-ai-free-input"
-                        type="text"
-                        placeholder="Ajouter un tag…"
-                        aria-label="Saisir un tag libre"
-                        data-testid="note-ai-free-input"
-                        (keyup.enter)="addFreeTag(e.data, freeTagInput)" />
-                      <button
-                        class="note-ai-add-btn"
-                        aria-label="Ajouter le tag saisi"
-                        data-testid="note-ai-add-btn"
-                        (click)="addFreeTag(e.data, freeTagInput)">+</button>
+                    @if (e.data.aiFodmapFlags?.length) {
+                      <ul class="fodmap-alerts" aria-label="Alertes FODMAP">
+                        @for (flag of e.data.aiFodmapFlags; track flag.item) {
+                          <li class="fodmap-alert fodmap-alert--{{ flag.severity }}"
+                              [attr.aria-label]="'Alerte FODMAP ' + flag.severity + ' : ' + flag.item">
+                            ⚠️ <strong>{{ flag.item }}</strong> — {{ flag.reason }}
+                          </li>
+                        }
+                      </ul>
+                    }
+                  }
+                  @case ('symptom') {
+                    <div class="entry-head">
+                      <span class="entry-label">{{ symptomLabel(e.data.symptomKey) }}</span>
+                      <div class="entry-head-right">
+                        <span class="entry-time">{{ e.data.occurredAt | date:'HH:mm' }}</span>
+                        <button class="entry-edit-btn" aria-label="Modifier ce symptôme"
+                                data-testid="edit-symptom-btn" (click)="editSymptom(e.data)">
+                          <mat-icon aria-hidden="true">edit</mat-icon>
+                        </button>
+                        <button class="entry-edit-btn entry-delete-btn" aria-label="Supprimer ce symptôme"
+                                data-testid="delete-symptom-btn" (click)="deleteSymptom(e.data)">
+                          <mat-icon aria-hidden="true">delete</mat-icon>
+                        </button>
+                      </div>
                     </div>
-                  </div>
+                    <div class="intensity-row" [attr.aria-label]="'Intensité ' + e.data.intensity + ' sur 10'">
+                      <div class="intensity-bar">
+                        <div class="intensity-fill" [style.width.%]="e.data.intensity * 10"
+                          [class]="intensityClass(e.data.intensity)">
+                        </div>
+                      </div>
+                      <span class="intensity-value">{{ e.data.intensity }}/10</span>
+                    </div>
+                    @if (e.data.notes) {
+                      <p class="entry-notes">{{ e.data.notes }}</p>
+                    }
+                  }
+                  @case ('intake') {
+                    <div class="intake-line">
+                      <span class="entry-label intake-name"
+                            [class.intake-skipped]="e.data.status === 'skipped'">{{ intakeLabel(e.data) }}</span>
+                      @if (e.data.actualDose) {
+                        <span class="intake-dose" data-testid="intake-dose">({{ e.data.actualDose }})</span>
+                      }
+                      @if (e.data.status === 'skipped') {
+                        <span class="intake-skip-badge">sauté</span>
+                      }
+                      <span class="entry-time intake-time">{{ e.data.confirmedAt | date:'HH:mm' }}</span>
+                      <button class="entry-edit-btn" aria-label="Modifier cette prise"
+                              data-testid="edit-intake-btn" (click)="editIntake(e.data)">
+                        <mat-icon aria-hidden="true">edit</mat-icon>
+                      </button>
+                      <button class="entry-edit-btn entry-delete-btn" aria-label="Supprimer cette prise"
+                              data-testid="delete-intake-btn" (click)="deleteIntake(e.data)">
+                        <mat-icon aria-hidden="true">delete</mat-icon>
+                      </button>
+                    </div>
+                  }
+                  @case ('note') {
+                    <div class="entry-head">
+                      <span class="entry-time">{{ e.data.occurredAt | date:'HH:mm' }}</span>
+                      <button class="entry-edit-btn" aria-label="Modifier cette note"
+                              data-testid="edit-note-btn" (click)="editNote(e.data)">
+                        <mat-icon aria-hidden="true">edit</mat-icon>
+                      </button>
+                    </div>
+                    <p class="note-content">{{ e.data.content }}</p>
+                    <!-- Tags confirmés -->
+                    @if (e.data.tags.length > 0) {
+                      <div class="note-tags">
+                        @for (tag of e.data.tags; track tag) {
+                          <span class="note-tag">#{{ tag }}</span>
+                        }
+                      </div>
+                    }
+                    <!-- Suggestions IA en attente de confirmation -->
+                    @if (e.data.aiTagSuggestions && e.data.aiTagSuggestions.length > 0) {
+                      <div class="note-ai-suggestions" data-testid="note-ai-suggestions">
+                        <p class="note-ai-suggestions-label">
+                          <mat-icon aria-hidden="true" class="note-ai-icon">auto_awesome</mat-icon>
+                          Suggestions IA
+                        </p>
+                        <div class="note-ai-chip-row">
+                          @for (tag of e.data.aiTagSuggestions; track tag) {
+                            <span class="note-ai-chip" [attr.data-testid]="'note-ai-chip-' + tag">
+                              <span class="note-ai-chip-text">#{{ tag }}</span>
+                              <button
+                                class="note-ai-chip-btn note-ai-chip-btn--confirm"
+                                [attr.aria-label]="'Valider le tag ' + tag"
+                                [attr.data-testid]="'note-ai-confirm-' + tag"
+                                (click)="confirmTag(e.data, tag)">✓</button>
+                              <button
+                                class="note-ai-chip-btn note-ai-chip-btn--reject"
+                                [attr.aria-label]="'Rejeter le tag ' + tag"
+                                [attr.data-testid]="'note-ai-reject-' + tag"
+                                (click)="rejectTag(e.data, tag)">✕</button>
+                            </span>
+                          }
+                        </div>
+                        <div class="note-ai-actions">
+                          <button
+                            class="note-ai-confirm-all-btn"
+                            aria-label="Valider tous les tags suggérés"
+                            data-testid="note-ai-confirm-all-btn"
+                            (click)="confirmAllTags(e.data)">✓ Tout valider</button>
+                          <input
+                            #freeTagInput
+                            class="note-ai-free-input"
+                            type="text"
+                            placeholder="Ajouter un tag…"
+                            aria-label="Saisir un tag libre"
+                            data-testid="note-ai-free-input"
+                            (keyup.enter)="addFreeTag(e.data, freeTagInput)" />
+                          <button
+                            class="note-ai-add-btn"
+                            aria-label="Ajouter le tag saisi"
+                            data-testid="note-ai-add-btn"
+                            (click)="addFreeTag(e.data, freeTagInput)">+</button>
+                        </div>
+                      </div>
+                    }
+                  }
                 }
               </div>
-            }
-          </section>
+            </div>
+          </div>
         }
       } @else {
         <div class="empty-state" role="status">

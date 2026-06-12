@@ -350,3 +350,78 @@ describe('IntakeEntryComponent — date du journal', () => {
     );
   });
 });
+
+describe('IntakeEntryComponent — mode édition (depuis le journal)', () => {
+  function setHistory(editEntry: unknown): void {
+    history.replaceState({ editEntry, journalDate: new Date().toISOString() }, '');
+  }
+
+  async function setup(mockIntake: ReturnType<typeof makeIntakeMock>) {
+    const mockAfterDismissed = { subscribe: vi.fn() };
+    const mockBottomSheet = { open: vi.fn().mockReturnValue({ afterDismissed: () => mockAfterDismissed }) };
+
+    await TestBed.configureTestingModule({
+      imports: [IntakeEntryComponent, NoopAnimationsModule],
+      providers: [
+        provideRouter([]),
+        { provide: IntakeService, useValue: mockIntake },
+        { provide: MatBottomSheet, useValue: mockBottomSheet },
+      ],
+    }).compileComponents();
+
+    const fixture = TestBed.createComponent(IntakeEntryComponent);
+    fixture.detectChanges();
+    await fixture.whenStable();
+    fixture.detectChanges();
+    return { fixture, mockBottomSheet };
+  }
+
+  afterEach(() => {
+    vi.useRealTimers();
+    history.replaceState({}, '');
+  });
+
+  it('prise rattachée à un traitement : n\'affiche que ce traitement et ouvre la feuille de détail', async () => {
+    setHistory({ id: 'intake-1', treatmentId: 'treat-1', scheduledAt: new Date(), confirmedAt: new Date(), createdAt: new Date(), status: 'taken' });
+    const mockIntake = makeIntakeMock([]);
+    mockIntake.getAllTreatments.mockResolvedValue([mockTreatment]);
+    const { fixture, mockBottomSheet } = await setup(mockIntake);
+
+    const cards = fixture.debugElement.queryAll(By.css('.treatment-card'));
+    expect(cards).toHaveLength(1);
+    expect(cards[0].nativeElement.getAttribute('data-testid')).toBe('treatment-treat-1');
+    expect(mockBottomSheet.open).toHaveBeenCalledOnce();
+  });
+
+  it('n\'affiche ni le formulaire ponctuel ni le bouton Terminer en édition d\'un traitement', async () => {
+    setHistory({ id: 'intake-1', treatmentId: 'treat-1', scheduledAt: new Date(), confirmedAt: new Date(), createdAt: new Date(), status: 'taken' });
+    const mockIntake = makeIntakeMock([]);
+    mockIntake.getAllTreatments.mockResolvedValue([mockTreatment]);
+    const { fixture } = await setup(mockIntake);
+
+    expect(fixture.debugElement.query(By.css('[data-testid="adhoc-form"]'))).toBeNull();
+    expect(fixture.debugElement.query(By.css('[data-testid="done-intake"]'))).toBeNull();
+  });
+
+  it('ne charge pas la liste complète des traitements actifs en édition', async () => {
+    setHistory({ id: 'intake-1', treatmentId: 'treat-1', scheduledAt: new Date(), confirmedAt: new Date(), createdAt: new Date(), status: 'taken' });
+    const mockIntake = makeIntakeMock([mockTreatment]);
+    mockIntake.getAllTreatments.mockResolvedValue([mockTreatment]);
+    await setup(mockIntake);
+
+    expect(mockIntake.getActiveTreatments).not.toHaveBeenCalled();
+  });
+
+  it('prise ponctuelle : affiche uniquement le formulaire pré-rempli, aucun traitement', async () => {
+    setHistory({ id: 'adhoc-1', medicationName: 'Spasfon', actualDose: '2 cp', scheduledAt: new Date(), confirmedAt: new Date(), createdAt: new Date(), status: 'taken' });
+    const mockIntake = makeIntakeMock([mockTreatment]);
+    const { fixture, mockBottomSheet } = await setup(mockIntake);
+
+    expect(fixture.debugElement.queryAll(By.css('.treatment-card'))).toHaveLength(0);
+    const form = fixture.debugElement.query(By.css('[data-testid="adhoc-form"]'));
+    expect(form).not.toBeNull();
+    const nameInput = fixture.debugElement.query(By.css('[data-testid="adhoc-name"]')).nativeElement as HTMLInputElement;
+    expect(nameInput.value).toBe('Spasfon');
+    expect(mockBottomSheet.open).not.toHaveBeenCalled();
+  });
+});

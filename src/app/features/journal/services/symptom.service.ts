@@ -112,6 +112,15 @@ export class SymptomService {
     await this.storage.save('symptoms', updated);
   }
 
+  /**
+   * Supprime définitivement un symptôme du journal.
+   *
+   * @param id - Identifiant du SymptomEntity à supprimer
+   */
+  async delete(id: string): Promise<void> {
+    await this.storage.delete('symptoms', id);
+  }
+
   async getActiveConfigs(): Promise<ActiveSymptomConfig[]> {
     const configs = await this.getAllConfigs();
     return configs

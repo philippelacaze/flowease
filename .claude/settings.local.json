@@ -59,7 +59,17 @@
       "PowerShell(npx ng test --watch=false 2>&1 | Select-Object -Last 25)",
       "PowerShell(npx ng test --watch=false --include=\"src/app/features/journal/journal-home/journal-home.component.spec.ts\" --include=\"src/app/features/journal/symptom-entry/symptom-confirm.component.spec.ts\" 2>&1 | Select-Object -Last 20)",
       "PowerShell(npx ng test --watch=false --include=\"src/app/features/settings/treatments/treatments.component.spec.ts\" 2>&1 | Select-Object -Last 18)",
-      "PowerShell(npx ng build --configuration development 2>&1 | Select-Object -Last 15)"
+      "PowerShell(npx ng build --configuration development 2>&1 | Select-Object -Last 15)",
+      "PowerShell(npx ng test --watch=false --include=\"src/app/shared/components/intensity-slider/intensity-slider.component.spec.ts\" 2>&1 | Select-Object -Last 16)",
+      "PowerShell(npx ng test --watch=false --include=\"src/app/features/journal/journal-home/journal-home.component.spec.ts\" 2>&1 | Select-Object -Last 14)",
+      "PowerShell(npx ng test --watch=false --include=\"src/app/features/journal/intake-entry/intake-entry.component.spec.ts\" 2>&1 | Select-Object -Last 18)",
+      "PowerShell(npx ng test --watch=false 2>&1 | Select-Object -Last 8)",
+      "PowerShell(npx ng test --watch=false --include=\"src/app/features/journal/journal-home/journal-home.component.spec.ts\" --include=\"src/app/features/journal/services/intake.service.spec.ts\" 2>&1 | Select-Object -Last 14)",
+      "PowerShell(npx ng test --watch=false --include=\"src/app/features/journal/journal-home/journal-home.component.spec.ts\" 2>&1 | Select-Object -Last 30)",
+      "PowerShell(npx ng test --watch=false --include=\"src/app/features/journal/journal-home/journal-home.component.spec.ts\" 2>&1 | Select-Object -Last 8)",
+      "PowerShell(npx ng test --watch=false 2>&1 | Select-Object -Last 7)",
+      "PowerShell(npx ng build --configuration development 2>&1 | Select-Object -Last 6)",
+      "PowerShell(npx ng test --watch=false --include=\"src/app/features/journal/journal-home/journal-home.component.spec.ts\" --include=\"src/app/features/journal/services/meal.service.spec.ts\" --include=\"src/app/features/journal/services/symptom.service.spec.ts\" 2>&1 | Select-Object -Last 10)"
     ]
   }
 }

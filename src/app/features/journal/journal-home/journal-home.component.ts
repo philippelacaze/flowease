@@ -12,9 +12,9 @@ import { MatIconModule } from '@angular/material/icon';
 import { IntakeService, JournalEntry, CureProgressVO } from '../services/intake.service';
 import { NoteService } from '../services/note.service';
 import { SymptomService } from '../services/symptom.service';
+import { MealService } from '../services/meal.service';
 
 import { SettingsService } from '../../settings/services/settings.service';
-import { NotificationService } from '../../../core/services/notification.service';
 import type { CoachSuggestionVO } from '../../../core/models/entities/coach-suggestion.vo';
 import { OfflineBannerComponent } from '../../../shared/components/offline-banner/offline-banner.component';
 import { FoodChipComponent } from '../../../shared/components/food-chip/food-chip.component';
@@ -29,6 +29,28 @@ const MEAL_LABELS: Record<string, string> = {
   lunch: 'Déjeuner',
   dinner: 'Dîner',
   snack: 'Collation',
+};
+
+/**
+ * Icône de catégorie (Material Symbols Outlined — famille monochrome) de chaque évènement.
+ *
+ * @remarks
+ * `pill` (capsule) distingue clairement les prises des symptômes (`monitor_heart`).
+ * Rendu via fontSet="material-symbols-outlined" sur le mat-icon.
+ */
+const CATEGORY_ICONS: Record<JournalEntry['kind'], string> = {
+  meal: 'restaurant',
+  symptom: 'monitor_heart',
+  intake: 'pill',
+  note: 'edit_note',
+};
+
+/** Libellé accessible de chaque catégorie d'évènement. */
+const CATEGORY_LABELS: Record<JournalEntry['kind'], string> = {
+  meal: 'Repas',
+  symptom: 'Symptôme',
+  intake: 'Prise de médicament',
+  note: 'Note',
 };
 
 /**
@@ -53,16 +75,14 @@ export class JournalHomeComponent implements OnInit {
               private readonly intake = inject(IntakeService);
   private readonly notesSvc = inject(NoteService);
   private readonly symptomSvc = inject(SymptomService);
+  private readonly mealSvc = inject(MealService);
   private readonly settingsService = inject(SettingsService);
-  private readonly notificationPort = inject(NotificationService);
   private readonly router = inject(Router);
   private readonly cdr = inject(ChangeDetectorRef);
 
   protected currentDate = new Date();
   private treatmentMap = new Map<string, string>();
   private symptomLabelMap = new Map<string, string>();
-  /** true si l'utilisateur a refusé les notifications dans le navigateur */
-  protected notifDenied = false;
   protected entries: JournalEntry[] = [];
   protected activeCures: CureProgressVO[] = [];
   protected coachSuggestions: CoachSuggestionVO[] = [];
@@ -96,7 +116,6 @@ export class JournalHomeComponent implements OnInit {
     void this.loadActiveCures();
     void this.loadTreatmentNames();
     void this.loadSymptomLabels();
-    this.notifDenied = this.notificationPort.getPermissionStatus() === 'denied';
     void this.settingsService.scheduleReminders();
   }
 
@@ -132,16 +151,43 @@ export class JournalHomeComponent implements OnInit {
     }).catch(() => undefined);
   }
 
+  /** Supprime un repas et le retire immédiatement de la liste affichée. */
+  protected async deleteMeal(data: MealEntity): Promise<void> {
+    await this.mealSvc.delete(data.id);
+    this.entries = this.entries.filter(e => !(e.kind === 'meal' && e.data.id === data.id));
+    this.cdr.markForCheck();
+  }
+
   protected editSymptom(data: SymptomEntity): void {
     void this.router.navigate(['/journal/symptom'], {
       state: { editEntry: data, journalDate: this.currentDate.toISOString() },
     }).catch(() => undefined);
   }
 
+  /** Supprime un symptôme et le retire immédiatement de la liste affichée. */
+  protected async deleteSymptom(data: SymptomEntity): Promise<void> {
+    await this.symptomSvc.delete(data.id);
+    this.entries = this.entries.filter(e => !(e.kind === 'symptom' && e.data.id === data.id));
+    this.cdr.markForCheck();
+  }
+
   protected editIntake(data: IntakeEntity): void {
     void this.router.navigate(['/journal/intake'], {
       state: { editEntry: data, journalDate: this.currentDate.toISOString() },
     }).catch(() => undefined);
+  }
+
+  /**
+   * Supprime une prise du journal et la retire immédiatement de la liste affichée.
+   *
+   * @remarks
+   * Suppression directe (sans confirmation) conformément au besoin : l'entrée
+   * est facilement re-saisissable. Met à jour l'état local sans recharger le jour.
+   */
+  protected async deleteIntake(data: IntakeEntity): Promise<void> {
+    await this.intake.delete(data.id);
+    this.entries = this.entries.filter(e => !(e.kind === 'intake' && e.data.id === data.id));
+    this.cdr.markForCheck();
   }
 
   protected editNote(data: NoteEntity): void {
@@ -176,6 +222,16 @@ export class JournalHomeComponent implements OnInit {
 
   protected mealLabel(type: string): string {
     return MEAL_LABELS[type] ?? type;
+  }
+
+  /** Icône de catégorie affichée en tête de chaque évènement chronologique. */
+  protected categoryIcon(kind: JournalEntry['kind']): string {
+    return CATEGORY_ICONS[kind];
+  }
+
+  /** Libellé accessible de la catégorie (lecteurs d'écran). */
+  protected categoryLabel(kind: JournalEntry['kind']): string {
+    return CATEGORY_LABELS[kind];
   }
 
   protected symptomLabel(key: string): string {
