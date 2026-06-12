@@ -7,6 +7,7 @@
   OnDestroy,
 } from '@angular/core';
 
+import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { MatBottomSheet } from '@angular/material/bottom-sheet';
 import { IntakeService } from '../services/intake.service';
@@ -31,7 +32,7 @@ interface TreatmentState {
 @Component({
   selector: 'app-intake-entry',
   standalone: true,
-  imports: [],
+  imports: [FormsModule],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './intake-entry.component.html',
   styleUrl: './intake-entry.component.scss',
@@ -53,6 +54,15 @@ export class IntakeEntryComponent implements OnInit, OnDestroy {
   protected treatmentStates: TreatmentState[] = [];
   protected loading = true;
   private editingEntry: IntakeEntity | null = null;
+
+  // --- Prise ponctuelle (médicament hors traitement/cure) ---
+  protected adHocName = '';
+  protected adHocDose = '';
+  protected adHocTime = this.nowTimeString();
+  /** Prises ponctuelles ajoutées pendant la session — feedback visuel. */
+  protected adHocAdded: { id: string; name: string; dose: string; time: string }[] = [];
+  /** id de la prise ponctuelle en cours d'édition, sinon null (création). */
+  protected editingAdHocId: string | null = null;
 
   private longPressTimer: ReturnType<typeof setTimeout> | null = null;
   private didLongPress = false;
@@ -161,6 +171,54 @@ export class IntakeEntryComponent implements OnInit, OnDestroy {
     }).catch(() => undefined);
   }
 
+  protected get canAddAdHoc(): boolean {
+    return this.adHocName.trim().length > 0;
+  }
+
+  /**
+   * Enregistre (ou met à jour) une prise de médicament ponctuelle saisie textuellement,
+   * en dehors de tout traitement/cure configuré.
+   *
+   * @remarks
+   * Respecte le mode dégradé : aucune dépendance IA. En création, ajoute la prise à
+   * la liste de feedback et réinitialise le formulaire ; en édition, persiste puis
+   * revient au journal.
+   */
+  protected async addAdHoc(): Promise<void> {
+    const name = this.adHocName.trim();
+    if (!name) return;
+    const dose = this.adHocDose.trim();
+    const confirmedAt = this.dateOnJournalDayAt(this.adHocTime);
+
+    if (this.editingAdHocId) {
+      await this.intake.edit({
+        id: this.editingAdHocId,
+        confirmedAt,
+        status: 'taken',
+        medicationName: name,
+        actualDose: dose || undefined,
+      });
+      void this.router.navigate(['/journal'], {
+        state: { journalDate: this.journalDate.toISOString() },
+      }).catch(() => undefined);
+      return;
+    }
+
+    const id = await this.intake.confirm({
+      confirmedAt,
+      scheduledAt: confirmedAt,
+      status: 'taken',
+      medicationName: name,
+      ...(dose && { actualDose: dose }),
+    });
+
+    this.adHocAdded = [...this.adHocAdded, { id, name, dose, time: this.adHocTime }];
+    this.adHocName = '';
+    this.adHocDose = '';
+    this.adHocTime = this.nowTimeString();
+    this.cdr.markForCheck();
+  }
+
   private async quickConfirm(state: TreatmentState): Promise<void> {
     if (state.confirmed || state.skipped) return;
 
@@ -203,7 +261,15 @@ export class IntakeEntryComponent implements OnInit, OnDestroy {
     this.cdr.markForCheck();
 
     if (this.editingEntry) {
-      this.openEditSheet(this.editingEntry);
+      if (this.editingEntry.treatmentId) {
+        this.openEditSheet(this.editingEntry);
+      } else {
+        this.editingAdHocId = this.editingEntry.id;
+        this.adHocName = this.editingEntry.medicationName ?? '';
+        this.adHocDose = this.editingEntry.actualDose ?? '';
+        this.adHocTime = this.toTimeString(this.editingEntry.confirmedAt);
+        this.cdr.markForCheck();
+      }
     }
   }
 
@@ -213,6 +279,23 @@ export class IntakeEntryComponent implements OnInit, OnDestroy {
     const base = new Date(this.journalDate);
     base.setHours(now.getHours(), now.getMinutes(), now.getSeconds(), now.getMilliseconds());
     return base;
+  }
+
+  /** Date du journal à une heure "HH:MM" donnée — pour les prises ponctuelles. */
+  private dateOnJournalDayAt(time: string): Date {
+    const [h, m] = time.split(':').map(Number);
+    const base = new Date(this.journalDate);
+    base.setHours(Number.isFinite(h) ? h : 0, Number.isFinite(m) ? m : 0, 0, 0);
+    return base;
+  }
+
+  private nowTimeString(): string {
+    return this.toTimeString(new Date());
+  }
+
+  private toTimeString(date: Date): string {
+    const d = new Date(date);
+    return `${d.getHours().toString().padStart(2, '0')}:${d.getMinutes().toString().padStart(2, '0')}`;
   }
 
   private clearLongPressTimer(): void {

@@ -16,11 +16,77 @@
     </div>
   }
 
+  @if (!loading) {
+    <form class="adhoc-form" data-testid="adhoc-form" (ngSubmit)="addAdHoc()">
+      <h2 class="adhoc-title">
+        {{ editingAdHocId ? 'Modifier la prise ponctuelle' : 'Médicament ponctuel' }}
+      </h2>
+      <p class="adhoc-hint">Notez une prise hors traitement/cure (ex. antalgique occasionnel).</p>
+
+      <label class="adhoc-field">
+        <span class="adhoc-label">Médicament</span>
+        <input
+          class="adhoc-input"
+          type="text"
+          name="adhocName"
+          [(ngModel)]="adHocName"
+          placeholder="Ex. Spasfon, Doliprane…"
+          aria-label="Nom du médicament"
+          data-testid="adhoc-name"
+          autocomplete="off" />
+      </label>
+
+      <div class="adhoc-row">
+        <label class="adhoc-field">
+          <span class="adhoc-label">Dose (optionnel)</span>
+          <input
+            class="adhoc-input"
+            type="text"
+            name="adhocDose"
+            [(ngModel)]="adHocDose"
+            placeholder="Ex. 1 cp, 500 mg"
+            aria-label="Dose"
+            data-testid="adhoc-dose"
+            autocomplete="off" />
+        </label>
+        <label class="adhoc-field adhoc-field--time">
+          <span class="adhoc-label">Heure</span>
+          <input
+            class="adhoc-input"
+            type="time"
+            name="adhocTime"
+            [(ngModel)]="adHocTime"
+            aria-label="Heure de la prise"
+            data-testid="adhoc-time" />
+        </label>
+      </div>
+
+      <button
+        class="adhoc-btn"
+        type="submit"
+        [disabled]="!canAddAdHoc"
+        [attr.aria-disabled]="!canAddAdHoc"
+        aria-label="Ajouter la prise ponctuelle"
+        data-testid="adhoc-add">
+        {{ editingAdHocId ? 'Enregistrer' : 'Ajouter la prise' }}
+      </button>
+
+      @if (adHocAdded.length > 0) {
+        <ul class="adhoc-added" aria-label="Prises ponctuelles ajoutées" role="status" aria-live="polite">
+          @for (m of adHocAdded; track m.id) {
+            <li class="adhoc-added-item" data-testid="adhoc-added-item">
+              <span aria-hidden="true">✓</span>
+              {{ m.name }}{{ m.dose ? ' · ' + m.dose : '' }} · {{ m.time }}
+            </li>
+          }
+        </ul>
+      }
+    </form>
+  }
+
   @if (!loading && treatmentStates.length === 0) {
     <div class="empty-state" role="status">
-      <span class="empty-icon">💊</span>
-      <p>Aucun traitement actif.</p>
-      <p class="empty-hint">Configurez vos traitements dans les Paramètres.</p>
+      <p class="empty-hint">Aucun traitement actif — configurez-les pour un suivi d'observance.</p>
       <button
         class="settings-btn"
         aria-label="Aller aux paramètres des traitements"

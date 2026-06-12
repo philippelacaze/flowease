@@ -209,6 +209,55 @@ describe('IntakeEntryComponent', () => {
       expect(btn).not.toBeNull();
     });
   });
+
+  describe('prise ponctuelle — médicament hors traitement', () => {
+    type AdHocPrivate = {
+      adHocName: string;
+      adHocDose: string;
+      adHocTime: string;
+      adHocAdded: { id: string; name: string; dose: string; time: string }[];
+      addAdHoc(): Promise<void>;
+    };
+
+    it('affiche le formulaire de prise ponctuelle', () => {
+      const form = fixture.debugElement.query(By.css('[data-testid="adhoc-form"]'));
+      expect(form).not.toBeNull();
+    });
+
+    it('appelle confirm avec medicationName et sans treatmentId', async () => {
+      const comp = fixture.componentInstance as unknown as AdHocPrivate;
+      comp.adHocName = 'Spasfon';
+      comp.adHocDose = '2 cp';
+      comp.adHocTime = '14:30';
+
+      await comp.addAdHoc();
+
+      expect(mockIntake.confirm).toHaveBeenCalledWith(
+        expect.objectContaining({ medicationName: 'Spasfon', actualDose: '2 cp', status: 'taken' }),
+      );
+      const arg = mockIntake.confirm.mock.calls[0][0] as { treatmentId?: string; confirmedAt: Date };
+      expect(arg.treatmentId).toBeUndefined();
+      expect(arg.confirmedAt.getHours()).toBe(14);
+      expect(arg.confirmedAt.getMinutes()).toBe(30);
+    });
+
+    it('ajoute la prise à la liste et réinitialise le champ nom', async () => {
+      const comp = fixture.componentInstance as unknown as AdHocPrivate;
+      comp.adHocName = 'Doliprane';
+      await comp.addAdHoc();
+
+      expect(comp.adHocAdded).toHaveLength(1);
+      expect(comp.adHocAdded[0].name).toBe('Doliprane');
+      expect(comp.adHocName).toBe('');
+    });
+
+    it('n\'appelle pas confirm si le nom est vide', async () => {
+      const comp = fixture.componentInstance as unknown as AdHocPrivate;
+      comp.adHocName = '   ';
+      await comp.addAdHoc();
+      expect(mockIntake.confirm).not.toHaveBeenCalled();
+    });
+  });
 });
 
 describe('IntakeEntryComponent — date du journal', () => {

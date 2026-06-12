@@ -52,7 +52,11 @@
       "PowerShell(npx ng test --no-watch --include=\"src/app/features/journal/services/meal.service.spec.ts\" --include=\"src/app/features/journal/meal-entry/meal-entry.component.spec.ts\" 2>&1 | Select-Object -Last 15)",
       "PowerShell(npx playwright test e2e/journal/meal-entry.spec.ts --project=\"Mobile Chrome \\(Pixel 7\\)\" --reporter=line 2>&1 | Select-Object -Last 20)",
       "PowerShell(npx ng test --no-watch 2>&1 | Select-Object -Last 8)",
-      "PowerShell(npm test *)"
+      "PowerShell(npm test *)",
+      "PowerShell(npx vitest run src/app/features/journal/services/intake.service.spec.ts src/app/features/journal/intake-entry/intake-entry.component.spec.ts src/app/features/journal/journal-home/journal-home.component.spec.ts src/app/features/report/services/report.service.spec.ts 2>&1 | Select-Object -Last 60)",
+      "PowerShell(npx ng test --help 2>&1 | Select-Object -First 50)",
+      "PowerShell(npx ng test --watch=false --include=\"src/app/features/journal/services/intake.service.spec.ts\" --include=\"src/app/features/journal/intake-entry/intake-entry.component.spec.ts\" --include=\"src/app/features/journal/journal-home/journal-home.component.spec.ts\" --include=\"src/app/features/report/services/report.service.spec.ts\" 2>&1 | Select-Object -Last 70)",
+      "PowerShell(npx ng test --watch=false 2>&1 | Select-Object -Last 25)"
     ]
   }
 }

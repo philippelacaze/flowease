@@ -186,6 +186,15 @@ export class JournalHomeComponent implements OnInit {
     return this.treatmentMap.get(id) ?? id;
   }
 
+  /**
+   * Libellé affiché pour une prise : nom du traitement rattaché, ou nom libre
+   * saisi pour une prise ponctuelle hors traitement/cure.
+   */
+  protected intakeLabel(intake: IntakeEntity): string {
+    if (intake.medicationName) return intake.medicationName;
+    return intake.treatmentId ? this.treatmentName(intake.treatmentId) : 'Médicament';
+  }
+
   protected startVoice(event: Event): void {
     event.stopPropagation();
     void this.router.navigate(['/journal/meal'], {

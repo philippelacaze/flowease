@@ -109,14 +109,24 @@ export class ReportService {
   }
 
   private buildAdherenceSection(intakes: IntakeEntity[], treatments: TreatmentEntity[]): string {
-    if (treatments.length === 0) return '_Aucun traitement enregistré._';
-    const lines = treatments
+    const treatmentLines = treatments
       .filter(t => t.active)
       .map(t => {
         const taken = intakes.filter(i => i.treatmentId === t.id && i.status === 'taken').length;
         return `- **${t.name}** : ${taken} prise(s)`;
       });
-    return lines.length > 0 ? lines.join('\n') : '_Aucun traitement actif._';
+
+    const adHocCounts = new Map<string, number>();
+    for (const i of intakes) {
+      if (!i.medicationName || i.status !== 'taken') continue;
+      adHocCounts.set(i.medicationName, (adHocCounts.get(i.medicationName) ?? 0) + 1);
+    }
+    const adHocLines = [...adHocCounts.entries()].map(
+      ([name, count]) => `- **${name}** (ponctuel) : ${count} prise(s)`,
+    );
+
+    const lines = [...treatmentLines, ...adHocLines];
+    return lines.length > 0 ? lines.join('\n') : '_Aucun traitement enregistré._';
   }
 
   private buildTreatmentsSection(treatments: TreatmentEntity[]): string {

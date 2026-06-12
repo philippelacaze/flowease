@@ -12,8 +12,12 @@ import type { CoachSuggestionVO } from '../../../core/models/entities/coach-sugg
 // --- Types exportés ---
 
 export interface ConfirmIntakeInput {
-  readonly treatmentId: string;
-  readonly scheduledAt: Date;
+  /** Référence au traitement, ou absent pour une prise ponctuelle libre. */
+  readonly treatmentId?: string;
+  /** Nom libre du médicament pour une prise hors traitement/cure. */
+  readonly medicationName?: string;
+  /** Heure planifiée ; par défaut alignée sur confirmedAt pour une prise ponctuelle. */
+  readonly scheduledAt?: Date;
   readonly confirmedAt: Date;
   readonly status: IntakeStatus;
   readonly skipReason?: SkipReason;
@@ -28,6 +32,8 @@ export interface EditIntakeInput {
   readonly skipReason?: SkipReason;
   readonly actualDose?: string;
   readonly notes?: string;
+  /** Nouveau nom libre pour une prise ponctuelle (ignoré si non fourni). */
+  readonly medicationName?: string;
 }
 
 export type JournalEntry =
@@ -59,11 +65,12 @@ export class IntakeService {
   async confirm(input: ConfirmIntakeInput): Promise<string> {
     const intake: IntakeEntity = {
       id: crypto.randomUUID(),
-      treatmentId: input.treatmentId,
-      scheduledAt: input.scheduledAt,
+      scheduledAt: input.scheduledAt ?? input.confirmedAt,
       confirmedAt: input.confirmedAt,
       createdAt: new Date(),
       status: input.status,
+      ...(input.treatmentId && { treatmentId: input.treatmentId }),
+      ...(input.medicationName && { medicationName: input.medicationName }),
       ...(input.skipReason && { skipReason: input.skipReason }),
       ...(input.actualDose && { actualDose: input.actualDose }),
       ...(input.notes && { notes: input.notes }),
@@ -81,6 +88,7 @@ export class IntakeService {
       skipReason: input.skipReason,
       actualDose: input.actualDose,
       notes: input.notes,
+      ...(input.medicationName !== undefined && { medicationName: input.medicationName }),
       editedAt: new Date(),
     };
     await this.storage.save('intakes', updated);

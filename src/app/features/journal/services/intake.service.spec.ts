@@ -37,6 +37,32 @@ describe('IntakeService', () => {
       expect(saved.id).toMatch(/^[0-9a-f-]{36}$/);
       expect(saved.status).toBe('taken');
     });
+
+    it('persiste une prise ponctuelle avec medicationName et sans treatmentId', async () => {
+      const storage = makeStorageMock();
+      TestBed.configureTestingModule({
+        providers: [
+          IntakeService,
+          { provide: StorageService, useValue: storage },
+          { provide: LocalSettingsService, useValue: makeSettingsMock() },
+        ],
+      });
+      const svc = TestBed.inject(IntakeService);
+      const at = new Date('2026-06-12T14:30:00');
+      await svc.confirm({ medicationName: 'Spasfon', actualDose: '2 cp', confirmedAt: at, status: 'taken' });
+      const saved = storage.save.mock.calls[0][1] as {
+        medicationName?: string;
+        treatmentId?: string;
+        actualDose?: string;
+        scheduledAt: Date;
+        confirmedAt: Date;
+      };
+      expect(saved.medicationName).toBe('Spasfon');
+      expect(saved.treatmentId).toBeUndefined();
+      expect(saved.actualDose).toBe('2 cp');
+      // scheduledAt s'aligne sur confirmedAt en l'absence de planification
+      expect(saved.scheduledAt).toEqual(saved.confirmedAt);
+    });
   });
 
   describe('edit', () => {
@@ -53,6 +79,26 @@ describe('IntakeService', () => {
       const svc = TestBed.inject(IntakeService);
       await svc.edit({ id: 'absent', confirmedAt: new Date(), status: 'taken' });
       expect(storage.save).not.toHaveBeenCalled();
+    });
+
+    it('met à jour le nom libre d\'une prise ponctuelle existante', async () => {
+      const storage = makeStorageMock();
+      storage.get.mockResolvedValue({
+        id: 'adhoc-1', medicationName: 'Doliprane', scheduledAt: new Date(),
+        confirmedAt: new Date(), createdAt: new Date(), status: 'taken',
+      });
+      TestBed.configureTestingModule({
+        providers: [
+          IntakeService,
+          { provide: StorageService, useValue: storage },
+          { provide: LocalSettingsService, useValue: makeSettingsMock() },
+        ],
+      });
+      const svc = TestBed.inject(IntakeService);
+      await svc.edit({ id: 'adhoc-1', confirmedAt: new Date(), status: 'taken', medicationName: 'Doliprane 1000', actualDose: '1 cp' });
+      const saved = storage.save.mock.calls[0][1] as { medicationName?: string; actualDose?: string };
+      expect(saved.medicationName).toBe('Doliprane 1000');
+      expect(saved.actualDose).toBe('1 cp');
     });
   });
 

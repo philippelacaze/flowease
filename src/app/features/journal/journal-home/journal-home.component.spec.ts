@@ -251,6 +251,27 @@ describe('JournalHomeComponent', () => {
       const label = fixture.nativeElement.querySelector('[data-testid="intake-entry"] .entry-label') as HTMLElement;
       expect(label.textContent?.trim()).toBe('Magnésium');
     });
+
+    it('affiche le nom libre pour une prise ponctuelle (medicationName, sans treatmentId)', async () => {
+      const intake: JournalEntry = {
+        kind: 'intake',
+        data: {
+          id: 'adhoc-1',
+          medicationName: 'Spasfon',
+          actualDose: '2 cp',
+          scheduledAt: new Date(),
+          confirmedAt: new Date(),
+          createdAt: new Date(),
+          status: 'taken',
+        } as IntakeEntity,
+      };
+      const fixture = await createComponent([intake], []);
+      fixture.detectChanges();
+      const label = fixture.nativeElement.querySelector('[data-testid="intake-entry"] .entry-label') as HTMLElement;
+      expect(label.textContent?.trim()).toBe('Spasfon');
+      const dose = fixture.nativeElement.querySelector('[data-testid="intake-dose"]') as HTMLElement;
+      expect(dose.textContent?.trim()).toBe('2 cp');
+    });
   });
 
   describe('hasFodmapHigh', () => {

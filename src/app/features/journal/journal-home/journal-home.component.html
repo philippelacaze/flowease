@@ -226,7 +226,7 @@
             @for (e of intakes; track e) {
               <div class="entry-card" data-testid="intake-entry">
                 <div class="entry-head">
-                  <span class="entry-label">{{ treatmentName(e.data.treatmentId) }}</span>
+                  <span class="entry-label">{{ intakeLabel(e.data) }}</span>
                   <div class="entry-head-right">
                     <span class="entry-time">{{ e.data.confirmedAt | date:'HH:mm' }}</span>
                     <button class="entry-edit-btn" aria-label="Modifier cette prise"
@@ -235,6 +235,9 @@
                     </button>
                   </div>
                 </div>
+                @if (e.data.actualDose) {
+                  <span class="intake-dose" data-testid="intake-dose">{{ e.data.actualDose }}</span>
+                }
                 <span class="status-badge"
                   [class.status-taken]="e.data.status === 'taken'"
                   [class.status-skipped]="e.data.status === 'skipped'">

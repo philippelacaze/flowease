@@ -51,6 +51,62 @@
       min-height: 44px;
     }
 
+    .adhoc-form {
+      margin: 12px 16px;
+      padding: 16px;
+      background: var(--card-bg);
+      border: 0.5px solid var(--border);
+      border-radius: 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+    .adhoc-title { margin: 0; font-size: 15px; font-weight: 600; color: var(--text-1); }
+    .adhoc-hint { margin: -6px 0 0; font-size: 12px; color: var(--text-3); }
+
+    .adhoc-field { display: flex; flex-direction: column; gap: 6px; }
+    .adhoc-row { display: flex; gap: 10px; }
+    .adhoc-row .adhoc-field { flex: 1; }
+    .adhoc-field--time { flex: 0 0 120px; }
+    .adhoc-label {
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.6px;
+      color: var(--text-3);
+    }
+    .adhoc-input {
+      width: 100%;
+      box-sizing: border-box;
+      padding: 11px 12px;
+      border: 0.5px solid var(--border);
+      border-radius: 10px;
+      background: var(--input-bg);
+      color: var(--text-1);
+      font-size: 15px;
+      font-family: inherit;
+      min-height: 44px;
+      outline: none;
+    }
+    .adhoc-input::placeholder { color: var(--text-3); }
+
+    .adhoc-btn {
+      padding: 13px;
+      border-radius: 12px;
+      border: none;
+      background: var(--teal);
+      color: #fff;
+      font-size: 15px;
+      font-weight: 700;
+      font-family: inherit;
+      cursor: pointer;
+      min-height: 44px;
+    }
+    .adhoc-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+    .adhoc-added { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 4px; }
+    .adhoc-added-item { font-size: 13px; color: var(--fodmap-low-text, var(--text-2)); }
+
     .treatment-list { padding: 8px 16px; }
 
     .list-hint {

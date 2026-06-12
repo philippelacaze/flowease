@@ -22,16 +22,22 @@ export type SkipReason =
   | 'other';
 
 /**
- * Entité représentant la confirmation de prise (ou saut) d'un traitement.
+ * Entité représentant la confirmation de prise (ou saut) d'un médicament.
  *
  * @remarks
  * Interface readonly — jamais de mutation directe.
  * id et confirmedAt sont assignés par ConfirmIntakeUseCase.
- * Un IntakeEntity est créé à chaque tap sur un traitement dans IntakeEntryComponent.
+ * Deux origines possibles :
+ * - rattachée à un traitement configuré → `treatmentId` renseigné ;
+ * - prise ponctuelle libre, hors traitement/cure → `medicationName` renseigné
+ *   et `treatmentId` absent (ex. antalgique occasionnel saisi textuellement).
+ * Un IntakeEntity est créé à chaque tap sur un traitement, ou via la saisie
+ * d'une prise ponctuelle, dans IntakeEntryComponent.
  *
  * @param id - UUID v4 assigné par crypto.randomUUID()
- * @param treatmentId - Référence au TreatmentEntity concerné
- * @param scheduledAt - Heure théorique prévue par le protocole
+ * @param treatmentId - Référence au TreatmentEntity concerné (absent pour une prise ponctuelle)
+ * @param medicationName - Nom libre du médicament pour une prise hors traitement (absent si rattachée à un traitement)
+ * @param scheduledAt - Heure théorique prévue par le protocole (= confirmedAt pour une prise ponctuelle)
  * @param confirmedAt - Heure effective de confirmation par l'utilisateur
  * @param createdAt - Timestamp d'enregistrement
  * @param status - 'taken' si pris, 'skipped' si sauté
@@ -42,7 +48,8 @@ export type SkipReason =
  */
 export interface IntakeEntity {
   readonly id: string;
-  readonly treatmentId: string;
+  readonly treatmentId?: string;
+  readonly medicationName?: string;
   readonly scheduledAt: Date;
   readonly confirmedAt: Date;
   readonly createdAt: Date;
