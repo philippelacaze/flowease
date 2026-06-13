@@ -69,12 +69,28 @@ type ComponentProtected = {
   treatmentName(id: string): string;
   intensityClass(intensity: number): string;
   deleteIntake(data: IntakeEntity): Promise<void>;
+  deleteIntakeGroup(items: readonly IntakeEntity[]): Promise<void>;
+  intakeGroupLabel(items: readonly IntakeEntity[]): string;
   validateReminder(r: unknown): Promise<void>;
   dismissReminder(r: unknown): void;
   dueReminders: unknown[];
   symptoms: JournalEntry[];
   entries: JournalEntry[];
 };
+
+function makeIntakeAt(id: string, medicationName: string, confirmedAt: Date): JournalEntry {
+  return {
+    kind: 'intake',
+    data: {
+      id,
+      medicationName,
+      scheduledAt: confirmedAt,
+      confirmedAt,
+      createdAt: confirmedAt,
+      status: 'taken',
+    } as IntakeEntity,
+  };
+}
 
 function makeIntakeMock(journalEntries: JournalEntry[] = [], treatments: TreatmentEntity[] = []) {
   return {
@@ -552,6 +568,73 @@ describe('JournalHomeComponent', () => {
       ) as HTMLElement;
       expect(icon.textContent?.trim()).toBe('pill');
       expect(icon.classList).toContain('material-symbols-outlined');
+    });
+  });
+
+  describe('regroupement des prises à la même heure', () => {
+    it('fusionne deux prises de même minute sur une seule ligne aux libellés concaténés', async () => {
+      const t = new Date('2026-06-13T08:00:00');
+      const entries = [
+        makeIntakeAt('i1', 'Oméprazole', t),
+        makeIntakeAt('i2', 'Iberogast', t),
+      ];
+      const fixture = await createComponent(entries);
+      fixture.detectChanges();
+
+      const rows = fixture.nativeElement.querySelectorAll('[data-testid="intake-entry"]');
+      expect(rows).toHaveLength(1);
+      const label = fixture.nativeElement.querySelector('[data-testid="intake-group-label"]') as HTMLElement;
+      expect(label.textContent?.trim()).toBe('Oméprazole, Iberogast');
+    });
+
+    it('un groupe expose une suppression globale et aucun bouton d\'édition', async () => {
+      const t = new Date('2026-06-13T08:00:00');
+      const fixture = await createComponent([
+        makeIntakeAt('i1', 'Oméprazole', t),
+        makeIntakeAt('i2', 'Iberogast', t),
+      ]);
+      fixture.detectChanges();
+
+      expect(fixture.nativeElement.querySelector('[data-testid="delete-intake-group-btn"]')).not.toBeNull();
+      expect(fixture.nativeElement.querySelector('[data-testid="edit-intake-btn"]')).toBeNull();
+    });
+
+    it('ne fusionne pas des prises à des minutes différentes', async () => {
+      const fixture = await createComponent([
+        makeIntakeAt('i1', 'Oméprazole', new Date('2026-06-13T08:00:00')),
+        makeIntakeAt('i2', 'Iberogast', new Date('2026-06-13T09:30:00')),
+      ]);
+      fixture.detectChanges();
+
+      expect(fixture.nativeElement.querySelectorAll('[data-testid="intake-entry"]')).toHaveLength(2);
+      expect(fixture.nativeElement.querySelector('[data-testid="intake-group-label"]')).toBeNull();
+    });
+
+    it('une prise isolée conserve l\'édition et la dose (pas de regroupement)', async () => {
+      const fixture = await createComponent([makeIntakeAt('i1', 'Spasfon', new Date('2026-06-13T08:00:00'))]);
+      fixture.detectChanges();
+
+      expect(fixture.nativeElement.querySelector('[data-testid="edit-intake-btn"]')).not.toBeNull();
+      expect(fixture.nativeElement.querySelector('[data-testid="intake-group-label"]')).toBeNull();
+    });
+
+    it('supprimer un groupe efface toutes ses prises et les retire de la liste', async () => {
+      const t = new Date('2026-06-13T08:00:00');
+      const fixture = await createComponent([
+        makeIntakeAt('i1', 'Oméprazole', t),
+        makeIntakeAt('i2', 'Iberogast', t),
+      ]);
+      fixture.detectChanges();
+      const intakeSvc = TestBed.inject(IntakeService) as unknown as { delete: ReturnType<typeof vi.fn> };
+
+      const btn = fixture.nativeElement.querySelector('[data-testid="delete-intake-group-btn"]') as HTMLButtonElement;
+      btn.click();
+      await fixture.whenStable();
+      fixture.detectChanges();
+
+      expect(intakeSvc.delete).toHaveBeenCalledWith('i1');
+      expect(intakeSvc.delete).toHaveBeenCalledWith('i2');
+      expect(fixture.nativeElement.querySelector('[data-testid="intake-entry"]')).toBeNull();
     });
   });
 

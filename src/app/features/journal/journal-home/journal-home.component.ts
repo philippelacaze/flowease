@@ -53,6 +53,24 @@ const CATEGORY_LABELS: Record<JournalEntry['kind'], string> = {
 };
 
 /**
+ * Évènement tel qu'affiché dans la chronologie : identique à JournalEntry, sauf
+ * les prises qui sont fusionnées en un groupe quand elles partagent la même minute.
+ *
+ * @remarks
+ * Un groupe d'une seule prise se comporte comme une prise isolée (édition + dose).
+ * Un groupe de plusieurs prises affiche les libellés concaténés et une suppression
+ * globale (les prises restant facilement re-saisissables).
+ */
+type DisplayEntry =
+  | Exclude<JournalEntry, { kind: 'intake' }>
+  | { readonly kind: 'intake'; readonly items: readonly IntakeEntity[]; readonly confirmedAt: Date };
+
+/** Deux dates tombent-elles sur la même minute (heure + minute identiques) ? */
+function sameMinute(a: Date, b: Date): boolean {
+  return a.getHours() === b.getHours() && a.getMinutes() === b.getMinutes();
+}
+
+/**
  * Page d'accueil du journal — navigation rapide vers les 4 saisies + journal détaillé du jour.
  *
  * @remarks
@@ -82,6 +100,8 @@ export class JournalHomeComponent implements OnInit {
   private treatmentMap = new Map<string, string>();
   private symptomLabelMap = new Map<string, string>();
   protected entries: JournalEntry[] = [];
+  /** Vue d'affichage : prises de même minute fusionnées en groupes. */
+  protected displayEntries: DisplayEntry[] = [];
   /** Rappels de prise dus, affichés en bas du journal du jour. */
   protected dueReminders: DueReminderVO[] = [];
   protected activeCures: CureProgressVO[] = [];
@@ -154,7 +174,7 @@ export class JournalHomeComponent implements OnInit {
   protected async deleteMeal(data: MealEntity): Promise<void> {
     await this.mealSvc.delete(data.id);
     this.entries = this.entries.filter(e => !(e.kind === 'meal' && e.data.id === data.id));
-    this.cdr.markForCheck();
+    this.rebuildDisplay();
   }
 
   protected editSymptom(data: SymptomEntity): void {
@@ -167,7 +187,7 @@ export class JournalHomeComponent implements OnInit {
   protected async deleteSymptom(data: SymptomEntity): Promise<void> {
     await this.symptomSvc.delete(data.id);
     this.entries = this.entries.filter(e => !(e.kind === 'symptom' && e.data.id === data.id));
-    this.cdr.markForCheck();
+    this.rebuildDisplay();
   }
 
   protected editIntake(data: IntakeEntity): void {
@@ -186,7 +206,26 @@ export class JournalHomeComponent implements OnInit {
   protected async deleteIntake(data: IntakeEntity): Promise<void> {
     await this.intake.delete(data.id);
     this.entries = this.entries.filter(e => !(e.kind === 'intake' && e.data.id === data.id));
-    this.cdr.markForCheck();
+    this.rebuildDisplay();
+  }
+
+  /**
+   * Supprime toutes les prises d'un groupe (même minute) en une seule action.
+   *
+   * @remarks
+   * Déclenché par la poubelle d'un groupe de prises concaténées. Conforme au
+   * besoin : suppression globale du créneau, les prises étant re-saisissables.
+   */
+  protected async deleteIntakeGroup(items: readonly IntakeEntity[]): Promise<void> {
+    await Promise.all(items.map(i => this.intake.delete(i.id)));
+    const ids = new Set(items.map(i => i.id));
+    this.entries = this.entries.filter(e => !(e.kind === 'intake' && ids.has(e.data.id)));
+    this.rebuildDisplay();
+  }
+
+  /** Libellé concaténé d'un groupe de prises : noms séparés par des virgules. */
+  protected intakeGroupLabel(items: readonly IntakeEntity[]): string {
+    return items.map(i => this.intakeLabel(i)).join(', ');
   }
 
   /**
@@ -354,8 +393,43 @@ export class JournalHomeComponent implements OnInit {
       }
       return e;
     });
-    this.cdr.markForCheck();
+    this.rebuildDisplay();
     void this.notesSvc.confirmTags(noteId, tags, aiTagSuggestions);
+  }
+
+  /** Recalcule la vue d'affichage (groupage des prises) à partir de `entries`. */
+  private rebuildDisplay(): void {
+    this.displayEntries = this.groupIntakes(this.entries);
+    this.cdr.markForCheck();
+  }
+
+  /**
+   * Fusionne les prises consécutives de même minute en un seul groupe affichable.
+   *
+   * @remarks
+   * Les entrées sont déjà triées chronologiquement : les prises d'une même minute
+   * sont donc adjacentes. Les autres catégories (repas, symptômes, notes) restent
+   * inchangées et conservent leur position.
+   */
+  private groupIntakes(entries: JournalEntry[]): DisplayEntry[] {
+    const result: DisplayEntry[] = [];
+    for (const e of entries) {
+      if (e.kind !== 'intake') {
+        result.push(e);
+        continue;
+      }
+      const last = result[result.length - 1];
+      if (last?.kind === 'intake' && sameMinute(last.confirmedAt, e.data.confirmedAt)) {
+        result[result.length - 1] = {
+          kind: 'intake',
+          items: [...last.items, e.data],
+          confirmedAt: last.confirmedAt,
+        };
+      } else {
+        result.push({ kind: 'intake', items: [e.data], confirmedAt: e.data.confirmedAt });
+      }
+    }
+    return result;
   }
 
   private async loadEntries(): Promise<void> {
@@ -363,6 +437,7 @@ export class JournalHomeComponent implements OnInit {
     this.coachSuggestions = [];
     this.cdr.markForCheck();
     this.entries = await this.intake.getJournalDay(this.currentDate);
+    this.rebuildDisplay();
     this.loading = false;
     this.cdr.markForCheck();
     this.dueReminders = await this.intake.getDueReminders(this.currentDate, this.entries);

@@ -123,6 +123,13 @@
                   </mat-slide-toggle>
                   <button
                     mat-icon-button
+                    (click)="onEdit(treatment)"
+                    [attr.aria-label]="'Modifier ' + treatment.name"
+                    [attr.data-testid]="'edit-' + treatment.id">
+                    <mat-icon>edit</mat-icon>
+                  </button>
+                  <button
+                    mat-icon-button
                     color="warn"
                     (click)="onDelete(treatment)"
                     [attr.aria-label]="'Supprimer ' + treatment.name"
@@ -256,7 +263,7 @@
       <!-- Formulaire d'ajout -->
       @if (showForm()) {
         <div class="add-form" data-testid="add-form">
-          <h2>Nouveau traitement</h2>
+          <h2>{{ editingTreatmentId() ? 'Modifier le traitement' : 'Nouveau traitement' }}</h2>
           <form [formGroup]="form" (ngSubmit)="onSave()" class="form-fields">
 
             <mat-form-field appearance="outline" class="full-width">
@@ -344,7 +351,7 @@
             </div>
 
             <div class="form-actions">
-              <button mat-stroked-button type="button" (click)="showForm.set(false)">Annuler</button>
+              <button mat-stroked-button type="button" (click)="onCancelForm()">Annuler</button>
               <button
                 mat-raised-button
                 color="primary"

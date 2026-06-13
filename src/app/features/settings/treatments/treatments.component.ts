@@ -60,6 +60,8 @@ export class TreatmentsComponent implements OnInit {
   protected cures = signal<CureEntity[]>([]);
   protected showForm = signal(false);
   protected showCureForm = signal(false);
+  /** Identifiant du traitement en cours d'édition dans le formulaire, ou null en création. */
+  protected editingTreatmentId = signal<string | null>(null);
 
   /** Heures de rappel saisies dans le formulaire de création */
   protected reminderTimes = signal<string[]>([]);
@@ -102,9 +104,41 @@ export class TreatmentsComponent implements OnInit {
   }
 
   protected onAdd(): void {
+    this.editingTreatmentId.set(null);
     this.form.reset({ category: 'other', mode: 'oral', frequency: 1, unit: 'mg', reminderEnabled: false });
     this.reminderTimes.set([]);
     this.showForm.set(true);
+  }
+
+  /**
+   * Ouvre le formulaire en mode édition, pré-rempli avec le traitement existant.
+   *
+   * @remarks
+   * Réutilise le formulaire de création ; `editingTreatmentId` discrimine le mode
+   * dans onSave (mise à jour vs création). Les champs immuables (id, createdAt,
+   * startedAt, active, endedAt) sont préservés à l'enregistrement.
+   */
+  protected onEdit(treatment: TreatmentEntity): void {
+    this.editingTreatmentId.set(treatment.id);
+    this.editingRemindersFor.set(null);
+    this.form.reset({
+      name: treatment.name,
+      dosage: treatment.dosage,
+      unit: treatment.unit,
+      frequency: treatment.frequency,
+      category: treatment.category,
+      mode: treatment.mode,
+      notes: treatment.notes,
+      reminderEnabled: treatment.reminder.enabled,
+    });
+    this.reminderTimes.set([...treatment.reminder.times]);
+    this.showForm.set(true);
+  }
+
+  /** Ferme le formulaire et réinitialise le mode édition. */
+  protected onCancelForm(): void {
+    this.showForm.set(false);
+    this.editingTreatmentId.set(null);
   }
 
   protected async onSave(): Promise<void> {
@@ -112,6 +146,29 @@ export class TreatmentsComponent implements OnInit {
     const { name, dosage, unit, frequency, category, mode, notes, reminderEnabled } = this.form.value;
 
     const times = reminderEnabled ? [...this.reminderTimes()] : [];
+    const editingId = this.editingTreatmentId();
+
+    if (editingId) {
+      const existing = this.treatments().find(t => t.id === editingId);
+      if (!existing) return;
+      const updated: TreatmentEntity = {
+        ...existing,
+        name: name!,
+        dosage: dosage!,
+        unit: unit ?? 'mg',
+        frequency: frequency ?? 1,
+        category: (category ?? 'other') as TreatmentCategory,
+        mode: (mode ?? 'oral') as TreatmentMode,
+        notes: notes ?? '',
+        reminder: { enabled: !!reminderEnabled, times, soundEnabled: existing.reminder.soundEnabled },
+      };
+      await this.storage.save('treatments', updated);
+      this.editingTreatmentId.set(null);
+      this.showForm.set(false);
+      await this.loadTreatments();
+      this.snackBar.open('Traitement mis à jour', 'OK', { duration: 2000 });
+      return;
+    }
 
     const treatment: TreatmentEntity = {
       id: crypto.randomUUID(),
