@@ -33,6 +33,15 @@ export class StorageService {
       async upgrade(db, oldVersion, _newVersion, tx) {
         await upgradeSchema(db, oldVersion, tx);
       },
+      // Libère la connexion dès qu'une autre demande une migration ou une
+      // suppression de la base (événement versionchange). Sans cela, un
+      // openDB(version+1) ou deleteDB() resterait bloqué tant que cette
+      // connexion vit — en production (autre onglet) comme en test (specs
+      // IndexedDB partageant fake-indexeddb).
+      blocking: () => {
+        this.db?.close();
+        this.db = null;
+      },
     });
   }
 
