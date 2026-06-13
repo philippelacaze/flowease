@@ -25,7 +25,21 @@ const KEYS = {
   SHOW_TOKEN_COUNTER: 'flowease_show_token_counter',
   COACH_SUGGESTIONS: 'flowease_coach_suggestions',
   DISMISSED_REMINDERS: 'flowease_dismissed_reminders',
+  AI_MODEL_FAST: 'flowease_ai_model_fast',
+  AI_MODEL_ANALYSIS: 'flowease_ai_model_analysis',
 } as const;
+
+/**
+ * Modèle Claude par défaut pour les tâches rapides : reconnaissance d'aliments
+ * (photo/texte), tags de note, résumés. Suffisant et économique.
+ */
+export const DEFAULT_FAST_MODEL = 'claude-haiku-4-5';
+
+/**
+ * Modèle Claude par défaut pour les tâches d'analyse : tendances, synthèse de
+ * rapport, coaching. Privilégie la capacité de raisonnement (dernière version Sonnet).
+ */
+export const DEFAULT_ANALYSIS_MODEL = 'claude-sonnet-4-6';
 
 @Injectable({ providedIn: 'root' })
 export class LocalSettingsService {
@@ -223,5 +237,39 @@ export class LocalSettingsService {
     const kept = this.getDismissedReminders().filter(k => k.split('|')[1] === day);
     if (!kept.includes(key)) kept.push(key);
     localStorage.setItem(KEYS.DISMISSED_REMINDERS, JSON.stringify(kept));
+  }
+
+  /**
+   * Retourne l'identifiant du modèle Claude utilisé pour les tâches rapides
+   * (reconnaissance photo/texte, tags, résumés).
+   *
+   * @returns Identifiant de modèle, ou {@link DEFAULT_FAST_MODEL} par défaut
+   */
+  getFastModel(): string {
+    return localStorage.getItem(KEYS.AI_MODEL_FAST) ?? DEFAULT_FAST_MODEL;
+  }
+
+  /**
+   * @param model - Identifiant de modèle Claude à utiliser pour les tâches rapides
+   */
+  setFastModel(model: string): void {
+    localStorage.setItem(KEYS.AI_MODEL_FAST, model);
+  }
+
+  /**
+   * Retourne l'identifiant du modèle Claude utilisé pour les tâches d'analyse
+   * (tendances, synthèse de rapport, coaching).
+   *
+   * @returns Identifiant de modèle, ou {@link DEFAULT_ANALYSIS_MODEL} par défaut
+   */
+  getAnalysisModel(): string {
+    return localStorage.getItem(KEYS.AI_MODEL_ANALYSIS) ?? DEFAULT_ANALYSIS_MODEL;
+  }
+
+  /**
+   * @param model - Identifiant de modèle Claude à utiliser pour les tâches d'analyse
+   */
+  setAnalysisModel(model: string): void {
+    localStorage.setItem(KEYS.AI_MODEL_ANALYSIS, model);
   }
 }

@@ -118,6 +118,47 @@
           Elle n'est jamais envoyée à nos serveurs.
         </p>
 
+        <!-- Modèles IA -->
+        <section class="models-section" aria-label="Modèles Claude utilisés" data-testid="models-section">
+          <h2 class="models-title">Modèles Claude</h2>
+          <p class="models-hint">
+            <mat-icon class="small-icon">info</mat-icon>
+            Choisissez le modèle selon le type de tâche. Un modèle rapide suffit
+            pour la reconnaissance et les tâches simples ; un modèle plus capable
+            est recommandé pour les analyses.
+          </p>
+
+          <mat-form-field appearance="outline" class="full-width">
+            <mat-label>Tâches rapides (reconnaissance, tags, résumés)</mat-label>
+            <mat-select
+              [value]="fastModel()"
+              (valueChange)="onFastModelChange($event)"
+              aria-label="Modèle Claude pour les tâches rapides"
+              data-testid="fast-model-select">
+              @for (option of modelOptions; track option.id) {
+                <mat-option [value]="option.id" [attr.data-testid]="'fast-model-' + option.id">
+                  {{ option.label }}
+                </mat-option>
+              }
+            </mat-select>
+          </mat-form-field>
+
+          <mat-form-field appearance="outline" class="full-width">
+            <mat-label>Tâches d'analyse (tendances, rapport, coach)</mat-label>
+            <mat-select
+              [value]="analysisModel()"
+              (valueChange)="onAnalysisModelChange($event)"
+              aria-label="Modèle Claude pour les tâches d'analyse"
+              data-testid="analysis-model-select">
+              @for (option of modelOptions; track option.id) {
+                <mat-option [value]="option.id" [attr.data-testid]="'analysis-model-' + option.id">
+                  {{ option.label }}
+                </mat-option>
+              }
+            </mat-select>
+          </mat-form-field>
+        </section>
+
         <!-- Prompts IA (lecture seule, débogage) -->
         <section class="prompts-section" aria-label="Prompts IA utilisés" data-testid="prompts-section">
           <h2 class="prompts-title">Prompts IA</h2>

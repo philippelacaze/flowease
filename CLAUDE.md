@@ -17,8 +17,7 @@ src/app/
 │   │   ├── ai.service.ts              → appels IA (Anthropic)
 │   │   ├── null-ai.service.ts         → fallback IA (tests + sans clé)
 │   │   ├── storage.service.ts         → IndexedDB (CRUD générique)
-│   │   ├── local-settings.service.ts  → localStorage (préférences)
-│   │   ├── notification.service.ts    → rappels navigateur
+│   │   ├── local-settings.service.ts  → localStorage (préférences + rappels annulés)
 │   │   ├── pdf-report.service.ts      → export PDF
 │   │   ├── theme.service.ts           → thème CSS
 │   │   └── error-notification.service.ts → bannière d'erreur globale

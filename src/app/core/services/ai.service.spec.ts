@@ -16,11 +16,15 @@ describe('AiService', () => {
   let service: AiService;
   let httpTesting: HttpTestingController;
   let getApiKey: ReturnType<typeof vi.fn>;
+  let getFastModel: ReturnType<typeof vi.fn>;
+  let getAnalysisModel: ReturnType<typeof vi.fn>;
   let showWarning: ReturnType<typeof vi.fn>;
   let show: ReturnType<typeof vi.fn>;
 
   beforeEach(() => {
     getApiKey = vi.fn();
+    getFastModel = vi.fn().mockReturnValue('claude-haiku-4-5');
+    getAnalysisModel = vi.fn().mockReturnValue('claude-sonnet-4-6');
     showWarning = vi.fn();
     show = vi.fn();
 
@@ -29,7 +33,7 @@ describe('AiService', () => {
         AiService,
         provideHttpClient(),
         provideHttpClientTesting(),
-        { provide: LocalSettingsService, useValue: { getApiKey, hasApiKey: vi.fn() } },
+        { provide: LocalSettingsService, useValue: { getApiKey, hasApiKey: vi.fn(), getFastModel, getAnalysisModel } },
         { provide: ErrorNotificationService, useValue: { show, showWarning, showSuccess: vi.fn(), dismiss: vi.fn() } },
       ],
     });
@@ -194,6 +198,63 @@ describe('AiService', () => {
       const result = await promise;
       expect(result?.items).toEqual([]);
       expect(showWarning).toHaveBeenCalledWith('Aucun aliment mentionné dans ce message.');
+    });
+  });
+
+  describe('sélection du modèle selon le type de tâche', () => {
+    it('utilise le modèle d\'analyse configuré pour l\'extraction repas depuis texte/voix (FODMAP)', async () => {
+      getApiKey.mockReturnValue('sk-ant-test-key');
+      getAnalysisModel.mockReturnValue('claude-sonnet-4-6');
+
+      const promise = service.extractMealFromText('riz blanc');
+      const req = httpTesting.expectOne(API_URL);
+
+      expect(req.request.body.model).toBe('claude-sonnet-4-6');
+      req.flush(mockResponse('[]'));
+      await promise;
+    });
+
+    it('utilise le modèle d\'analyse configuré pour l\'analyse photo (reconnaissance + FODMAP)', async () => {
+      getApiKey.mockReturnValue('sk-ant-test-key');
+      getAnalysisModel.mockReturnValue('claude-sonnet-4-6');
+
+      const promise = service.analyzeMealPhoto('abc123', 'image/jpeg');
+      const req = httpTesting.expectOne(API_URL);
+
+      expect(req.request.body.model).toBe('claude-sonnet-4-6');
+      req.flush(mockResponse(JSON.stringify({ items: [], fodmapAlerts: [] })));
+      await promise;
+    });
+
+    it('utilise le modèle d\'analyse configuré pour l\'analyse de tendances', async () => {
+      getApiKey.mockReturnValue('sk-ant-test-key');
+      getAnalysisModel.mockReturnValue('claude-sonnet-4-6');
+
+      const promise = service.analyzeData({
+        windowDays: 7,
+        symptomsJson: '[]',
+        mealsJson: '[]',
+        intakesJson: '[]',
+        userConditions: [],
+        protocol: 'none',
+      });
+      const req = httpTesting.expectOne(API_URL);
+
+      expect(req.request.body.model).toBe('claude-sonnet-4-6');
+      req.flush(mockResponse(JSON.stringify({ insights: [] })));
+      await promise;
+    });
+
+    it('respecte une surcharge du modèle rapide vers un modèle plus capable', async () => {
+      getApiKey.mockReturnValue('sk-ant-test-key');
+      getFastModel.mockReturnValue('claude-opus-4-8');
+
+      const promise = service.tagNote('note test');
+      const req = httpTesting.expectOne(API_URL);
+
+      expect(req.request.body.model).toBe('claude-opus-4-8');
+      req.flush(mockResponse(JSON.stringify({ tags: [], summary: '' })));
+      await promise;
     });
   });
 

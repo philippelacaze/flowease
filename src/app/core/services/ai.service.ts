@@ -105,9 +105,6 @@ const EMPTY_PROFILE_CTX: MealProfileContext = { conditions: [], protocol: 'none'
 const ANTHROPIC_API_URL = 'https://api.anthropic.com/v1/messages';
 const ANTHROPIC_VERSION = '2023-06-01';
 
-const MODEL_DEFAULT = 'claude-haiku-4-5-20251001';
-const MODEL_FAST = 'claude-haiku-4-5-20251001';
-
 interface AnthropicResponse {
   content: Array<{ type: string; text: string }>;
 }
@@ -122,12 +119,28 @@ export class AiService {
     this.client = new AnthropicClient(http);
   }
 
+  /**
+   * Modèle pour les tâches rapides (reconnaissance photo/texte, tags, résumés).
+   * Lu à chaque appel pour refléter la préférence courante de l'utilisateur.
+   */
+  private fastModel(): string {
+    return this.settings.getFastModel();
+  }
+
+  /**
+   * Modèle pour les tâches d'analyse (tendances, synthèse de rapport, coaching).
+   * Lu à chaque appel pour refléter la préférence courante de l'utilisateur.
+   */
+  private analysisModel(): string {
+    return this.settings.getAnalysisModel();
+  }
+
   async analyzeMealPhoto(base64Image: string, mediaType: string, ctx: MealProfileContext = EMPTY_PROFILE_CTX): Promise<MealAnalysisResult | null> {
     const apiKey = this.requireApiKey();
     if (!apiKey) return null;
 
     const payload = {
-      model: MODEL_DEFAULT,
+      model: this.analysisModel(),
       max_tokens: 1024,
       messages: [
         {
@@ -177,7 +190,7 @@ export class AiService {
     if (!apiKey) return null;
 
     const prompt = buildMealTextPrompt(ctx, text);
-    const response = await this.callApi(MODEL_FAST, prompt, apiKey);
+    const response = await this.callApi(this.analysisModel(), prompt, apiKey);
     if (response === null) return null;
 
     const { json, explanation } = this.extractJsonBlock(response);
@@ -205,7 +218,7 @@ export class AiService {
     const prompt = NOTE_TAGGING_PROMPT
       .replace(/\{\{CONDITIONS\}\}/g, describeConditions(conditions, otherConditions))
       .replace('{{NOTE_CONTENT}}', content);
-    const text = await this.callApi(MODEL_FAST, prompt, apiKey);
+    const text = await this.callApi(this.fastModel(), prompt, apiKey);
     if (text === null) return null;
 
     try {
@@ -240,7 +253,7 @@ export class AiService {
       .replace('{{WINDOW_DAYS}}', String(context.windowDays))
       .replace('{{CONTEXT_DATA}}', contextData);
 
-    const text = await this.callApi(MODEL_DEFAULT, prompt, apiKey);
+    const text = await this.callApi(this.analysisModel(), prompt, apiKey);
     if (text === null) return null;
 
     try {
@@ -272,7 +285,7 @@ export class AiService {
     const prompt = REPORT_SUMMARY_PROMPT
       .replace(/\{\{CONDITIONS\}\}/g, describeConditions(data.userConditions, data.otherConditions))
       .replace('{{REPORT_DATA}}', reportData);
-    return this.callApi(MODEL_DEFAULT, prompt, apiKey);
+    return this.callApi(this.analysisModel(), prompt, apiKey);
   }
 
   async *sendMessage(
@@ -310,7 +323,7 @@ export class AiService {
           'anthropic-dangerous-direct-browser-access': 'true',
         },
         body: JSON.stringify({
-          model: MODEL_DEFAULT,
+          model: this.analysisModel(),
           max_tokens: 2048,
           system: systemPrompt,
           messages,
@@ -387,14 +400,14 @@ export class AiService {
 
     const prompt = `Résume cette session de coaching santé en 3-5 phrases, en capturant les points clés abordés, les symptômes mentionnés et les recommandations données. Ce résumé sera utilisé comme contexte pour la prochaine session.\n\nTranscription :\n${transcript}`;
 
-    return this.callApi(MODEL_FAST, prompt, apiKey);
+    return this.callApi(this.fastModel(), prompt, apiKey);
   }
 
   async testApiKey(apiKey: string): Promise<string | null> {
     try {
       await firstValueFrom(
         this.client.post<AnthropicResponse>(
-          { model: MODEL_FAST, max_tokens: 1, messages: [{ role: 'user', content: 'ping' }] },
+          { model: this.fastModel(), max_tokens: 1, messages: [{ role: 'user', content: 'ping' }] },
           apiKey,
         ),
       );

@@ -1,5 +1,9 @@
 ﻿import { describe, it, expect, beforeEach } from 'vitest';
-import { LocalSettingsService } from './local-settings.service';
+import {
+  LocalSettingsService,
+  DEFAULT_FAST_MODEL,
+  DEFAULT_ANALYSIS_MODEL,
+} from './local-settings.service';
 
 describe('LocalSettingsService', () => {
   let adapter: LocalSettingsService;
@@ -144,6 +148,39 @@ describe('LocalSettingsService', () => {
     it('retourne true après activation', () => {
       adapter.setShowTokenCounter(true);
       expect(adapter.getShowTokenCounter()).toBe(true);
+    });
+  });
+
+  // --- Modèles IA ---
+
+  describe('getFastModel', () => {
+    it('retourne Haiku (dernière version) par défaut', () => {
+      expect(adapter.getFastModel()).toBe(DEFAULT_FAST_MODEL);
+      expect(DEFAULT_FAST_MODEL).toBe('claude-haiku-4-5');
+    });
+
+    it('retourne le modèle rapide après l\'avoir configuré', () => {
+      adapter.setFastModel('claude-sonnet-4-6');
+      expect(adapter.getFastModel()).toBe('claude-sonnet-4-6');
+    });
+  });
+
+  describe('getAnalysisModel', () => {
+    it('retourne Sonnet (dernière version) par défaut', () => {
+      expect(adapter.getAnalysisModel()).toBe(DEFAULT_ANALYSIS_MODEL);
+      expect(DEFAULT_ANALYSIS_MODEL).toBe('claude-sonnet-4-6');
+    });
+
+    it('retourne le modèle d\'analyse après l\'avoir configuré', () => {
+      adapter.setAnalysisModel('claude-opus-4-8');
+      expect(adapter.getAnalysisModel()).toBe('claude-opus-4-8');
+    });
+
+    it('est indépendant du modèle rapide', () => {
+      adapter.setFastModel('claude-haiku-4-5');
+      adapter.setAnalysisModel('claude-opus-4-8');
+      expect(adapter.getFastModel()).toBe('claude-haiku-4-5');
+      expect(adapter.getAnalysisModel()).toBe('claude-opus-4-8');
     });
   });
 

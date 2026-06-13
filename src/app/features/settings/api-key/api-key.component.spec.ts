@@ -18,20 +18,26 @@ function makeSettingsMock() {
     getApiKey: vi.fn().mockReturnValue(null),
     setApiKey: vi.fn(),
     clearApiKey: vi.fn(),
+    getFastModel: vi.fn().mockReturnValue('claude-haiku-4-5'),
+    setFastModel: vi.fn(),
+    getAnalysisModel: vi.fn().mockReturnValue('claude-sonnet-4-6'),
+    setAnalysisModel: vi.fn(),
   };
 }
 
 describe('ApiKeyComponent', () => {
   let fixture: ComponentFixture<ApiKeyComponent>;
   let catalog: { resolveAll: ReturnType<typeof vi.fn> };
+  let settings: ReturnType<typeof makeSettingsMock>;
 
   beforeEach(async () => {
     catalog = { resolveAll: vi.fn().mockResolvedValue([...MOCK_PROMPTS]) };
+    settings = makeSettingsMock();
 
     await TestBed.configureTestingModule({
       imports: [ApiKeyComponent, NoopAnimationsModule],
       providers: [
-        { provide: LocalSettingsService, useValue: makeSettingsMock() },
+        { provide: LocalSettingsService, useValue: settings },
         { provide: SettingsService, useValue: { testApiKey: vi.fn() } },
         { provide: PromptCatalogService, useValue: catalog },
         provideRouter([]),
@@ -68,5 +74,28 @@ describe('ApiKeyComponent', () => {
   it('liste les variables injectées d\'un pattern', () => {
     const analysisCard = fixture.nativeElement.querySelector('[data-testid="prompt-analysis"]') as HTMLElement;
     expect(analysisCard.textContent).toContain('{{WINDOW_DAYS}}');
+  });
+
+  it('affiche la section de choix des modèles avec les deux sélecteurs', () => {
+    const section = fixture.nativeElement.querySelector('[data-testid="models-section"]');
+    expect(section).not.toBeNull();
+    expect(fixture.nativeElement.querySelector('[data-testid="fast-model-select"]')).not.toBeNull();
+    expect(fixture.nativeElement.querySelector('[data-testid="analysis-model-select"]')).not.toBeNull();
+  });
+
+  it('persiste le modèle rapide choisi', () => {
+    const component = fixture.componentInstance as unknown as {
+      onFastModelChange(model: string): void;
+    };
+    component.onFastModelChange('claude-opus-4-8');
+    expect(settings.setFastModel).toHaveBeenCalledWith('claude-opus-4-8');
+  });
+
+  it('persiste le modèle d\'analyse choisi', () => {
+    const component = fixture.componentInstance as unknown as {
+      onAnalysisModelChange(model: string): void;
+    };
+    component.onAnalysisModelChange('claude-opus-4-8');
+    expect(settings.setAnalysisModel).toHaveBeenCalledWith('claude-opus-4-8');
   });
 });
