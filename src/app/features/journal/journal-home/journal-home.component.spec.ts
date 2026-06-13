@@ -1,5 +1,5 @@
 ﻿import { TestBed } from '@angular/core/testing';
-import { provideRouter } from '@angular/router';
+import { provideRouter, Router } from '@angular/router';
 import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 import { LocalSettingsService } from '../../../core/services/local-settings.service';
 import { vi } from 'vitest';
@@ -70,6 +70,7 @@ type ComponentProtected = {
   intensityClass(intensity: number): string;
   deleteIntake(data: IntakeEntity): Promise<void>;
   deleteIntakeGroup(items: readonly IntakeEntity[]): Promise<void>;
+  editIntakeGroup(items: readonly IntakeEntity[]): void;
   intakeGroupLabel(items: readonly IntakeEntity[]): string;
   validateReminder(r: unknown): Promise<void>;
   dismissReminder(r: unknown): void;
@@ -587,7 +588,7 @@ describe('JournalHomeComponent', () => {
       expect(label.textContent?.trim()).toBe('Oméprazole, Iberogast');
     });
 
-    it('un groupe expose une suppression globale et aucun bouton d\'édition', async () => {
+    it('un groupe expose une édition globale et une suppression globale, mais pas l\'édition unitaire', async () => {
       const t = new Date('2026-06-13T08:00:00');
       const fixture = await createComponent([
         makeIntakeAt('i1', 'Oméprazole', t),
@@ -595,8 +596,33 @@ describe('JournalHomeComponent', () => {
       ]);
       fixture.detectChanges();
 
+      expect(fixture.nativeElement.querySelector('[data-testid="edit-intake-group-btn"]')).not.toBeNull();
       expect(fixture.nativeElement.querySelector('[data-testid="delete-intake-group-btn"]')).not.toBeNull();
       expect(fixture.nativeElement.querySelector('[data-testid="edit-intake-btn"]')).toBeNull();
+    });
+
+    it('modifier un groupe navigue vers l\'écran de saisie avec les prises du groupe', async () => {
+      const t = new Date('2026-06-13T08:00:00');
+      const entries = [
+        makeIntakeAt('i1', 'Oméprazole', t),
+        makeIntakeAt('i2', 'Iberogast', t),
+      ];
+      const fixture = await createComponent(entries);
+      fixture.detectChanges();
+      const router = TestBed.inject(Router);
+      const navigateSpy = vi.spyOn(router, 'navigate').mockResolvedValue(true);
+
+      const btn = fixture.nativeElement.querySelector('[data-testid="edit-intake-group-btn"]') as HTMLButtonElement;
+      btn.click();
+
+      expect(navigateSpy).toHaveBeenCalledWith(
+        ['/journal/intake'],
+        expect.objectContaining({
+          state: expect.objectContaining({
+            editEntries: [entries[0].data, entries[1].data],
+          }),
+        }),
+      );
     });
 
     it('ne fusionne pas des prises à des minutes différentes', async () => {

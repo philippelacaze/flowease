@@ -223,6 +223,22 @@ export class JournalHomeComponent implements OnInit {
     this.rebuildDisplay();
   }
 
+  /**
+   * Modifie une prise groupée (même minute) : délègue à l'écran de saisie dédié,
+   * qui itère le bloc de modification (feuille de détail) pour chaque prise du
+   * groupe, l'une après l'autre.
+   *
+   * @remarks
+   * L'édition d'une prise ne se fait jamais inline dans le journal : on transmet
+   * les prises du groupe via l'état de navigation et l'écran de saisie ouvre une
+   * feuille par prise.
+   */
+  protected editIntakeGroup(items: readonly IntakeEntity[]): void {
+    void this.router.navigate(['/journal/intake'], {
+      state: { editEntries: items, journalDate: this.currentDate.toISOString() },
+    }).catch(() => undefined);
+  }
+
   /** Libellé concaténé d'un groupe de prises : noms séparés par des virgules. */
   protected intakeGroupLabel(items: readonly IntakeEntity[]): string {
     return items.map(i => this.intakeLabel(i)).join(', ');

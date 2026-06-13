@@ -54,6 +54,12 @@ export class IntakeEntryComponent implements OnInit, OnDestroy {
   protected treatmentStates: TreatmentState[] = [];
   protected loading = true;
   private editingEntry: IntakeEntity | null = null;
+  /** Mode édition d'un groupe de prises (même minute) saisi depuis le journal. */
+  protected isGroupEdit = false;
+  /** File des prises restant à modifier en édition de groupe. */
+  private editQueue: IntakeEntity[] = [];
+  /** Tous les traitements, mis en cache pour résoudre chaque prise du groupe. */
+  private allTreatments: TreatmentEntity[] = [];
 
   // --- Prise ponctuelle (médicament hors traitement/cure) ---
   protected adHocName = '';
@@ -71,9 +77,9 @@ export class IntakeEntryComponent implements OnInit, OnDestroy {
     return this.treatmentStates.filter(s => s.confirmed || s.skipped).length;
   }
 
-  /** true si la page est ouverte pour modifier une prise existante (depuis le journal). */
+  /** true si la page est ouverte pour modifier une (ou plusieurs) prise(s) existante(s). */
   protected get isEditing(): boolean {
-    return this.editingEntry !== null;
+    return this.editingEntry !== null || this.isGroupEdit;
   }
 
   /** true si la prise éditée est une prise ponctuelle (sans traitement rattaché). */
@@ -82,15 +88,23 @@ export class IntakeEntryComponent implements OnInit, OnDestroy {
   }
 
   protected get pageTitle(): string {
-    return this.isEditing ? 'Modifier la prise' : 'Saisir des prises';
+    if (this.isGroupEdit) return 'Modifier les prises';
+    return this.editingEntry ? 'Modifier la prise' : 'Saisir des prises';
   }
 
   ngOnInit(): void {
-    const state = history.state as { editEntry?: IntakeEntity; journalDate?: string };
+    const state = history.state as {
+      editEntry?: IntakeEntity;
+      editEntries?: readonly IntakeEntity[];
+      journalDate?: string;
+    };
     if (state?.journalDate) {
       this.journalDate = new Date(state.journalDate);
     }
-    if (state?.editEntry) {
+    if (state?.editEntries?.length) {
+      this.isGroupEdit = true;
+      this.editQueue = [...state.editEntries];
+    } else if (state?.editEntry) {
       this.editingEntry = state.editEntry;
     }
     void this.loadTreatments();
@@ -265,6 +279,10 @@ export class IntakeEntryComponent implements OnInit, OnDestroy {
   }
 
   private async loadTreatments(): Promise<void> {
+    if (this.isGroupEdit) {
+      await this.loadForEditGroup();
+      return;
+    }
     if (this.editingEntry) {
       await this.loadForEdit(this.editingEntry);
       return;
@@ -306,6 +324,80 @@ export class IntakeEntryComponent implements OnInit, OnDestroy {
       this.loading = false;
       this.cdr.markForCheck();
     }
+  }
+
+  /**
+   * Mode édition de groupe : itère la feuille de modification sur chaque prise.
+   *
+   * @remarks
+   * Charge tous les traitements (pour résoudre chaque prise rattachée), n'affiche
+   * aucune carte ni le formulaire ponctuel, puis ouvre les feuilles l'une après
+   * l'autre via {@link processNextGroupEdit}. Retour au journal une fois la file vidée.
+   */
+  private async loadForEditGroup(): Promise<void> {
+    this.allTreatments = await this.intake.getAllTreatments();
+    this.treatmentStates = [];
+    this.loading = false;
+    this.cdr.markForCheck();
+    this.processNextGroupEdit();
+  }
+
+  /** Ouvre la feuille de modification de la prochaine prise du groupe, ou revient au journal. */
+  private processNextGroupEdit(): void {
+    const next = this.editQueue.shift();
+    if (!next) {
+      void this.router.navigate(['/journal'], {
+        state: { journalDate: this.journalDate.toISOString() },
+      }).catch(() => undefined);
+      return;
+    }
+    const ref = this.bottomSheet.open(IntakeDetailSheetComponent, {
+      data: {
+        treatment: this.resolveTreatment(next),
+        confirmed: false,
+        skipped: false,
+        editEntry: next,
+      },
+    });
+    ref.afterDismissed().subscribe((result: SheetResult | undefined) => {
+      const persisted = result
+        ? this.intake.edit({
+            id: next.id,
+            confirmedAt: new Date(),
+            status: result.action,
+            skipReason: result.skipReason,
+            notes: result.notes,
+          })
+        : Promise.resolve();
+      void persisted.then(() => this.processNextGroupEdit());
+      this.cdr.markForCheck();
+    });
+  }
+
+  /**
+   * Résout le traitement d'une prise pour alimenter la feuille de détail.
+   * Prise rattachée → traitement réel ; prise ponctuelle → traitement de synthèse
+   * (affichage uniquement, la persistance se fait via l'id de la prise).
+   */
+  private resolveTreatment(entry: IntakeEntity): TreatmentEntity {
+    if (entry.treatmentId) {
+      const found = this.allTreatments.find(t => t.id === entry.treatmentId);
+      if (found) return found;
+    }
+    return {
+      id: entry.treatmentId ?? '',
+      name: entry.medicationName ?? 'Médicament',
+      category: 'other',
+      mode: 'oral',
+      dosage: entry.actualDose ?? '',
+      unit: '',
+      frequency: 1,
+      reminder: { enabled: false, times: [], soundEnabled: false },
+      notes: '',
+      active: false,
+      startedAt: entry.confirmedAt,
+      createdAt: entry.confirmedAt,
+    };
   }
 
   /** Date du journal à l'heure courante — garantit que les prises sont rattachées au bon jour. */

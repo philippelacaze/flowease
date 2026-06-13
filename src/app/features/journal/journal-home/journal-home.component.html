@@ -227,9 +227,13 @@
                           <mat-icon aria-hidden="true">delete</mat-icon>
                         </button>
                       } @else {
-                        <span class="entry-label intake-name"
+                        <span class="entry-label intake-name intake-name--group"
                               data-testid="intake-group-label">{{ intakeGroupLabel(e.items) }}</span>
                         <span class="entry-time intake-time">{{ e.confirmedAt | date:'HH:mm' }}</span>
+                        <button class="entry-edit-btn" aria-label="Modifier ces prises"
+                                data-testid="edit-intake-group-btn" (click)="editIntakeGroup(e.items)">
+                          <mat-icon aria-hidden="true">edit</mat-icon>
+                        </button>
                         <button class="entry-edit-btn entry-delete-btn" aria-label="Supprimer ces prises"
                                 data-testid="delete-intake-group-btn" (click)="deleteIntakeGroup(e.items)">
                           <mat-icon aria-hidden="true">delete</mat-icon>

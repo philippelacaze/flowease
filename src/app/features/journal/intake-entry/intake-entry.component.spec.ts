@@ -425,3 +425,89 @@ describe('IntakeEntryComponent — mode édition (depuis le journal)', () => {
     expect(mockBottomSheet.open).not.toHaveBeenCalled();
   });
 });
+
+describe('IntakeEntryComponent — mode édition de groupe (depuis le journal)', () => {
+  const t = new Date('2026-06-13T08:00:00');
+
+  function makeEntry(id: string, treatmentId: string) {
+    return { id, treatmentId, scheduledAt: t, confirmedAt: t, createdAt: t, status: 'taken' };
+  }
+
+  function setHistory(editEntries: unknown[]): void {
+    history.replaceState({ editEntries, journalDate: new Date().toISOString() }, '');
+  }
+
+  async function setup(mockIntake: ReturnType<typeof makeIntakeMock>) {
+    const subscribe = vi.fn();
+    const mockBottomSheet = { open: vi.fn().mockReturnValue({ afterDismissed: () => ({ subscribe }) }) };
+
+    await TestBed.configureTestingModule({
+      imports: [IntakeEntryComponent, NoopAnimationsModule],
+      providers: [
+        provideRouter([]),
+        { provide: IntakeService, useValue: mockIntake },
+        { provide: MatBottomSheet, useValue: mockBottomSheet },
+      ],
+    }).compileComponents();
+
+    const fixture = TestBed.createComponent(IntakeEntryComponent);
+    fixture.detectChanges();
+    await fixture.whenStable();
+    fixture.detectChanges();
+    return { fixture, mockBottomSheet, subscribe };
+  }
+
+  afterEach(() => {
+    vi.useRealTimers();
+    history.replaceState({}, '');
+  });
+
+  it('ouvre une feuille de modification par prise du groupe et persiste chacune via edit', async () => {
+    const treat2: TreatmentEntity = { ...mockTreatment, id: 'treat-2', name: 'Iberogast' };
+    setHistory([makeEntry('i1', 'treat-1'), makeEntry('i2', 'treat-2')]);
+    const mockIntake = makeIntakeMock([]);
+    mockIntake.getAllTreatments.mockResolvedValue([mockTreatment, treat2]);
+    const { fixture, mockBottomSheet, subscribe } = await setup(mockIntake);
+
+    // 1re prise : la feuille est ouverte, on confirme
+    expect(mockBottomSheet.open).toHaveBeenCalledTimes(1);
+    const cb1 = subscribe.mock.calls[0][0] as (r: SheetResult | undefined) => void;
+    cb1({ action: 'taken' });
+    await fixture.whenStable();
+    expect(mockIntake.edit).toHaveBeenCalledWith(expect.objectContaining({ id: 'i1', status: 'taken' }));
+
+    // 2e prise : la feuille suivante s'ouvre automatiquement, on saute
+    expect(mockBottomSheet.open).toHaveBeenCalledTimes(2);
+    const cb2 = subscribe.mock.calls[1][0] as (r: SheetResult | undefined) => void;
+    cb2({ action: 'skipped', skipReason: 'forgot' });
+    await fixture.whenStable();
+    expect(mockIntake.edit).toHaveBeenCalledWith(
+      expect.objectContaining({ id: 'i2', status: 'skipped', skipReason: 'forgot' }),
+    );
+  });
+
+  it('revient au journal après la dernière prise du groupe', async () => {
+    setHistory([makeEntry('i1', 'treat-1')]);
+    const mockIntake = makeIntakeMock([]);
+    mockIntake.getAllTreatments.mockResolvedValue([mockTreatment]);
+    const { fixture, subscribe } = await setup(mockIntake);
+    const router = TestBed.inject(Router);
+    const navigateSpy = vi.spyOn(router, 'navigate').mockResolvedValue(true);
+
+    const cb = subscribe.mock.calls[0][0] as (r: SheetResult | undefined) => void;
+    cb({ action: 'taken' });
+    await fixture.whenStable();
+
+    expect(navigateSpy).toHaveBeenCalledWith(['/journal'], expect.anything());
+  });
+
+  it('n\'affiche ni le formulaire ponctuel ni le bouton Terminer en édition de groupe', async () => {
+    setHistory([makeEntry('i1', 'treat-1'), makeEntry('i2', 'treat-2')]);
+    const mockIntake = makeIntakeMock([]);
+    mockIntake.getAllTreatments.mockResolvedValue([mockTreatment]);
+    const { fixture } = await setup(mockIntake);
+
+    expect(fixture.debugElement.query(By.css('[data-testid="adhoc-form"]'))).toBeNull();
+    expect(fixture.debugElement.query(By.css('[data-testid="done-intake"]'))).toBeNull();
+  });
+});
